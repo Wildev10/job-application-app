@@ -21,10 +21,6 @@ return new class extends Migration
             $table->string('cv')->nullable();
             $table->integer('score')->default(0);
             $table->timestamps();
-
-            $table->index('role');
-            $table->index('score');
-            $table->index('created_at');
         });
     }
 

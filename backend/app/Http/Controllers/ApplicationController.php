@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\IndexApplicationsRequest;
 use App\Http\Requests\StoreApplicationRequest;
 use App\Models\Application;
 use App\Services\ScoringService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Throwable;
 
 class ApplicationController extends Controller
@@ -21,39 +21,32 @@ class ApplicationController extends Controller
     /**
      * Display the list of applications with optional filters and sorting.
      */
-    public function index(IndexApplicationsRequest $request): JsonResponse
+    public function index(Request $request): JsonResponse
     {
         try {
-            $validated = $request->validated();
             $query = Application::query();
 
-            $role = $validated['role'] ?? null;
+            $role = $request->query('role');
             if (in_array($role, ['dev', 'designer'], true)) {
                 $query->where('role', $role);
             }
 
-            $sort = $validated['sort'] ?? 'date';
+            $sort = $request->query('sort', 'date');
             if ($sort === 'score') {
                 $query->orderByDesc('score');
             } else {
                 $query->orderByDesc('created_at');
             }
 
-            $perPage = (int) ($validated['per_page'] ?? 15);
-            $applications = $query->paginate($perPage)->appends($validated);
+            $applications = $query->get();
 
             return response()->json([
-                'data' => $applications->items(),
-                'meta' => [
-                    'current_page' => $applications->currentPage(),
-                    'per_page' => $applications->perPage(),
-                    'total' => $applications->total(),
-                    'last_page' => $applications->lastPage(),
-                ],
+                'data' => $applications,
+                'total' => $applications->count(),
             ], 200)->header('Content-Type', 'application/json');
         } catch (Throwable) {
             return response()->json([
-                'message' => 'An unexpected server error occurred.',
+                'message' => 'Une erreur serveur est survenue.',
             ], 500)->header('Content-Type', 'application/json');
         }
     }
@@ -74,12 +67,11 @@ class ApplicationController extends Controller
 
             $application = Application::create($data);
 
-            return response()->json([
-                'data' => $application,
-            ], 201)->header('Content-Type', 'application/json');
+            return response()->json($application, 201)
+                ->header('Content-Type', 'application/json');
         } catch (Throwable) {
             return response()->json([
-                'message' => 'An unexpected server error occurred.',
+                'message' => 'Une erreur serveur est survenue.',
             ], 500)->header('Content-Type', 'application/json');
         }
     }

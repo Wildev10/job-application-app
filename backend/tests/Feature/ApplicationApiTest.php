@@ -36,15 +36,15 @@ class ApplicationApiTest extends TestCase
         $response = $this->post('/api/applications', $payload);
 
         $response->assertStatus(201)
-            ->assertJsonPath('data.email', 'jean@example.com')
-            ->assertJsonPath('data.score', 5);
+            ->assertJsonPath('email', 'jean@example.com')
+            ->assertJsonPath('score', 5);
 
         $this->assertDatabaseHas('applications', [
             'email' => 'jean@example.com',
             'score' => 5,
         ]);
 
-        $storedCvPath = $response->json('data.cv');
+        $storedCvPath = $response->json('cv');
         $this->assertNotNull($storedCvPath);
         Storage::disk('public')->assertExists($storedCvPath);
     }
@@ -57,7 +57,7 @@ class ApplicationApiTest extends TestCase
         $response = $this->getJson('/api/applications?role=dev');
 
         $response->assertStatus(200)
-            ->assertJsonPath('meta.total', 2);
+            ->assertJsonPath('total', 2);
 
         $roles = collect($response->json('data'))->pluck('role')->unique()->values()->all();
         $this->assertSame(['dev'], $roles);
@@ -77,25 +77,18 @@ class ApplicationApiTest extends TestCase
         $this->assertSame([5, 3, 1], $scores);
     }
 
-    public function test_index_is_paginated_and_exposes_meta(): void
+    public function test_index_is_sorted_by_date_descending_by_default(): void
     {
-        Application::factory()->count(5)->create();
+        $oldest = Application::factory()->create(['created_at' => now()->subDays(2)]);
+        $latest = Application::factory()->create(['created_at' => now()]);
+        $middle = Application::factory()->create(['created_at' => now()->subDay()]);
 
-        $response = $this->getJson('/api/applications?per_page=2&page=2');
+        $response = $this->getJson('/api/applications');
 
         $response->assertStatus(200)
-            ->assertJsonCount(2, 'data')
-            ->assertJsonPath('meta.current_page', 2)
-            ->assertJsonPath('meta.per_page', 2)
-            ->assertJsonPath('meta.total', 5)
-            ->assertJsonPath('meta.last_page', 3);
-    }
+            ->assertJsonPath('total', 3);
 
-    public function test_index_rejects_invalid_query_params(): void
-    {
-        $response = $this->getJson('/api/applications?sort=bad&per_page=1000&page=0');
-
-        $response->assertStatus(422)
-            ->assertJsonValidationErrors(['sort', 'per_page', 'page']);
+        $ids = collect($response->json('data'))->pluck('id')->all();
+        $this->assertSame([$latest->id, $middle->id, $oldest->id], $ids);
     }
 }
