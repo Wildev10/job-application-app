@@ -150,14 +150,6 @@ export default function ApplicationForm() {
     const validationErrors = validateForm(form);
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
-
-      void Swal.fire({
-        icon: 'error',
-        title: 'Formulaire invalide',
-        text: 'Merci de corriger les champs en erreur.',
-        confirmButtonColor: '#4f46e5',
-      });
-
       return;
     }
 
@@ -185,9 +177,16 @@ export default function ApplicationForm() {
 
       await Swal.fire({
         icon: 'success',
-        title: 'Candidature envoyée',
-        text: 'Votre candidature a été envoyée avec succès.',
-        confirmButtonColor: '#4f46e5',
+        title: 'Candidature envoyée !',
+        text: 'Nous avons bien reçu votre candidature. Nous vous contacterons bientôt.',
+        confirmButtonText: 'Fermer',
+        confirmButtonColor: '#0F0F0F',
+        background: '#FAFAF9',
+        color: '#0F0F0F',
+        customClass: {
+          popup: 'rounded-md',
+          confirmButton: 'px-6 py-2 text-sm font-medium',
+        },
       });
 
       setHasSubmitted(true);
@@ -196,19 +195,15 @@ export default function ApplicationForm() {
 
       if (apiError.status === 422) {
         setErrors(mapApiErrors(apiError));
-
-        void Swal.fire({
-          icon: 'error',
-          title: 'Erreur de validation',
-          text: apiError.message || 'Certains champs sont invalides.',
-          confirmButtonColor: '#4f46e5',
-        });
       } else {
         void Swal.fire({
           icon: 'error',
-          title: 'Erreur serveur',
-          text: apiError.message || 'Une erreur est survenue. Veuillez réessayer.',
-          confirmButtonColor: '#4f46e5',
+          title: 'Une erreur est survenue',
+          text: 'Impossible de soumettre votre candidature. Veuillez réessayer.',
+          confirmButtonText: 'Réessayer',
+          confirmButtonColor: '#0F0F0F',
+          background: '#FAFAF9',
+          color: '#0F0F0F',
         });
       }
     } finally {
@@ -218,11 +213,11 @@ export default function ApplicationForm() {
 
   if (hasSubmitted) {
     return (
-      <section className="w-full max-w-3xl rounded-3xl border border-indigo-200 bg-white/90 p-4 shadow-xl backdrop-blur sm:p-8">
-        <h1 className="text-2xl font-black tracking-tight text-slate-900 sm:text-3xl">
+      <section className="w-full max-w-3xl border-t border-[#d4d4d4] pt-8 sm:pt-10">
+        <h1 className="text-3xl font-extrabold tracking-[-0.02em] text-[#0f0f0f] sm:text-4xl">
           Merci pour votre candidature et l&apos;intérêt que vous portez à notre entreprise
         </h1>
-        <div className="mt-5 space-y-4 text-base leading-relaxed text-slate-700">
+        <div className="mt-6 space-y-5 text-base leading-relaxed text-[#525252]">
           <p>
             Nous avons bien reçu votre profil. Nous allons procéder à une analyse des candidatures
             dans les prochains jours. Les profils retenus seront contactés pour la suite du
@@ -230,11 +225,11 @@ export default function ApplicationForm() {
           </p>
           <p>Nous reviendrons vers vous très rapidement.</p>
         </div>
-        <div className="mt-6 text-center text-sm text-slate-700 sm:text-left">
+        <div className="mt-8 text-sm text-[#525252]">
           <Link
             href="/"
             onClick={() => setHasSubmitted(false)}
-            className="font-semibold text-indigo-600 transition hover:text-indigo-700"
+            className="inline-flex items-center border-b border-[#0f0f0f] pb-0.5 font-medium text-[#0f0f0f] hover:text-[#ff4d00] hover:border-[#ff4d00]"
           >
             Revenir au formulaire
           </Link>
@@ -244,32 +239,34 @@ export default function ApplicationForm() {
   }
 
   return (
-    <section className="w-full max-w-3xl rounded-3xl border border-indigo-200 bg-white/90 p-4 shadow-xl backdrop-blur sm:p-8">
-      <h1 className="text-2xl font-black tracking-tight text-slate-900 sm:text-3xl">Candidature</h1>
-      <p className="mt-2 text-sm text-slate-600">
-        Remplissez le formulaire ci-dessous pour postuler au poste de vos rêves.
+    <section className="w-full max-w-3xl border-t border-[#d4d4d4] pt-8 sm:pt-10">
+      <h2 className="text-3xl font-extrabold tracking-[-0.02em] text-[#0f0f0f] sm:text-4xl">
+        Déposez votre candidature
+      </h2>
+      <p className="mt-3 max-w-xl text-sm font-medium text-[#525252] sm:text-base">
+        Quelques informations suffisent. Nous revenons vers les profils retenus rapidement.
       </p>
 
-      <form onSubmit={handleSubmit} className="mt-6 space-y-5" noValidate>
-        <div>
-          <label htmlFor="nom" className="mb-1 block text-sm font-semibold text-slate-800">
-            Nom
+      <form onSubmit={handleSubmit} className="mt-10 space-y-8" noValidate>
+        <div className="space-y-2">
+          <label htmlFor="nom" className="block text-xs font-semibold uppercase tracking-[0.14em] text-[#737373]">
+            Nom complet
           </label>
           <input
             id="nom"
             name="nom"
             value={form.nom}
             onChange={handleChange}
-            className="w-full rounded-xl border border-slate-300 px-4 py-2.5 outline-none transition focus:border-indigo-600 focus:ring-2 focus:ring-indigo-200"
+            className="w-full border-0 border-b border-[#d4d4d4] bg-transparent px-0 py-3 text-[15px] text-[#0f0f0f] outline-none placeholder:text-[#a3a3a3] focus:border-[#ff4d00]"
             placeholder="Jane Doe"
             required
           />
           {errors.nom && <p className="mt-1 text-sm text-red-600">{errors.nom}</p>}
         </div>
 
-        <div className="grid gap-5 sm:grid-cols-2">
-          <div>
-            <label htmlFor="email" className="mb-1 block text-sm font-semibold text-slate-800">
+        <div className="grid gap-8 sm:grid-cols-2">
+          <div className="space-y-2">
+            <label htmlFor="email" className="block text-xs font-semibold uppercase tracking-[0.14em] text-[#737373]">
               Email
             </label>
             <input
@@ -278,15 +275,15 @@ export default function ApplicationForm() {
               type="email"
               value={form.email}
               onChange={handleChange}
-              className="w-full rounded-xl border border-slate-300 px-4 py-2.5 outline-none transition focus:border-indigo-600 focus:ring-2 focus:ring-indigo-200"
+              className="w-full border-0 border-b border-[#d4d4d4] bg-transparent px-0 py-3 text-[15px] text-[#0f0f0f] outline-none placeholder:text-[#a3a3a3] focus:border-[#ff4d00]"
               placeholder="jane@example.com"
               required
             />
             {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
           </div>
 
-          <div>
-            <label htmlFor="role" className="mb-1 block text-sm font-semibold text-slate-800">
+          <div className="space-y-2">
+            <label htmlFor="role" className="block text-xs font-semibold uppercase tracking-[0.14em] text-[#737373]">
               Rôle
             </label>
             <select
@@ -294,7 +291,7 @@ export default function ApplicationForm() {
               name="role"
               value={form.role}
               onChange={handleChange}
-              className="w-full rounded-xl border border-slate-300 px-4 py-2.5 outline-none transition focus:border-indigo-600 focus:ring-2 focus:ring-indigo-200"
+              className="w-full border-0 border-b border-[#d4d4d4] bg-transparent px-0 py-3 text-[15px] text-[#0f0f0f] outline-none focus:border-[#ff4d00]"
               required
             >
               <option value="">Choisir un rôle</option>
@@ -305,8 +302,8 @@ export default function ApplicationForm() {
           </div>
         </div>
 
-        <div>
-          <label htmlFor="motivation" className="mb-1 block text-sm font-semibold text-slate-800">
+        <div className="space-y-2">
+          <label htmlFor="motivation" className="block text-xs font-semibold uppercase tracking-[0.14em] text-[#737373]">
             Motivation
           </label>
           <textarea
@@ -315,23 +312,23 @@ export default function ApplicationForm() {
             rows={5}
             value={form.motivation}
             onChange={handleChange}
-            className="w-full rounded-xl border border-slate-300 px-4 py-2.5 outline-none transition focus:border-indigo-600 focus:ring-2 focus:ring-indigo-200"
+            className="w-full resize-none border-0 border-b border-[#d4d4d4] bg-transparent px-0 py-3 text-[15px] text-[#0f0f0f] outline-none placeholder:text-[#a3a3a3] focus:border-[#ff4d00]"
             placeholder="Expliquez pourquoi vous êtes la bonne personne pour ce rôle..."
             required
           />
-          <div className="mt-1 flex flex-wrap items-center justify-between gap-2">
+          <div className="mt-1 flex flex-wrap items-center justify-between gap-2 text-xs">
             {errors.motivation ? (
               <p className="text-sm text-red-600">{errors.motivation}</p>
             ) : (
-              <p className="text-xs text-slate-500">Minimum 20 caractères</p>
+              <p className="text-[#737373]">Minimum 20 caractères</p>
             )}
-            <p className="text-xs text-slate-500">{motivationCount} caractères</p>
+            <p className="text-[#737373]">{motivationCount} caractères</p>
           </div>
         </div>
 
-        <div className="grid gap-5 sm:grid-cols-2">
-          <div>
-            <label htmlFor="portfolio" className="mb-1 block text-sm font-semibold text-slate-800">
+        <div className="grid gap-8 sm:grid-cols-2">
+          <div className="space-y-2">
+            <label htmlFor="portfolio" className="block text-xs font-semibold uppercase tracking-[0.14em] text-[#737373]">
               Portfolio (optionnel)
             </label>
             <input
@@ -340,14 +337,14 @@ export default function ApplicationForm() {
               type="url"
               value={form.portfolio}
               onChange={handleChange}
-              className="w-full rounded-xl border border-slate-300 px-4 py-2.5 outline-none transition focus:border-indigo-600 focus:ring-2 focus:ring-indigo-200"
+              className="w-full border-0 border-b border-[#d4d4d4] bg-transparent px-0 py-3 text-[15px] text-[#0f0f0f] outline-none placeholder:text-[#a3a3a3] focus:border-[#ff4d00]"
               placeholder="https://mon-portfolio.com"
             />
             {errors.portfolio && <p className="mt-1 text-sm text-red-600">{errors.portfolio}</p>}
           </div>
 
-          <div>
-            <label htmlFor="cv" className="mb-1 block text-sm font-semibold text-slate-800">
+          <div className="space-y-2">
+            <label htmlFor="cv" className="block text-xs font-semibold uppercase tracking-[0.14em] text-[#737373]">
               CV (pdf/doc/docx, optionnel)
             </label>
             <input
@@ -356,7 +353,7 @@ export default function ApplicationForm() {
               type="file"
               accept=".pdf,.doc,.docx"
               onChange={handleFileChange}
-              className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm outline-none transition file:mr-4 file:rounded-lg file:border-0 file:bg-indigo-50 file:px-3 file:py-2 file:font-semibold file:text-indigo-700 hover:file:bg-indigo-100"
+              className="w-full border-0 border-b border-[#d4d4d4] bg-transparent px-0 py-3 text-sm text-[#525252] outline-none file:mr-4 file:rounded-md file:border file:border-[#d4d4d4] file:bg-transparent file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-[#0f0f0f] hover:file:border-[#0f0f0f]"
             />
             {errors.cv && <p className="mt-1 text-sm text-red-600">{errors.cv}</p>}
           </div>
@@ -365,7 +362,7 @@ export default function ApplicationForm() {
         <button
           type="submit"
           disabled={isSubmitting}
-          className="inline-flex w-full items-center justify-center rounded-xl bg-indigo-600 px-5 py-3 font-semibold text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
+          className="inline-flex w-full items-center justify-center rounded-md bg-[#0f0f0f] px-8 py-4 text-sm font-semibold tracking-wide text-white hover:-translate-y-[1px] hover:bg-[#1f1f1f] disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isSubmitting ? 'Envoi en cours...' : 'Envoyer ma candidature'}
         </button>

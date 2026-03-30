@@ -1,6 +1,7 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
+import Swal from 'sweetalert2';
 import type { Application } from '@/app/types/application';
 import RoleBadge from '@/app/components/RoleBadge';
 import ScoreBadge from '@/app/components/ScoreBadge';
@@ -14,15 +15,29 @@ interface ApplicationCardProps {
  * Present one application with expandable motivation and useful links.
  */
 export default function ApplicationCard({ application }: ApplicationCardProps) {
-  const [expanded, setExpanded] = useState(false);
-
   const motivationPreview = useMemo(() => {
-    if (application.motivation.length <= 100 || expanded) {
+    if (application.motivation.length <= 100) {
       return application.motivation;
     }
 
     return `${application.motivation.slice(0, 100)}...`;
-  }, [application.motivation, expanded]);
+  }, [application.motivation]);
+
+  const openMotivationPopup = async (): Promise<void> => {
+    await Swal.fire({
+      icon: 'info',
+      title: 'Motivation complète',
+      text: application.motivation,
+      confirmButtonText: 'Fermer',
+      confirmButtonColor: '#0F0F0F',
+      background: '#FAFAF9',
+      color: '#0F0F0F',
+      customClass: {
+        popup: 'rounded-md',
+        confirmButton: 'px-6 py-2 text-sm font-medium',
+      },
+    });
+  };
 
   const cvUrl = getCvPublicUrl(application.cv);
   const submittedAt = new Intl.DateTimeFormat('fr-FR', {
@@ -31,66 +46,62 @@ export default function ApplicationCard({ application }: ApplicationCardProps) {
   }).format(new Date(application.created_at));
 
   return (
-    <article className="rounded-2xl border border-indigo-100 bg-white p-4 shadow-sm transition hover:shadow-md sm:p-5">
-      <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="min-w-0">
-          <h3 className="text-lg font-semibold text-slate-900">{application.nom}</h3>
-          <p className="break-all text-sm text-slate-600">{application.email}</p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
+    <article className="grid gap-4 py-5 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)_auto] lg:items-center lg:gap-6">
+      <header className="min-w-0 space-y-2">
+        <div className="flex flex-wrap items-center gap-3">
+          <h3 className="text-base font-bold tracking-[-0.01em] text-[#0f0f0f] sm:text-lg">{application.nom}</h3>
           <RoleBadge role={application.role} />
           <ScoreBadge score={application.score} />
         </div>
+        <p className="break-all text-sm text-[#525252]">{application.email}</p>
       </header>
 
-      <div className="mt-4 space-y-3 text-sm text-slate-700">
-        <p>
-          <span className="font-medium text-slate-900">Motivation :</span> {motivationPreview}{' '}
+      <div className="min-w-0 space-y-2 text-sm text-[#525252]">
+        <p className="break-words leading-relaxed">
+          {motivationPreview}{' '}
           {application.motivation.length > 100 && (
             <button
               type="button"
-              onClick={() => setExpanded((value) => !value)}
-              className="font-semibold text-indigo-600 hover:text-indigo-700"
+              onClick={() => void openMotivationPopup()}
+              className="border-b border-[#0f0f0f] pb-0.5 font-medium text-[#0f0f0f] hover:border-[#ff4d00] hover:text-[#ff4d00]"
             >
-              {expanded ? 'voir moins' : 'voir plus'}
+              voir plus
             </button>
           )}
         </p>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
+        <p className="text-[#737373]">{submittedAt}</p>
 
         <p className="break-words">
-          <span className="font-medium text-slate-900">Portfolio :</span>{' '}
           {application.portfolio ? (
             <a
               href={application.portfolio}
               target="_blank"
               rel="noreferrer"
-              className="break-all font-semibold text-indigo-600 hover:text-indigo-700"
+              className="break-all border-b border-[#0f0f0f] pb-0.5 font-medium text-[#0f0f0f] hover:border-[#ff4d00] hover:text-[#ff4d00]"
             >
-              {application.portfolio}
+              Portfolio
             </a>
           ) : (
-            <span className="text-slate-500">Non renseigné</span>
+            <span className="text-[#a3a3a3]">Portfolio indisponible</span>
           )}
         </p>
 
         <p>
-          <span className="font-medium text-slate-900">CV :</span>{' '}
           {cvUrl ? (
             <a
               href={cvUrl}
               target="_blank"
               rel="noreferrer"
-              className="font-semibold text-indigo-600 hover:text-indigo-700"
+              className="border-b border-[#0f0f0f] pb-0.5 font-medium text-[#0f0f0f] hover:border-[#ff4d00] hover:text-[#ff4d00]"
             >
               Télécharger
             </a>
           ) : (
-            <span className="text-slate-500">Non fourni</span>
+            <span className="text-[#a3a3a3]">CV non fourni</span>
           )}
-        </p>
-
-        <p>
-          <span className="font-medium text-slate-900">Soumise le :</span> {submittedAt}
         </p>
       </div>
     </article>

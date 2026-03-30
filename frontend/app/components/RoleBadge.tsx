@@ -5,7 +5,7 @@ interface RoleBadgeProps {
 }
 
 /**
- * Display role with dedicated semantic color.
+ * Display role as a minimal bordered text tag.
  */
 export default function RoleBadge({ role }: RoleBadgeProps) {
   const isDev = role === 'dev';
@@ -13,8 +13,8 @@ export default function RoleBadge({ role }: RoleBadgeProps) {
   return (
     <span
       className={[
-        'inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide',
-        isDev ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800',
+        'inline-flex items-center border-l-2 pl-2 text-xs font-semibold uppercase tracking-[0.12em] bg-transparent',
+        isDev ? 'border-l-blue-500 text-blue-700' : 'border-l-purple-500 text-purple-700',
       ].join(' ')}
     >
       {role}

@@ -5,7 +5,7 @@ import ApplicationList from '@/app/components/ApplicationList';
  */
 export default function AdminPage() {
   return (
-    <main className="min-h-screen bg-slate-50 px-4 py-8 sm:px-6 lg:px-8">
+    <main className="min-h-[calc(100vh-3.5rem)] bg-[#fafaf9] px-4 py-12 sm:px-6 sm:py-16 lg:px-10 lg:py-20">
       <ApplicationList />
     </main>
   );
