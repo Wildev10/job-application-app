@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
+import Swal from 'sweetalert2';
 import { submitApplication } from '@/app/lib/api';
 import type { ApiError, ApplicationFormData } from '@/app/types/application';
 
@@ -15,6 +16,14 @@ const INITIAL_FORM: ApplicationFormData = {
   portfolio: '',
   cv: null,
 };
+
+const ALLOWED_CV_MIME_TYPES = [
+  'application/pdf',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+];
+
+const ALLOWED_CV_EXTENSIONS = ['pdf', 'doc', 'docx'];
 
 /**
  * Validate client-side rules before sending multipart payload.
@@ -47,13 +56,11 @@ function validateForm(data: ApplicationFormData): FormErrors {
   }
 
   if (data.cv) {
-    const allowedTypes = [
-      'application/pdf',
-      'application/msword',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    ];
+    const extension = data.cv.name.split('.').pop()?.toLowerCase();
+    const hasAllowedMime = !data.cv.type || ALLOWED_CV_MIME_TYPES.includes(data.cv.type);
+    const hasAllowedExtension = !!extension && ALLOWED_CV_EXTENSIONS.includes(extension);
 
-    if (!allowedTypes.includes(data.cv.type)) {
+    if (!hasAllowedMime || !hasAllowedExtension) {
       errors.cv = 'Le CV doit être un fichier pdf, doc ou docx.';
     }
 
@@ -94,8 +101,7 @@ export default function ApplicationForm() {
   const [form, setForm] = useState<ApplicationFormData>(INITIAL_FORM);
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [successMessage, setSuccessMessage] = useState('');
-  const [serverError, setServerError] = useState('');
+  const [hasSubmitted, setHasSubmitted] = useState(false);
 
   const motivationCount = useMemo(() => form.motivation.trim().length, [form.motivation]);
 
@@ -109,18 +115,49 @@ export default function ApplicationForm() {
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0] ?? null;
+
+    if (file) {
+      const extension = file.name.split('.').pop()?.toLowerCase();
+      const hasAllowedMime = !file.type || ALLOWED_CV_MIME_TYPES.includes(file.type);
+      const hasAllowedExtension = !!extension && ALLOWED_CV_EXTENSIONS.includes(extension);
+
+      if (!hasAllowedMime || !hasAllowedExtension) {
+        setErrors((previous) => ({
+          ...previous,
+          cv: 'Le CV doit être un fichier pdf, doc ou docx.',
+        }));
+        setForm((previous) => ({ ...previous, cv: null }));
+        event.target.value = '';
+
+        void Swal.fire({
+          icon: 'error',
+          title: 'Format de CV invalide',
+          text: 'Veuillez sélectionner un fichier PDF, DOC ou DOCX.',
+          confirmButtonColor: '#4f46e5',
+        });
+
+        return;
+      }
+    }
+
     setForm((previous) => ({ ...previous, cv: file }));
     setErrors((previous) => ({ ...previous, cv: '' }));
   };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setSuccessMessage('');
-    setServerError('');
 
     const validationErrors = validateForm(form);
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
+
+      void Swal.fire({
+        icon: 'error',
+        title: 'Formulaire invalide',
+        text: 'Merci de corriger les champs en erreur.',
+        confirmButtonColor: '#4f46e5',
+      });
+
       return;
     }
 
@@ -143,25 +180,72 @@ export default function ApplicationForm() {
 
       await submitApplication(payload);
 
-      setSuccessMessage('Votre candidature a été envoyée avec succès.');
       setForm(INITIAL_FORM);
       setErrors({});
+
+      await Swal.fire({
+        icon: 'success',
+        title: 'Candidature envoyée',
+        text: 'Votre candidature a été envoyée avec succès.',
+        confirmButtonColor: '#4f46e5',
+      });
+
+      setHasSubmitted(true);
     } catch (error) {
       const apiError = error as ApiError;
 
       if (apiError.status === 422) {
         setErrors(mapApiErrors(apiError));
+
+        void Swal.fire({
+          icon: 'error',
+          title: 'Erreur de validation',
+          text: apiError.message || 'Certains champs sont invalides.',
+          confirmButtonColor: '#4f46e5',
+        });
       } else {
-        setServerError(apiError.message || 'Une erreur est survenue. Veuillez réessayer.');
+        void Swal.fire({
+          icon: 'error',
+          title: 'Erreur serveur',
+          text: apiError.message || 'Une erreur est survenue. Veuillez réessayer.',
+          confirmButtonColor: '#4f46e5',
+        });
       }
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  if (hasSubmitted) {
+    return (
+      <section className="w-full max-w-3xl rounded-3xl border border-indigo-200 bg-white/90 p-4 shadow-xl backdrop-blur sm:p-8">
+        <h1 className="text-2xl font-black tracking-tight text-slate-900 sm:text-3xl">
+          Merci pour votre candidature et l&apos;intérêt que vous portez à notre entreprise
+        </h1>
+        <div className="mt-5 space-y-4 text-base leading-relaxed text-slate-700">
+          <p>
+            Nous avons bien reçu votre profil. Nous allons procéder à une analyse des candidatures
+            dans les prochains jours. Les profils retenus seront contactés pour la suite du
+            processus (évaluation + entretien).
+          </p>
+          <p>Nous reviendrons vers vous très rapidement.</p>
+        </div>
+        <div className="mt-6 text-center text-sm text-slate-700 sm:text-left">
+          <Link
+            href="/"
+            onClick={() => setHasSubmitted(false)}
+            className="font-semibold text-indigo-600 transition hover:text-indigo-700"
+          >
+            Revenir au formulaire
+          </Link>
+        </div>
+      </section>
+    );
+  }
+
   return (
-    <section className="w-full max-w-3xl rounded-3xl border border-indigo-200 bg-white/90 p-6 shadow-xl backdrop-blur sm:p-8">
-      <h1 className="text-3xl font-black tracking-tight text-slate-900">Candidature</h1>
+    <section className="w-full max-w-3xl rounded-3xl border border-indigo-200 bg-white/90 p-4 shadow-xl backdrop-blur sm:p-8">
+      <h1 className="text-2xl font-black tracking-tight text-slate-900 sm:text-3xl">Candidature</h1>
       <p className="mt-2 text-sm text-slate-600">
         Remplissez le formulaire ci-dessous pour postuler au poste de vos rêves.
       </p>
@@ -235,7 +319,7 @@ export default function ApplicationForm() {
             placeholder="Expliquez pourquoi vous êtes la bonne personne pour ce rôle..."
             required
           />
-          <div className="mt-1 flex items-center justify-between">
+          <div className="mt-1 flex flex-wrap items-center justify-between gap-2">
             {errors.motivation ? (
               <p className="text-sm text-red-600">{errors.motivation}</p>
             ) : (
@@ -278,16 +362,6 @@ export default function ApplicationForm() {
           </div>
         </div>
 
-        {successMessage && (
-          <p className="rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
-            {successMessage}
-          </p>
-        )}
-
-        {serverError && (
-          <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{serverError}</p>
-        )}
-
         <button
           type="submit"
           disabled={isSubmitting}
@@ -296,12 +370,6 @@ export default function ApplicationForm() {
           {isSubmitting ? 'Envoi en cours...' : 'Envoyer ma candidature'}
         </button>
       </form>
-
-      <div className="mt-6 text-sm text-slate-700">
-        <Link href="/admin" className="font-semibold text-indigo-600 transition hover:text-indigo-700">
-          Voir l&apos;espace admin
-        </Link>
-      </div>
     </section>
   );
 }

@@ -42,11 +42,11 @@ export default function ApplicationList() {
   }, [role, sort]);
 
   return (
-    <section className="mx-auto w-full max-w-5xl space-y-6">
-      <header className="rounded-2xl border border-indigo-200 bg-white p-5 shadow-sm">
-        <div className="flex flex-wrap items-center justify-between gap-4">
+    <section className="mx-auto w-full max-w-6xl space-y-5 sm:space-y-6">
+      <header className="rounded-2xl border border-indigo-200 bg-white p-4 shadow-sm sm:p-5">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
           <div>
-            <h1 className="text-2xl font-black text-slate-900">Administration des candidatures</h1>
+            <h1 className="text-xl font-black text-slate-900 sm:text-2xl">Administration des candidatures</h1>
             <p className="text-sm text-slate-600">Total: {total} candidature(s)</p>
           </div>
           <Link href="/" className="text-sm font-semibold text-indigo-600 hover:text-indigo-700">
@@ -105,7 +105,7 @@ export default function ApplicationList() {
       )}
 
       {!isLoading && !errorMessage && applications.length > 0 && (
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-2 lg:gap-5">
           {applications.map((application) => (
             <ApplicationCard key={application.id} application={application} />
           ))}

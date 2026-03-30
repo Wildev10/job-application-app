@@ -31,13 +31,13 @@ export default function ApplicationCard({ application }: ApplicationCardProps) {
   }).format(new Date(application.created_at));
 
   return (
-    <article className="rounded-2xl border border-indigo-100 bg-white p-5 shadow-sm transition hover:shadow-md">
-      <header className="flex flex-wrap items-center justify-between gap-3">
-        <div>
+    <article className="rounded-2xl border border-indigo-100 bg-white p-4 shadow-sm transition hover:shadow-md sm:p-5">
+      <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
           <h3 className="text-lg font-semibold text-slate-900">{application.nom}</h3>
-          <p className="text-sm text-slate-600">{application.email}</p>
+          <p className="break-all text-sm text-slate-600">{application.email}</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <RoleBadge role={application.role} />
           <ScoreBadge score={application.score} />
         </div>
@@ -57,14 +57,14 @@ export default function ApplicationCard({ application }: ApplicationCardProps) {
           )}
         </p>
 
-        <p>
+        <p className="break-words">
           <span className="font-medium text-slate-900">Portfolio :</span>{' '}
           {application.portfolio ? (
             <a
               href={application.portfolio}
               target="_blank"
               rel="noreferrer"
-              className="font-semibold text-indigo-600 hover:text-indigo-700"
+              className="break-all font-semibold text-indigo-600 hover:text-indigo-700"
             >
               {application.portfolio}
             </a>
