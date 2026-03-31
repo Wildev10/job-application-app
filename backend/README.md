@@ -1,58 +1,132 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Backend - Laravel 13
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+API REST pour la gestion des candidatures.
 
-## About Laravel
+## Prerequis
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- PHP >= 8.2
+- Composer
+- MySQL
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
-
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
-
-## Learning Laravel
-
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+## Installation
 
 ```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+cd backend
+composer install
+cp .env.example .env
+php artisan key:generate
+php artisan migrate
+php artisan storage:link
+php artisan serve
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+## Variables d'environnement
 
-## Contributing
+```env
+APP_NAME=JobApplicationApp
+APP_URL=http://localhost:8000
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=job-application
+DB_USERNAME=root
+DB_PASSWORD=
+FILESYSTEM_DISK=public
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## Documentation des endpoints API
 
-## Code of Conduct
+### POST /api/applications
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Description: Soumettre une candidature.
 
-## Security Vulnerabilities
+Format: multipart/form-data
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+| Champ | Type | Obligatoire | Description |
+|---|---|---|---|
+| nom | string | oui | Nom complet |
+| email | string | oui | Adresse email valide |
+| role | string | oui | dev ou designer |
+| motivation | string | oui | Min 20 caracteres |
+| portfolio | string | non | URL du portfolio |
+| cv | file | non | PDF, DOC, DOCX - max 2Mo |
 
-## License
+Reponse succes 201:
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+```json
+{
+	"id": 1,
+	"nom": "John Doe",
+	"email": "john@example.com",
+	"role": "dev",
+	"motivation": "...",
+	"portfolio": "https://...",
+	"cv": "cvs/fichier.pdf",
+	"score": 4,
+	"created_at": "2024-01-01T00:00:00Z"
+}
+```
+
+Reponse erreur 422:
+
+```json
+{
+	"message": "The given data was invalid.",
+	"errors": {
+		"email": ["The email field is required."],
+		"nom": ["The nom field is required."]
+	}
+}
+```
+
+### GET /api/applications
+
+Description: Recuperer toutes les candidatures.
+
+Query params optionnels:
+
+| Parametre | Valeurs | Description |
+|---|---|---|
+| role | dev, designer | Filtrer par role |
+| sort | score, date | Trier les resultats |
+
+Reponse succes 200:
+
+```json
+{
+	"data": [...],
+	"total": 10
+}
+```
+
+## Structure des fichiers
+
+```text
+backend/
+├── app/
+│   ├── Http/
+│   │   ├── Controllers/
+│   │   │   └── ApplicationController.php
+│   │   └── Requests/
+│   │       └── StoreApplicationRequest.php
+│   ├── Models/
+│   │   └── Application.php
+│   └── Services/
+│       └── ScoringService.php
+├── database/
+│   └── migrations/
+│       └── xxxx_create_applications_table.php
+├── routes/
+│   └── api.php
+└── storage/
+    └── app/public/cvs/   # fichiers CV uploades
+```
+
+## Commandes utiles
+
+```bash
+php artisan migrate:fresh   # reinitialiser la base de donnees
+php artisan migrate:status  # voir l'etat des migrations
+php artisan route:list      # lister toutes les routes
+php artisan storage:link    # creer le lien symbolique public/storage
+```
