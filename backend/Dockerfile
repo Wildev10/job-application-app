@@ -12,15 +12,25 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www
 
-# Copier les fichiers du projet
 COPY . .
 
-# Installer les dépendances PHP
 RUN composer install --optimize-autoloader --no-dev --no-interaction
 
-# Permissions
 RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
 
-EXPOSE ${PORT:-8000}
+# Config nginx
+RUN echo 'server { \n\
+    listen 8000; \n\
+    root /var/www/public; \n\
+    index index.php; \n\
+    location / { try_files $uri $uri/ /index.php?$query_string; } \n\
+    location ~ \.php$ { \n\
+        fastcgi_pass 127.0.0.1:9000; \n\
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name; \n\
+        include fastcgi_params; \n\
+    } \n\
+}' > /etc/nginx/sites-available/default
 
-CMD sh -c "php artisan config:cache && php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=${PORT:-8000}"
+EXPOSE 8000
+
+CMD sh -c "php artisan config:cache && php artisan migrate --force && php-fpm -D && nginx -g 'daemon off;'"
