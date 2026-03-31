@@ -1,36 +1,87 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Frontend - Next.js
 
-## Getting Started
+Interface de soumission et de consultation des candidatures.
 
-First, run the development server:
+## Prerequis
+
+- Node.js >= 18
+- npm ou yarn
+- Backend Laravel lance sur http://localhost:8000
+
+## Installation
 
 ```bash
+cd frontend
+npm install
+cp .env.example .env.local
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Variables d'environnement
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```env
+NEXT_PUBLIC_API_URL=http://localhost:8000/api
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Pages
 
-## Learn More
+| Route | Fichier | Description |
+|---|---|---|
+| / | app/page.tsx | Formulaire de soumission de candidature |
+| /admin | app/admin/page.tsx | Liste et consultation des candidatures |
 
-To learn more about Next.js, take a look at the following resources:
+## Composants
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| Composant | Role |
+|---|---|
+| app/components/ApplicationForm.tsx | Formulaire complet avec validation |
+| app/components/ApplicationList.tsx | Liste des candidatures avec filtres |
+| app/components/ApplicationCard.tsx | Carte individuelle d'une candidature |
+| app/components/ScoreBadge.tsx | Affichage visuel du score /5 |
+| app/components/RoleBadge.tsx | Badge du role (dev / designer) |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Appels API centralises - app/lib/api.ts
 
-## Deploy on Vercel
+| Fonction | Methode | Description |
+|---|---|---|
+| submitApplication(formData) | POST /api/applications | Soumettre une candidature |
+| getApplications(params?) | GET /api/applications | Recuperer les candidatures |
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Structure des fichiers
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```text
+frontend/
+├── app/
+│   ├── page.tsx
+│   ├── admin/
+│   │   └── page.tsx
+│   ├── components/
+│   │   ├── ApplicationForm.tsx
+│   │   ├── ApplicationList.tsx
+│   │   ├── ApplicationCard.tsx
+│   │   ├── ScoreBadge.tsx
+│   │   └── RoleBadge.tsx
+│   ├── lib/
+│   │   └── api.ts
+│   ├── types/
+│   │   └── application.ts
+│   ├── globals.css
+│   └── layout.tsx
+└── .env.local
+```
+
+## Dependances notables
+
+| Package | Usage |
+|---|---|
+| sweetalert2 | Alertes succes et erreurs serveur |
+| next/font/google | Police Inter ou Plus Jakarta Sans |
+| tailwindcss | Styles et responsive |
+
+## Commandes utiles
+
+```bash
+npm run dev      # lancer en developpement
+npm run build    # builder pour la production
+npm run lint     # verifier le code
+```
