@@ -34,3 +34,5 @@ RUN echo 'server { \n\
 EXPOSE 8000
 
 CMD sh -c "php artisan config:cache && php artisan migrate --force && php-fpm -D && nginx -g 'daemon off;'"
+
+
