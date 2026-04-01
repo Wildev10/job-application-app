@@ -6,6 +6,7 @@ use App\Http\Requests\IndexApplicationsRequest;
 use App\Http\Requests\StoreApplicationRequest;
 use App\Http\Requests\UpdateApplicationStatusRequest;
 use App\Models\Application;
+use App\Models\Company;
 use App\Services\ScoringService;
 use Illuminate\Http\JsonResponse;
 use Throwable;
@@ -25,7 +26,16 @@ class ApplicationController extends Controller
     public function index(IndexApplicationsRequest $request): JsonResponse
     {
         try {
-            $query = Application::query();
+            /** @var Company|null $company */
+            $company = $request->attributes->get('company');
+
+            if ($company === null) {
+                return response()->json([
+                    'message' => 'Non authentifié',
+                ], 401)->header('Content-Type', 'application/json');
+            }
+
+            $query = Application::query()->where('company_id', $company->id);
 
             $role = $request->query('role');
             if (in_array($role, ['dev', 'designer'], true)) {
@@ -55,9 +65,17 @@ class ApplicationController extends Controller
     /**
      * Store a new application and calculate its score.
      */
-    public function store(StoreApplicationRequest $request): JsonResponse
+    public function store(StoreApplicationRequest $request, string $slug): JsonResponse
     {
         try {
+            $company = Company::where('slug', $slug)->first();
+
+            if ($company === null) {
+                return response()->json([
+                    'message' => 'Entreprise introuvable.',
+                ], 404)->header('Content-Type', 'application/json');
+            }
+
             $data = $request->validated();
 
             if ($request->hasFile('cv')) {
@@ -66,6 +84,7 @@ class ApplicationController extends Controller
 
             $data['score'] = $this->scoringService->calculate($data);
             $data['status'] = 'pending';
+            $data['company_id'] = $company->id;
 
             $application = Application::create($data);
 
@@ -84,12 +103,27 @@ class ApplicationController extends Controller
     public function updateStatus(UpdateApplicationStatusRequest $request, int $id): JsonResponse
     {
         try {
+            /** @var Company|null $company */
+            $company = $request->attributes->get('company');
+
+            if ($company === null) {
+                return response()->json([
+                    'message' => 'Non authentifié',
+                ], 401)->header('Content-Type', 'application/json');
+            }
+
             $application = Application::find($id);
 
             if ($application === null) {
                 return response()->json([
                     'message' => 'Candidature introuvable.',
                 ], 404)->header('Content-Type', 'application/json');
+            }
+
+            if ($application->company_id !== $company->id) {
+                return response()->json([
+                    'message' => 'Accès refusé',
+                ], 403)->header('Content-Type', 'application/json');
             }
 
             $application->update([

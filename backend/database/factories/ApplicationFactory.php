@@ -20,6 +20,7 @@ class ApplicationFactory extends Factory
         $role = fake()->randomElement(['dev', 'designer']);
 
         return [
+            'company_id' => null,
             'nom' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
             'role' => $role,
