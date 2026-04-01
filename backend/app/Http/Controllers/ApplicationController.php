@@ -65,10 +65,16 @@ class ApplicationController extends Controller
     /**
      * Store a new application and calculate its score.
      */
-    public function store(StoreApplicationRequest $request, string $slug): JsonResponse
+    public function store(StoreApplicationRequest $request, ?string $slug = null): JsonResponse
     {
         try {
-            $company = Company::where('slug', $slug)->first();
+            $resolvedSlug = $slug;
+
+            if ($resolvedSlug === null || $resolvedSlug === '') {
+                $resolvedSlug = $request->input('company_slug');
+            }
+
+            $company = $this->resolveCompanyForApplication($resolvedSlug);
 
             if ($company === null) {
                 return response()->json([
@@ -95,6 +101,24 @@ class ApplicationController extends Controller
                 'message' => 'Une erreur serveur est survenue.',
             ], 500)->header('Content-Type', 'application/json');
         }
+    }
+
+    /**
+     * Resolve company for public application submissions.
+     */
+    private function resolveCompanyForApplication(?string $slug): ?Company
+    {
+        if ($slug !== null && $slug !== '') {
+            return Company::where('slug', $slug)->first();
+        }
+
+        $count = Company::query()->count();
+
+        if ($count === 1) {
+            return Company::query()->first();
+        }
+
+        return null;
     }
 
     /**
