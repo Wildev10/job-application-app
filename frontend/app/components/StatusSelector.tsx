@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import Swal from 'sweetalert2';
-import { updateApplicationStatus } from '@/app/lib/api';
 import type { ApiError, Application, ApplicationStatus } from '@/app/types/application';
+import { apiFetch } from '@/lib/api';
 
 interface StatusSelectorProps {
   applicationId: number;
@@ -58,7 +58,10 @@ export default function StatusSelector({ applicationId, currentStatus, onStatusU
     setIsUpdating(true);
 
     try {
-      const updatedApplication = await updateApplicationStatus(applicationId, nextStatus);
+      const updatedApplication = await apiFetch(`/applications/${applicationId}/status`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status: nextStatus }),
+      });
       onStatusUpdated(updatedApplication);
       setSelectedStatus(updatedApplication.status);
 
