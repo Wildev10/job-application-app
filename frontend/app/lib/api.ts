@@ -1,4 +1,10 @@
-import type { Application, ApplicationsResponse, ApiError } from '@/app/types/application';
+import type {
+  Application,
+  ApplicationStatus,
+  ApplicationsResponse,
+  ApiError,
+  UpdateStatusResponse,
+} from '@/app/types/application';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -101,6 +107,29 @@ export async function getApplications(params?: {
   }
 
   return (await response.json()) as ApplicationsResponse;
+}
+
+/**
+ * Update one application status from the admin interface.
+ */
+export async function updateApplicationStatus(
+  applicationId: number,
+  status: ApplicationStatus,
+): Promise<UpdateStatusResponse> {
+  const response = await fetch(`${RESOLVED_API_URL}/applications/${applicationId}/status`, {
+    method: 'PATCH',
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ status }),
+  });
+
+  if (!response.ok) {
+    await throwApiError(response);
+  }
+
+  return (await response.json()) as UpdateStatusResponse;
 }
 
 /**
