@@ -1,10 +1,14 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useEffect, useMemo, useState } from 'react';
+import Swal from 'sweetalert2';
 import ApplicationCard from '@/app/components/ApplicationCard';
-import { getApplications } from '@/app/lib/api';
 import type { ApiError, Application, ApplicationStatus } from '@/app/types/application';
+import { apiFetch } from '@/lib/api';
+import { getCompany } from '@/lib/auth';
+import { useAuth } from '@/hooks/useAuth';
 
 type StatusFilter = 'all' | ApplicationStatus;
 
@@ -21,13 +25,19 @@ const STATUS_FILTERS: Array<{ value: StatusFilter; label: string }> = [
  * Load and render applications list with role and sort filters.
  */
 export default function ApplicationList() {
+  const { logout } = useAuth();
   const [applications, setApplications] = useState<Application[]>([]);
   const [total, setTotal] = useState(0);
   const [role, setRole] = useState('');
   const [sort, setSort] = useState('date');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [company, setCompany] = useState<{ name?: string; logo?: string | null } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
+
+  useEffect(() => {
+    setCompany(getCompany());
+  }, []);
 
   useEffect(() => {
     const loadApplications = async () => {
@@ -35,9 +45,16 @@ export default function ApplicationList() {
       setErrorMessage('');
 
       try {
-        const response = await getApplications({
-          role: role || undefined,
-          sort,
+        const query = new URLSearchParams();
+        if (role) {
+          query.set('role', role);
+        }
+        if (sort) {
+          query.set('sort', sort);
+        }
+
+        const response = await apiFetch(`/applications?${query.toString()}`, {
+          method: 'GET',
         });
 
         setApplications(response.data);
@@ -90,15 +107,70 @@ export default function ApplicationList() {
     );
   };
 
+  /**
+   * Ask confirmation before ending the authenticated company session.
+   */
+  const handleLogout = async () => {
+    const confirmation = await Swal.fire({
+      title: 'Se déconnecter ? ',
+      text: 'Votre session admin sera fermée.',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Oui, me déconnecter',
+      cancelButtonText: 'Annuler',
+      confirmButtonColor: '#dc2626',
+      cancelButtonColor: '#6b7280',
+      reverseButtons: true,
+    });
+
+    if (!confirmation.isConfirmed) {
+      return;
+    }
+
+    await logout();
+  };
+
   return (
     <section className="mx-auto w-full max-w-7xl space-y-10">
       <header className="space-y-8">
         <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
-          <div className="space-y-2">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#737373]">Tableau de suivi</p>
-            <h1 className="text-4xl font-extrabold tracking-[-0.02em] text-[#0f0f0f] sm:text-5xl">
+          <div className="space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                {company?.logo ? (
+                  <Image
+                    src={company.logo}
+                    alt={company.name || 'Company'}
+                    width={36}
+                    height={36}
+                    unoptimized
+                    className="h-9 w-9 rounded-md object-cover"
+                  />
+                ) : (
+                  <div className="flex h-9 w-9 items-center justify-center rounded-md bg-[#f3f4f6] text-xs font-bold text-[#525252]">
+                    {company?.name?.slice(0, 1)?.toUpperCase() || 'C'}
+                  </div>
+                )}
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#737373]">Tableau de suivi</p>
+                  <h1 className="text-3xl font-extrabold tracking-[-0.02em] text-[#0f0f0f] sm:text-4xl">
+                    {company?.name || 'Espace entreprise'}
+                  </h1>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => void handleLogout()}
+                className="rounded-md border border-[#d4d4d4] px-3 py-1.5 text-sm font-medium text-[#44403c] hover:border-[#ef4444] hover:text-[#b91c1c]"
+              >
+                Se déconnecter
+              </button>
+            </div>
+
+            <h2 className="text-4xl font-extrabold tracking-[-0.02em] text-[#0f0f0f] sm:text-5xl">
               Candidatures
-            </h1>
+            </h2>
           </div>
 
           <div className="flex items-end justify-between gap-6 sm:justify-end">
