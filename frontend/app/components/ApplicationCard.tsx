@@ -5,16 +5,19 @@ import Swal from 'sweetalert2';
 import type { Application } from '@/app/types/application';
 import RoleBadge from '@/app/components/RoleBadge';
 import ScoreBadge from '@/app/components/ScoreBadge';
+import StatusBadge from '@/app/components/StatusBadge';
+import StatusSelector from '@/app/components/StatusSelector';
 import { getCvPublicUrl } from '@/app/lib/api';
 
 interface ApplicationCardProps {
   application: Application;
+  onStatusUpdated: (updatedApplication: Pick<Application, 'id' | 'status' | 'status_label' | 'status_color'>) => void;
 }
 
 /**
  * Present one application with expandable motivation and useful links.
  */
-export default function ApplicationCard({ application }: ApplicationCardProps) {
+export default function ApplicationCard({ application, onStatusUpdated }: ApplicationCardProps) {
   const motivationPreview = useMemo(() => {
     if (application.motivation.length <= 100) {
       return application.motivation;
@@ -46,7 +49,7 @@ export default function ApplicationCard({ application }: ApplicationCardProps) {
   }).format(new Date(application.created_at));
 
   return (
-    <article className="grid gap-4 py-5 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)_auto] lg:items-center lg:gap-6">
+    <article className="grid gap-4 py-5 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,0.9fr)_auto] lg:items-center lg:gap-6">
       <header className="min-w-0 space-y-2">
         <div className="flex flex-wrap items-center gap-3">
           <h3 className="text-base font-bold tracking-[-0.01em] text-[#0f0f0f] sm:text-lg">{application.nom}</h3>
@@ -69,6 +72,20 @@ export default function ApplicationCard({ application }: ApplicationCardProps) {
             </button>
           )}
         </p>
+      </div>
+
+      <div className="flex min-w-0 flex-wrap items-center gap-3">
+        {/* Keep current status visible and editable from the same admin row. */}
+        <StatusBadge
+          status={application.status}
+          label={application.status_label}
+          color={application.status_color}
+        />
+        <StatusSelector
+          applicationId={application.id}
+          currentStatus={application.status}
+          onStatusUpdated={onStatusUpdated}
+        />
       </div>
 
       <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">

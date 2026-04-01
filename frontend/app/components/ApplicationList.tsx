@@ -1,10 +1,21 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import ApplicationCard from '@/app/components/ApplicationCard';
 import { getApplications } from '@/app/lib/api';
-import type { ApiError, Application } from '@/app/types/application';
+import type { ApiError, Application, ApplicationStatus } from '@/app/types/application';
+
+type StatusFilter = 'all' | ApplicationStatus;
+
+const STATUS_FILTERS: Array<{ value: StatusFilter; label: string }> = [
+  { value: 'all', label: 'Tous' },
+  { value: 'pending', label: 'En attente' },
+  { value: 'reviewing', label: 'En cours d\'examen' },
+  { value: 'interview', label: 'Entretien prévu' },
+  { value: 'accepted', label: 'Accepté' },
+  { value: 'rejected', label: 'Refusé' },
+];
 
 /**
  * Load and render applications list with role and sort filters.
@@ -14,6 +25,7 @@ export default function ApplicationList() {
   const [total, setTotal] = useState(0);
   const [role, setRole] = useState('');
   const [sort, setSort] = useState('date');
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
 
@@ -40,6 +52,43 @@ export default function ApplicationList() {
 
     void loadApplications();
   }, [role, sort]);
+
+  const statusCounts = useMemo(() => {
+    return {
+      all: applications.length,
+      pending: applications.filter((application) => application.status === 'pending').length,
+      reviewing: applications.filter((application) => application.status === 'reviewing').length,
+      interview: applications.filter((application) => application.status === 'interview').length,
+      accepted: applications.filter((application) => application.status === 'accepted').length,
+      rejected: applications.filter((application) => application.status === 'rejected').length,
+    };
+  }, [applications]);
+
+  const filteredApplications = useMemo(() => {
+    if (statusFilter === 'all') {
+      return applications;
+    }
+
+    return applications.filter((application) => application.status === statusFilter);
+  }, [applications, statusFilter]);
+
+  /**
+   * Apply status update in local state to avoid refetching the whole list.
+   */
+  const handleStatusUpdated = (updatedApplication: Pick<Application, 'id' | 'status' | 'status_label' | 'status_color'>) => {
+    setApplications((previous) =>
+      previous.map((application) =>
+        application.id === updatedApplication.id
+          ? {
+              ...application,
+              status: updatedApplication.status,
+              status_label: updatedApplication.status_label,
+              status_color: updatedApplication.status_color,
+            }
+          : application,
+      ),
+    );
+  };
 
   return (
     <section className="mx-auto w-full max-w-7xl space-y-10">
@@ -117,6 +166,28 @@ export default function ApplicationList() {
           </div>
         </div>
 
+        <div className="flex flex-wrap items-center gap-2 border-b border-[#e5e5e5] pb-4">
+          {STATUS_FILTERS.map((filter) => {
+            const count = statusCounts[filter.value];
+            const isActive = statusFilter === filter.value;
+
+            return (
+              <button
+                key={filter.value}
+                type="button"
+                onClick={() => setStatusFilter(filter.value)}
+                className={`rounded-full px-3 py-1 text-xs font-medium transition ${
+                  isActive
+                    ? 'bg-[#0f0f0f] text-white'
+                    : 'bg-[#f5f5f4] text-[#44403c] hover:bg-[#e7e5e4]'
+                }`}
+              >
+                {filter.label} ({count})
+              </button>
+            );
+          })}
+        </div>
+
         <Link href="/" className="inline-block text-sm font-medium text-[#525252] hover:text-[#0f0f0f]">
           Retour au formulaire
         </Link>
@@ -137,16 +208,20 @@ export default function ApplicationList() {
         <div className="border-l-2 border-red-600 py-2 pl-3 text-sm text-red-700">{errorMessage}</div>
       )}
 
-      {!isLoading && !errorMessage && applications.length === 0 && (
+      {!isLoading && !errorMessage && filteredApplications.length === 0 && (
         <div className="border-b border-[#e5e5e5] py-10 text-sm text-[#737373]">
           Il n&apos;y a pas de donnée pour le moment.
         </div>
       )}
 
-      {!isLoading && !errorMessage && applications.length > 0 && (
+      {!isLoading && !errorMessage && filteredApplications.length > 0 && (
         <div className="divide-y divide-[#e5e5e5]">
-          {applications.map((application) => (
-            <ApplicationCard key={application.id} application={application} />
+          {filteredApplications.map((application) => (
+            <ApplicationCard
+              key={application.id}
+              application={application}
+              onStatusUpdated={handleStatusUpdated}
+            />
           ))}
         </div>
       )}

@@ -27,6 +27,7 @@ class ApplicationFactory extends Factory
             'portfolio' => fake()->optional()->url(),
             'cv' => fake()->optional()->filePath(),
             'score' => fake()->numberBetween(0, 5),
+            'status' => 'pending',
         ];
     }
 }

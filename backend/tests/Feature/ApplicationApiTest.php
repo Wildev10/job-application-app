@@ -37,7 +37,10 @@ class ApplicationApiTest extends TestCase
 
         $response->assertStatus(201)
             ->assertJsonPath('email', 'jean@example.com')
-            ->assertJsonPath('score', 5);
+            ->assertJsonPath('score', 5)
+            ->assertJsonPath('status', 'pending')
+            ->assertJsonPath('status_label', 'En attente')
+            ->assertJsonPath('status_color', 'gray');
 
         $this->assertDatabaseHas('applications', [
             'email' => 'jean@example.com',
@@ -57,7 +60,10 @@ class ApplicationApiTest extends TestCase
         $response = $this->getJson('/api/applications?role=dev');
 
         $response->assertStatus(200)
-            ->assertJsonPath('total', 2);
+            ->assertJsonPath('total', 2)
+            ->assertJsonPath('data.0.status', 'pending')
+            ->assertJsonPath('data.0.status_label', 'En attente')
+            ->assertJsonPath('data.0.status_color', 'gray');
 
         $roles = collect($response->json('data'))->pluck('role')->unique()->values()->all();
         $this->assertSame(['dev'], $roles);
@@ -90,5 +96,50 @@ class ApplicationApiTest extends TestCase
 
         $ids = collect($response->json('data'))->pluck('id')->all();
         $this->assertSame([$latest->id, $middle->id, $oldest->id], $ids);
+    }
+
+    public function test_update_status_validates_status_field(): void
+    {
+        $application = Application::factory()->create();
+
+        $response = $this->patchJson("/api/applications/{$application->id}/status", [
+            'status' => 'invalid-status',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonPath('message', 'Le statut fourni est invalide.')
+            ->assertJsonValidationErrors(['status']);
+    }
+
+    public function test_update_status_returns_404_when_application_not_found(): void
+    {
+        $response = $this->patchJson('/api/applications/999999/status', [
+            'status' => 'reviewing',
+        ]);
+
+        $response->assertStatus(404)
+            ->assertJsonPath('message', 'Candidature introuvable.');
+    }
+
+    public function test_update_status_updates_application_and_returns_status_payload(): void
+    {
+        $application = Application::factory()->create(['status' => 'pending']);
+
+        $response = $this->patchJson("/api/applications/{$application->id}/status", [
+            'status' => 'interview',
+        ]);
+
+        $response->assertStatus(200)
+            ->assertJson([
+                'id' => $application->id,
+                'status' => 'interview',
+                'status_label' => 'Entretien prévu',
+                'status_color' => 'yellow',
+            ]);
+
+        $this->assertDatabaseHas('applications', [
+            'id' => $application->id,
+            'status' => 'interview',
+        ]);
     }
 }
