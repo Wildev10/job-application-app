@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\IndexApplicationsRequest;
 use App\Http\Requests\StoreApplicationRequest;
+use App\Http\Requests\UpdateApplicationStatusRequest;
 use App\Models\Application;
 use App\Services\ScoringService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Throwable;
 
 class ApplicationController extends Controller
@@ -21,7 +22,7 @@ class ApplicationController extends Controller
     /**
      * Display the list of applications with optional filters and sorting.
      */
-    public function index(Request $request): JsonResponse
+    public function index(IndexApplicationsRequest $request): JsonResponse
     {
         try {
             $query = Application::query();
@@ -64,11 +65,43 @@ class ApplicationController extends Controller
             }
 
             $data['score'] = $this->scoringService->calculate($data);
+            $data['status'] = 'pending';
 
             $application = Application::create($data);
 
             return response()->json($application, 201)
                 ->header('Content-Type', 'application/json');
+        } catch (Throwable) {
+            return response()->json([
+                'message' => 'Une erreur serveur est survenue.',
+            ], 500)->header('Content-Type', 'application/json');
+        }
+    }
+
+    /**
+     * Update the status of an existing application.
+     */
+    public function updateStatus(UpdateApplicationStatusRequest $request, int $id): JsonResponse
+    {
+        try {
+            $application = Application::find($id);
+
+            if ($application === null) {
+                return response()->json([
+                    'message' => 'Candidature introuvable.',
+                ], 404)->header('Content-Type', 'application/json');
+            }
+
+            $application->update([
+                'status' => $request->validated('status'),
+            ]);
+
+            return response()->json([
+                'id' => $application->id,
+                'status' => $application->status,
+                'status_label' => $application->status_label,
+                'status_color' => $application->status_color,
+            ], 200)->header('Content-Type', 'application/json');
         } catch (Throwable) {
             return response()->json([
                 'message' => 'Une erreur serveur est survenue.',
