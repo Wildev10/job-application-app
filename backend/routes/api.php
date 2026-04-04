@@ -14,6 +14,7 @@ Route::get('/company/{slug}', [CompanyController::class, 'show']);
 Route::middleware('company.auth')->group(function (): void {
 	Route::post('/auth/logout', [AuthController::class, 'logout']);
 	Route::get('/auth/me', [AuthController::class, 'me']);
+	Route::patch('/company/profile', [CompanyController::class, 'updateProfile']);
 	Route::get('/applications', [ApplicationController::class, 'index']);
 	Route::patch('/applications/{id}/status', [ApplicationController::class, 'updateStatus']);
 });
