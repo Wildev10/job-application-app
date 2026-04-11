@@ -6,7 +6,7 @@ import { useEffect, useMemo, useState } from 'react';
 import Swal from 'sweetalert2';
 import ApplicationCard from '@/app/components/ApplicationCard';
 import type { ApiError, Application, ApplicationStatus } from '@/app/types/application';
-import { apiFetch } from '@/lib/api';
+import { apiFetch, downloadApiFile } from '@/lib/api';
 import { getCompany } from '@/lib/auth';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -35,6 +35,7 @@ export default function ApplicationList() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [company, setCompany] = useState<{ name?: string; logo?: string | null } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isExporting, setIsExporting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [showEmailBanner, setShowEmailBanner] = useState(false);
 
@@ -124,6 +125,22 @@ export default function ApplicationList() {
     return applications.filter((application) => application.status === statusFilter);
   }, [applications, statusFilter]);
 
+  const exportQuery = useMemo(() => {
+    const query = new URLSearchParams();
+
+    if (role) {
+      query.set('role', role);
+    }
+
+    if (statusFilter !== 'all') {
+      query.set('status', statusFilter);
+    }
+
+    const serialized = query.toString();
+
+    return serialized ? `?${serialized}` : '';
+  }, [role, statusFilter]);
+
   /**
    * Apply status update in local state to avoid refetching the whole list.
    */
@@ -163,6 +180,37 @@ export default function ApplicationList() {
     }
 
     await logout();
+  };
+
+  /**
+   * Download a CSV export that matches the current admin filters.
+   */
+  const handleExport = async () => {
+    setIsExporting(true);
+
+    try {
+      const { filename } = await downloadApiFile(`/applications/export${exportQuery}`, {
+        method: 'GET',
+      });
+
+      await Swal.fire({
+        icon: 'success',
+        title: 'Export terminé',
+        text: `Le fichier ${filename} a été téléchargé.`,
+        confirmButtonColor: '#0F0F0F',
+      });
+    } catch (error) {
+      const apiError = error as ApiError;
+
+      await Swal.fire({
+        icon: 'error',
+        title: 'Export impossible',
+        text: apiError.message || 'Une erreur est survenue pendant le téléchargement du CSV.',
+        confirmButtonColor: '#DC2626',
+      });
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   return (
@@ -322,6 +370,33 @@ export default function ApplicationList() {
               </button>
             );
           })}
+        </div>
+
+        <div className="flex flex-col gap-3 rounded-xl border border-[#e5e5e5] bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="space-y-1">
+            <p className="text-sm font-semibold text-[#0f0f0f]">Exporter les candidatures</p>
+            <p className="text-sm text-[#57534e]">
+              Le fichier CSV reprend les filtres actifs:
+              {' '}
+              <span className="font-medium">
+                rôle {role || 'tous'}
+              </span>
+              {' '}et{' '}
+              <span className="font-medium">
+                statut {statusFilter === 'all' ? 'tous' : STATUS_FILTERS.find((filter) => filter.value === statusFilter)?.label?.toLowerCase()}
+              </span>
+              .
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => void handleExport()}
+            disabled={isExporting}
+            className="inline-flex items-center justify-center rounded-lg bg-[#0f0f0f] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#262626] disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {isExporting ? 'Export en cours...' : 'Exporter en CSV'}
+          </button>
         </div>
 
         <Link href="/" className="inline-block text-sm font-medium text-[#525252] hover:text-[#0f0f0f]">
