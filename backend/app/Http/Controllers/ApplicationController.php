@@ -9,7 +9,11 @@ use App\Models\Application;
 use App\Models\Company;
 use App\Services\MailService;
 use App\Services\ScoringService;
+use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Throwable;
 
 class ApplicationController extends Controller
@@ -61,6 +65,121 @@ class ApplicationController extends Controller
                 'message' => 'Une erreur serveur est survenue.',
             ], 500)->header('Content-Type', 'application/json');
         }
+    }
+
+    /**
+     * Export company applications to a CSV file with optional filters.
+     */
+    public function export(Request $request): StreamedResponse|JsonResponse
+    {
+        /** @var Company|null $company */
+        $company = $request->attributes->get('company');
+
+        if ($company === null) {
+            return response()->json([
+                'message' => 'Non authentifié',
+            ], 401)->header('Content-Type', 'application/json');
+        }
+
+        // Validate the optional export filters before generating the file.
+        $validator = Validator::make($request->query(), [
+            'status' => ['nullable', 'in:pending,reviewing,interview,accepted,rejected'],
+            'role' => ['nullable', 'string', 'max:255'],
+            'date_from' => ['nullable', 'date_format:Y-m-d', 'before_or_equal:date_to'],
+            'date_to' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:date_from'],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Les filtres d’export sont invalides.',
+                'errors' => $validator->errors(),
+            ], 422)->header('Content-Type', 'application/json');
+        }
+
+        $filters = $validator->validated();
+
+        // Build the export query for the authenticated company only.
+        $query = Application::query()
+            ->where('company_id', $company->id)
+            ->orderByDesc('created_at');
+
+        // Apply the requested status filter when present.
+        if (! empty($filters['status'])) {
+            $query->where('status', $filters['status']);
+        }
+
+        // Apply the requested role filter when present.
+        if (! empty($filters['role'])) {
+            $query->where('role', $filters['role']);
+        }
+
+        // Apply the starting date filter when present.
+        if (! empty($filters['date_from'])) {
+            $query->whereDate('created_at', '>=', $filters['date_from']);
+        }
+
+        // Apply the ending date filter when present.
+        if (! empty($filters['date_to'])) {
+            $query->whereDate('created_at', '<=', $filters['date_to']);
+        }
+
+        $applications = $query->get();
+        $filename = sprintf(
+            'candidatures_%s_%s.csv',
+            $company->slug,
+            now()->format('Y-m-d')
+        );
+
+        // Log the export event with the company context, total rows and filters.
+        Log::info('Applications exported to CSV.', [
+            'company_id' => $company->id,
+            'exported_rows' => $applications->count(),
+            'filters' => array_filter($filters, static fn (mixed $value): bool => $value !== null && $value !== ''),
+        ]);
+
+        // Stream the CSV output manually with a UTF-8 BOM for Excel compatibility.
+        return new StreamedResponse(function () use ($applications): void {
+            $handle = fopen('php://output', 'wb');
+
+            if ($handle === false) {
+                return;
+            }
+
+            fwrite($handle, "\xEF\xBB\xBF");
+
+            // Write the CSV header row in French using the expected column order.
+            fputcsv($handle, [
+                'ID',
+                'Nom',
+                'Email',
+                'Rôle',
+                'Score',
+                'Statut',
+                'Portfolio',
+                'Message de motivation',
+                'Date de candidature',
+            ]);
+
+            // Write one CSV row per application while normalizing null values and line breaks.
+            foreach ($applications as $application) {
+                fputcsv($handle, [
+                    $application->id,
+                    $application->nom,
+                    $application->email,
+                    $application->role,
+                    $application->score,
+                    $application->status_label,
+                    $application->portfolio ?? '',
+                    str_replace(["\r\n", "\r", "\n"], ' ', (string) ($application->motivation ?? '')),
+                    optional($application->created_at)->format('Y-m-d H:i:s') ?? '',
+                ]);
+            }
+
+            fclose($handle);
+        }, 200, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+        ]);
     }
 
     /**
