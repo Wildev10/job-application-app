@@ -24,8 +24,8 @@ class UpdateCompanyProfileRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:255'],
-            'color' => ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'name' => ['sometimes', 'string', 'max:255'],
+            'color' => ['sometimes', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
         ];
     }
 

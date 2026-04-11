@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\UpdateCompanyProfileRequest;
 use App\Models\Company;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Arr;
 use Throwable;
 
 class CompanyController extends Controller
@@ -44,21 +45,37 @@ class CompanyController extends Controller
             }
 
             $data = $request->validated();
-            $company->update([
-                'name' => $data['name'],
-                'color' => $data['color'],
-            ]);
+            $updates = [];
+
+            if (array_key_exists('name', $data) && $data['name'] !== $company->name) {
+                $nextSlug = Company::generateSlug($data['name']);
+                $slugAlreadyTaken = Company::query()
+                    ->where('slug', $nextSlug)
+                    ->where('id', '!=', $company->id)
+                    ->exists();
+
+                if ($slugAlreadyTaken) {
+                    return response()->json([
+                        'message' => 'Le slug généré pour ce nom est déjà utilisé par une autre entreprise.',
+                    ], 409)->header('Content-Type', 'application/json');
+                }
+
+                $updates['name'] = $data['name'];
+                $updates['slug'] = $nextSlug;
+            }
+
+            if (array_key_exists('color', $data)) {
+                $updates['color'] = $data['color'];
+            }
+
+            if ($updates !== []) {
+                $company->update($updates);
+                $company->refresh();
+            }
 
             return response()->json([
                 'message' => 'Profil entreprise mis à jour.',
-                'company' => [
-                    'id' => $company->id,
-                    'name' => $company->name,
-                    'email' => $company->email,
-                    'slug' => $company->slug,
-                    'logo' => $company->logo,
-                    'color' => $company->color,
-                ],
+                'company' => Arr::except($company->toArray(), ['password', 'api_token']),
             ], 200)->header('Content-Type', 'application/json');
         } catch (Throwable) {
             return response()->json([
