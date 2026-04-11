@@ -21,6 +21,8 @@ const STATUS_FILTERS: Array<{ value: StatusFilter; label: string }> = [
   { value: 'rejected', label: 'Refusé' },
 ];
 
+const EMAIL_BANNER_STORAGE_KEY = 'hide_email_banner';
+
 /**
  * Load and render applications list with role and sort filters.
  */
@@ -34,10 +36,43 @@ export default function ApplicationList() {
   const [company, setCompany] = useState<{ name?: string; logo?: string | null } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
+  const [showEmailBanner, setShowEmailBanner] = useState(false);
 
   useEffect(() => {
     setCompany(getCompany());
+
+    // Persist user choice to hide the informational email banner.
+    const shouldHideBanner = localStorage.getItem(EMAIL_BANNER_STORAGE_KEY) === 'true';
+    setShowEmailBanner(!shouldHideBanner);
   }, []);
+
+  const openEmailDetails = async () => {
+    await Swal.fire({
+      title: 'Emails automatiques',
+      html: `
+        <div style="text-align:left;line-height:1.6;">
+          <p style="margin:0 0 10px;">A la candidature :</p>
+          <ul style="margin:0 0 12px 18px;padding:0;">
+            <li>Email de confirmation au candidat</li>
+            <li>Alerte email au RH</li>
+          </ul>
+          <p style="margin:0;">Au changement de statut :</p>
+          <ul style="margin:8px 0 0 18px;padding:0;">
+            <li>Email personnalise selon le statut</li>
+          </ul>
+        </div>
+      `,
+      confirmButtonText: 'Compris',
+      confirmButtonColor: '#4338ca',
+      background: '#FAFAF9',
+      color: '#0F0F0F',
+    });
+  };
+
+  const hideEmailBanner = () => {
+    localStorage.setItem(EMAIL_BANNER_STORAGE_KEY, 'true');
+    setShowEmailBanner(false);
+  };
 
   useEffect(() => {
     const loadApplications = async () => {
@@ -237,6 +272,35 @@ export default function ApplicationList() {
             </button>
           </div>
         </div>
+
+        {showEmailBanner && (
+          <div className="rounded-lg border border-indigo-200 bg-indigo-50 p-4">
+            <div className="flex items-start justify-between gap-4">
+              <p className="text-sm leading-6 text-indigo-900">
+                <span className="mr-2">📧</span>
+                Les candidats reçoivent automatiquement un email de confirmation à chaque candidature,
+                et une notification lors de chaque changement de statut.
+              </p>
+
+              <button
+                type="button"
+                onClick={hideEmailBanner}
+                className="shrink-0 rounded px-2 py-1 text-xs font-semibold text-indigo-700 hover:bg-indigo-100"
+                aria-label="Masquer la bannière email"
+              >
+                x
+              </button>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => void openEmailDetails()}
+              className="mt-3 text-xs font-semibold text-indigo-700 underline underline-offset-2 hover:text-indigo-900"
+            >
+              En savoir plus
+            </button>
+          </div>
+        )}
 
         <div className="flex flex-wrap items-center gap-2 border-b border-[#e5e5e5] pb-4">
           {STATUS_FILTERS.map((filter) => {

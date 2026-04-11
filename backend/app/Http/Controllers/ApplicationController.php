@@ -7,6 +7,7 @@ use App\Http\Requests\StoreApplicationRequest;
 use App\Http\Requests\UpdateApplicationStatusRequest;
 use App\Models\Application;
 use App\Models\Company;
+use App\Services\MailService;
 use App\Services\ScoringService;
 use Illuminate\Http\JsonResponse;
 use Throwable;
@@ -94,6 +95,9 @@ class ApplicationController extends Controller
 
             $application = Application::create($data);
 
+            $application->setRelation('company', $company);
+            MailService::sendCandidatureReceived($application);
+
             return response()->json($application, 201)
                 ->header('Content-Type', 'application/json');
         } catch (Throwable) {
@@ -153,6 +157,9 @@ class ApplicationController extends Controller
             $application->update([
                 'status' => $request->validated('status'),
             ]);
+
+            $application->setRelation('company', $company);
+            MailService::sendStatusUpdated($application);
 
             return response()->json([
                 'id' => $application->id,
