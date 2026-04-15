@@ -3,14 +3,22 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useEffect, useMemo, useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 import Swal from 'sweetalert2';
 import ApplicationCard from '@/app/components/ApplicationCard';
+import ExportModal from '@/app/components/ExportModal';
 import type { ApiError, Application, ApplicationStatus } from '@/app/types/application';
-import { apiFetch, downloadApiFile } from '@/lib/api';
+import { apiFetch, exportCSV } from '@/lib/api';
 import { getCompany } from '@/lib/auth';
 import { useAuth } from '@/hooks/useAuth';
 
 type StatusFilter = 'all' | ApplicationStatus;
+type ExportFilters = {
+  status?: string;
+  role?: string;
+  date_from?: string;
+  date_to?: string;
+};
 
 const STATUS_FILTERS: Array<{ value: StatusFilter; label: string }> = [
   { value: 'all', label: 'Tous' },
@@ -26,16 +34,21 @@ const EMAIL_BANNER_STORAGE_KEY = 'hide_email_banner';
 /**
  * Load and render applications list with role and sort filters.
  */
-export default function ApplicationList() {
+export default function ApplicationList({ initialJobId = null }: { initialJobId?: string | null }) {
+  const router = useRouter();
+  const pathname = usePathname();
   const { logout } = useAuth();
   const [applications, setApplications] = useState<Application[]>([]);
   const [total, setTotal] = useState(0);
   const [role, setRole] = useState('');
   const [sort, setSort] = useState('date');
+  const [selectedJobId, setSelectedJobId] = useState<string | null>(initialJobId);
+  const [selectedJobTitle, setSelectedJobTitle] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [company, setCompany] = useState<{ name?: string; logo?: string | null } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isExporting, setIsExporting] = useState(false);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [showEmailBanner, setShowEmailBanner] = useState(false);
 
@@ -46,6 +59,10 @@ export default function ApplicationList() {
     const shouldHideBanner = localStorage.getItem(EMAIL_BANNER_STORAGE_KEY) === 'true';
     setShowEmailBanner(!shouldHideBanner);
   }, []);
+
+  useEffect(() => {
+    setSelectedJobId(initialJobId);
+  }, [initialJobId]);
 
   const openEmailDetails = async () => {
     await Swal.fire({
@@ -88,6 +105,9 @@ export default function ApplicationList() {
         if (sort) {
           query.set('sort', sort);
         }
+        if (selectedJobId) {
+          query.set('job_id', selectedJobId);
+        }
 
         const response = await apiFetch(`/applications?${query.toString()}`, {
           method: 'GET',
@@ -95,6 +115,23 @@ export default function ApplicationList() {
 
         setApplications(response.data);
         setTotal(response.total);
+
+        if (selectedJobId) {
+          const jobsResponse = await apiFetch('/jobs', { method: 'GET' });
+          const currentJob = Array.isArray(jobsResponse?.data)
+            ? jobsResponse.data.find((job: { id: number; title: string }) => String(job.id) === selectedJobId)
+            : null;
+
+          if (currentJob?.title) {
+            setSelectedJobTitle(currentJob.title);
+          } else if (response.data.length > 0 && response.data[0].job_title) {
+            setSelectedJobTitle(response.data[0].job_title);
+          } else {
+            setSelectedJobTitle('Poste filtré');
+          }
+        } else {
+          setSelectedJobTitle('');
+        }
       } catch (error) {
         const apiError = error as ApiError;
         setErrorMessage(apiError.message || 'Impossible de charger les candidatures.');
@@ -104,7 +141,13 @@ export default function ApplicationList() {
     };
 
     void loadApplications();
-  }, [role, sort]);
+  }, [role, sort, selectedJobId]);
+
+  const clearJobFilter = () => {
+    setSelectedJobId(null);
+    setSelectedJobTitle('');
+    router.push(pathname);
+  };
 
   const statusCounts = useMemo(() => {
     return {
@@ -124,22 +167,6 @@ export default function ApplicationList() {
 
     return applications.filter((application) => application.status === statusFilter);
   }, [applications, statusFilter]);
-
-  const exportQuery = useMemo(() => {
-    const query = new URLSearchParams();
-
-    if (role) {
-      query.set('role', role);
-    }
-
-    if (statusFilter !== 'all') {
-      query.set('status', statusFilter);
-    }
-
-    const serialized = query.toString();
-
-    return serialized ? `?${serialized}` : '';
-  }, [role, statusFilter]);
 
   /**
    * Apply status update in local state to avoid refetching the whole list.
@@ -183,29 +210,39 @@ export default function ApplicationList() {
   };
 
   /**
-   * Download a CSV export that matches the current admin filters.
+   * Export the CSV with the filters selected in the modal.
    */
-  const handleExport = async () => {
+  const handleExport = async (filters: ExportFilters) => {
+    setIsExportModalOpen(false);
     setIsExporting(true);
 
+    void Swal.fire({
+      title: 'Export en cours...',
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      didOpen: () => {
+        Swal.showLoading();
+      },
+    });
+
     try {
-      const { filename } = await downloadApiFile(`/applications/export${exportQuery}`, {
-        method: 'GET',
-      });
+      await exportCSV(filters);
+      Swal.close();
 
       await Swal.fire({
+        title: 'Export réussi !',
+        text: 'Votre fichier CSV a été téléchargé.',
         icon: 'success',
-        title: 'Export terminé',
-        text: `Le fichier ${filename} a été téléchargé.`,
-        confirmButtonColor: '#0F0F0F',
+        confirmButtonColor: '#15803d',
       });
     } catch (error) {
       const apiError = error as ApiError;
+      Swal.close();
 
       await Swal.fire({
         icon: 'error',
         title: 'Export impossible',
-        text: apiError.message || 'Une erreur est survenue pendant le téléchargement du CSV.',
+        text: apiError.message || 'Une erreur est survenue pendant l export du fichier.',
         confirmButtonColor: '#DC2626',
       });
     } finally {
@@ -251,16 +288,46 @@ export default function ApplicationList() {
               </button>
             </div>
 
-            <h2 className="text-4xl font-extrabold tracking-[-0.02em] text-[#0f0f0f] sm:text-5xl">
-              Candidatures
-            </h2>
+            <div className="flex flex-wrap items-center gap-3">
+              <h2 className="text-4xl font-extrabold tracking-[-0.02em] text-[#0f0f0f] sm:text-5xl">
+                {selectedJobId ? `Candidatures - ${selectedJobTitle}` : 'Candidatures'}
+              </h2>
+              {selectedJobId && (
+                <button
+                  type="button"
+                  onClick={clearJobFilter}
+                  className="rounded-full border border-[#d1d5db] px-3 py-1 text-xs font-semibold text-[#374151] hover:bg-[#f3f4f6]"
+                >
+                  Voir tous
+                </button>
+              )}
+            </div>
           </div>
 
-          <div className="flex items-end justify-between gap-6 sm:justify-end">
+          <div className="flex flex-col items-stretch gap-3 sm:items-end">
+            <button
+              type="button"
+              onClick={() => setIsExportModalOpen(true)}
+              disabled={isExporting}
+              className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#15803d] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#166534] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {isExporting ? (
+                <>
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/35 border-t-white" />
+                  <span>Export en cours...</span>
+                </>
+              ) : (
+                <>
+                  <span aria-hidden="true">↓</span>
+                  <span>Exporter CSV</span>
+                </>
+              )}
+            </button>
+
             <p className="text-5xl font-extrabold leading-none tracking-[-0.03em] text-[#0f0f0f] sm:text-6xl">
               {total}
             </p>
-            <p className="pb-1 text-sm text-[#737373]">profils</p>
+            <p className="pb-1 text-right text-sm text-[#737373]">profils</p>
           </div>
         </div>
 
@@ -372,33 +439,6 @@ export default function ApplicationList() {
           })}
         </div>
 
-        <div className="flex flex-col gap-3 rounded-xl border border-[#e5e5e5] bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="space-y-1">
-            <p className="text-sm font-semibold text-[#0f0f0f]">Exporter les candidatures</p>
-            <p className="text-sm text-[#57534e]">
-              Le fichier CSV reprend les filtres actifs:
-              {' '}
-              <span className="font-medium">
-                rôle {role || 'tous'}
-              </span>
-              {' '}et{' '}
-              <span className="font-medium">
-                statut {statusFilter === 'all' ? 'tous' : STATUS_FILTERS.find((filter) => filter.value === statusFilter)?.label?.toLowerCase()}
-              </span>
-              .
-            </p>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => void handleExport()}
-            disabled={isExporting}
-            className="inline-flex items-center justify-center rounded-lg bg-[#0f0f0f] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#262626] disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {isExporting ? 'Export en cours...' : 'Exporter en CSV'}
-          </button>
-        </div>
-
         <Link href="/" className="inline-block text-sm font-medium text-[#525252] hover:text-[#0f0f0f]">
           Retour au formulaire
         </Link>
@@ -436,6 +476,12 @@ export default function ApplicationList() {
           ))}
         </div>
       )}
+
+      <ExportModal
+        isOpen={isExportModalOpen}
+        onClose={() => setIsExportModalOpen(false)}
+        onExport={(filters: ExportFilters) => void handleExport(filters)}
+      />
     </section>
   );
 }

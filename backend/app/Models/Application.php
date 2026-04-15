@@ -27,6 +27,7 @@ class Application extends Model
      */
     protected $fillable = [
         'company_id',
+        'job_id',
         'nom',
         'email',
         'role',
@@ -71,5 +72,13 @@ class Application extends Model
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);
+    }
+
+    /**
+     * Get the job associated with this application.
+     */
+    public function job(): BelongsTo
+    {
+        return $this->belongsTo(Job::class);
     }
 }

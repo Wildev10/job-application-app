@@ -7,6 +7,7 @@ use App\Http\Requests\StoreApplicationRequest;
 use App\Http\Requests\UpdateApplicationStatusRequest;
 use App\Models\Application;
 use App\Models\Company;
+use App\Models\Job;
 use App\Services\MailService;
 use App\Services\ScoringService;
 use Illuminate\Http\Request;
@@ -42,6 +43,22 @@ class ApplicationController extends Controller
 
             $query = Application::query()->where('company_id', $company->id);
 
+            $jobId = $request->query('job_id');
+            if ($jobId !== null && $jobId !== '') {
+                $ownedJob = Job::query()
+                    ->where('id', (int) $jobId)
+                    ->where('company_id', $company->id)
+                    ->exists();
+
+                if (! $ownedJob) {
+                    return response()->json([
+                        'message' => 'Accès refusé',
+                    ], 403)->header('Content-Type', 'application/json');
+                }
+
+                $query->where('job_id', (int) $jobId);
+            }
+
             $role = $request->query('role');
             if (in_array($role, ['dev', 'designer'], true)) {
                 $query->where('role', $role);
@@ -54,7 +71,14 @@ class ApplicationController extends Controller
                 $query->orderByDesc('created_at');
             }
 
-            $applications = $query->get();
+            $applications = $query
+                ->with('job:id,title')
+                ->get()
+                ->map(static function (Application $application): Application {
+                    $application->setAttribute('job_title', $application->job?->title);
+
+                    return $application;
+                });
 
             return response()->json([
                 'data' => $applications,
@@ -185,21 +209,40 @@ class ApplicationController extends Controller
     /**
      * Store a new application and calculate its score.
      */
-    public function store(StoreApplicationRequest $request, ?string $slug = null): JsonResponse
+    public function store(StoreApplicationRequest $request, ?string $companySlug = null, ?string $jobSlug = null): JsonResponse
     {
         try {
-            $resolvedSlug = $slug;
+            $resolvedCompanySlug = $companySlug;
 
-            if ($resolvedSlug === null || $resolvedSlug === '') {
-                $resolvedSlug = $request->input('company_slug');
+            if ($resolvedCompanySlug === null || $resolvedCompanySlug === '') {
+                $resolvedCompanySlug = $request->route('slug');
             }
 
-            $company = $this->resolveCompanyForApplication($resolvedSlug);
+            if ($resolvedCompanySlug === null || $resolvedCompanySlug === '') {
+                $resolvedCompanySlug = $request->input('company_slug');
+            }
+
+            $company = $this->resolveCompanyForApplication($resolvedCompanySlug);
 
             if ($company === null) {
                 return response()->json([
                     'message' => 'Entreprise introuvable.',
                 ], 404)->header('Content-Type', 'application/json');
+            }
+
+            $job = null;
+
+            if ($jobSlug !== null && $jobSlug !== '') {
+                $job = Job::query()
+                    ->where('company_id', $company->id)
+                    ->where('slug', $jobSlug)
+                    ->first();
+
+                if ($job === null || $job->status !== 'open' || $job->is_expired) {
+                    return response()->json([
+                        'message' => 'Ce poste n\'est plus disponible',
+                    ], 422)->header('Content-Type', 'application/json');
+                }
             }
 
             $data = $request->validated();
@@ -211,6 +254,7 @@ class ApplicationController extends Controller
             $data['score'] = $this->scoringService->calculate($data);
             $data['status'] = 'pending';
             $data['company_id'] = $company->id;
+            $data['job_id'] = $job?->id;
 
             $application = Application::create($data);
 
@@ -273,12 +317,17 @@ class ApplicationController extends Controller
                 ], 403)->header('Content-Type', 'application/json');
             }
 
-            $application->update([
-                'status' => $request->validated('status'),
-            ]);
+            $nextStatus = $request->validated('status');
+            $statusChanged = $application->status !== $nextStatus;
 
-            $application->setRelation('company', $company);
-            MailService::sendStatusUpdated($application);
+            if ($statusChanged) {
+                $application->update([
+                    'status' => $nextStatus,
+                ]);
+
+                $application->setRelation('company', $company);
+                MailService::sendStatusUpdated($application);
+            }
 
             return response()->json([
                 'id' => $application->id,

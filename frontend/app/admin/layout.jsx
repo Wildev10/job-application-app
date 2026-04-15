@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 const MAIN_LINKS = [
   { href: '/admin', label: 'Dashboard', icon: '📊' },
   { href: '/admin/candidatures', label: 'Candidatures', icon: '🧾' },
+  { href: '/admin/postes', label: 'Postes', icon: '💼' },
 ];
 
 /**
