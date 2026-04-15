@@ -57,6 +57,14 @@ class Company extends Model
     }
 
     /**
+     * Get all jobs that belong to this company.
+     */
+    public function jobs(): HasMany
+    {
+        return $this->hasMany(Job::class);
+    }
+
+    /**
      * Build a URL-friendly slug from a company name.
      */
     public static function generateSlug(string $name): string

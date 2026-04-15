@@ -8,6 +8,7 @@
 <body style="margin:0;padding:24px;background-color:#f3f4f6;font-family:Arial,Helvetica,sans-serif;color:#374151;">
 @php
     $accentColor = $company->color ?: '#2563eb';
+    $siteUrl = rtrim((string) ($frontendUrl ?: config('app.frontend_url', 'http://localhost:3000')), '/');
 @endphp
 <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;">
     <tr>
@@ -62,7 +63,9 @@
                 </tr>
                 <tr>
                     <td style="padding:20px 24px;background-color:#f9fafb;border-top:1px solid #e5e7eb;font-size:14px;line-height:1.6;">
-                        Vaybe Recrutement - Notification automatique
+                        <strong>L'équipe {{ $company->name }}</strong><br>
+                        <a href="{{ $siteUrl }}" style="color:{{ $accentColor }};text-decoration:none;">{{ $siteUrl }}</a><br>
+                        Notification automatique RH
                     </td>
                 </tr>
             </table>

@@ -37,6 +37,7 @@ class CandidatureReceivedAdmin extends Mailable
                 'application' => $this->application,
                 'company' => $this->company,
                 'adminUrl' => rtrim((string) config('app.frontend_url', 'http://localhost:3000'), '/').'/admin/candidatures',
+                'frontendUrl' => config('app.frontend_url'),
             ]);
     }
 }

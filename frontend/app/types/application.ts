@@ -4,6 +4,8 @@ export type ApplicationStatusColor = 'gray' | 'blue' | 'yellow' | 'green' | 'red
 
 export interface Application {
   id: number;
+  job_id?: number | null;
+  job_title?: string | null;
   nom: string;
   email: string;
   role: Role;

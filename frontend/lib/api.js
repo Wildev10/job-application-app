@@ -51,25 +51,31 @@ export async function apiFetch(endpoint, options = {}) {
 }
 
 /**
- * Download a protected API file response and trigger a browser save.
+ * Export applications as CSV and trigger a browser download.
  */
-export async function downloadApiFile(endpoint, options = {}) {
-  const { headers = {}, ...rest } = options;
-  const normalizedHeaders = new Headers(headers);
+export async function exportCSV(filters = {}) {
+  const query = new URLSearchParams();
 
-  if (typeof window !== 'undefined') {
-    const token = localStorage.getItem('company_token');
-    if (token) {
-      normalizedHeaders.set('Authorization', `Bearer ${token}`);
+  Object.entries(filters).forEach(([key, value]) => {
+    if (value !== null && value !== undefined && value !== '') {
+      query.set(key, value);
     }
+  });
+
+  const token = typeof window !== 'undefined' ? localStorage.getItem('company_token') : null;
+  const endpoint = query.toString()
+    ? `${API_URL}/applications/export?${query.toString()}`
+    : `${API_URL}/applications/export`;
+  const normalizedHeaders = new Headers();
+
+  if (token) {
+    normalizedHeaders.set('Authorization', `Bearer ${token}`);
   }
 
-  if (!normalizedHeaders.has('Accept')) {
-    normalizedHeaders.set('Accept', 'text/csv,application/octet-stream');
-  }
+  normalizedHeaders.set('Accept', 'text/csv,application/octet-stream');
 
-  const response = await fetch(`${API_URL}${endpoint}`, {
-    ...rest,
+  const response = await fetch(endpoint, {
+    method: 'GET',
     headers: normalizedHeaders,
   });
 
