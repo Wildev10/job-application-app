@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans } from 'next/font/google';
+import { Inter } from 'next/font/google';
 import "./globals.css";
 
-const plusJakarta = Plus_Jakarta_Sans({
-  variable: '--font-plus-jakarta',
+const inter = Inter({
+  variable: '--font-inter',
   subsets: ['latin'],
 });
 
@@ -18,8 +18,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="fr" className={`${plusJakarta.variable} h-full antialiased`}>
-      <body className="min-h-full bg-background text-foreground">
+    <html lang="fr" className={`${inter.variable} h-full antialiased`}>
+      <body className={`${inter.className} min-h-full bg-background text-foreground`}>
         {children}
       </body>
     </html>

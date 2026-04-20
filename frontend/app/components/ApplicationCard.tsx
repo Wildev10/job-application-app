@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import Swal from 'sweetalert2';
+import { Alert } from '@/lib/sweetalert';
 import type { Application } from '@/app/types/application';
 import RoleBadge from '@/app/components/RoleBadge';
 import ScoreBadge from '@/app/components/ScoreBadge';
@@ -27,7 +27,7 @@ export default function ApplicationCard({ application, onStatusUpdated }: Applic
   }, [application.motivation]);
 
   const openMotivationPopup = async (): Promise<void> => {
-    await Swal.fire({
+    await Alert.fire({
       icon: 'info',
       title: 'Motivation complète',
       text: application.motivation,

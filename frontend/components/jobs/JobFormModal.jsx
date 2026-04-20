@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+// FIX-CONTRAST: lisibilite corrigee
 
 const EMPTY_FORM = {
   title: '',
@@ -114,7 +115,7 @@ export default function JobFormModal({ isOpen, onClose, onSubmit, initialData })
               required
               value={form.title}
               onChange={handleChange}
-              className="w-full rounded-lg border border-[#d1d5db] px-3 py-2.5 text-sm outline-none focus:border-indigo-500"
+              className="w-full rounded-lg border border-[#d1d5db] px-3 py-2.5 text-sm outline-none focus:border-teal-500"
               placeholder="Développeur Full Stack"
             />
             {errors.title && <p className="mt-1 text-sm text-red-600">{errors.title}</p>}
@@ -129,7 +130,7 @@ export default function JobFormModal({ isOpen, onClose, onSubmit, initialData })
                 required
                 value={form.role}
                 onChange={handleChange}
-                className="w-full rounded-lg border border-[#d1d5db] px-3 py-2.5 text-sm outline-none focus:border-indigo-500"
+                className="w-full rounded-lg border border-[#d1d5db] px-3 py-2.5 text-sm outline-none focus:border-teal-500"
               >
                 <option value="">Sélectionner</option>
                 <option value="dev">dev</option>
@@ -148,7 +149,7 @@ export default function JobFormModal({ isOpen, onClose, onSubmit, initialData })
                 required
                 value={form.type}
                 onChange={handleChange}
-                className="w-full rounded-lg border border-[#d1d5db] px-3 py-2.5 text-sm outline-none focus:border-indigo-500"
+                className="w-full rounded-lg border border-[#d1d5db] px-3 py-2.5 text-sm outline-none focus:border-teal-500"
               >
                 <option value="full_time">Temps plein</option>
                 <option value="part_time">Temps partiel</option>
@@ -165,7 +166,7 @@ export default function JobFormModal({ isOpen, onClose, onSubmit, initialData })
               name="location"
               value={form.location}
               onChange={handleChange}
-              className="w-full rounded-lg border border-[#d1d5db] px-3 py-2.5 text-sm outline-none focus:border-indigo-500"
+              className="w-full rounded-lg border border-[#d1d5db] px-3 py-2.5 text-sm outline-none focus:border-teal-500"
               placeholder="Ex: Cotonou ou Remote"
             />
           </div>
@@ -178,7 +179,7 @@ export default function JobFormModal({ isOpen, onClose, onSubmit, initialData })
               rows={4}
               value={form.description}
               onChange={handleChange}
-              className="w-full resize-none rounded-lg border border-[#d1d5db] px-3 py-2.5 text-sm outline-none focus:border-indigo-500"
+              className="w-full resize-none rounded-lg border border-[#d1d5db] px-3 py-2.5 text-sm outline-none focus:border-teal-500"
             />
           </div>
 
@@ -191,7 +192,7 @@ export default function JobFormModal({ isOpen, onClose, onSubmit, initialData })
               min={minDate}
               value={form.expires_at}
               onChange={handleChange}
-              className="w-full rounded-lg border border-[#d1d5db] px-3 py-2.5 text-sm outline-none focus:border-indigo-500"
+              className="w-full rounded-lg border border-[#d1d5db] px-3 py-2.5 text-sm outline-none focus:border-teal-500"
             />
           </div>
 
@@ -207,7 +208,7 @@ export default function JobFormModal({ isOpen, onClose, onSubmit, initialData })
             <button
               type="submit"
               disabled={isSubmitting}
-              className="inline-flex items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex items-center justify-center gap-2 rounded-lg bg-teal-600 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-700 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isSubmitting && <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />}
               {initialData ? 'Sauvegarder' : 'Créer le poste'}

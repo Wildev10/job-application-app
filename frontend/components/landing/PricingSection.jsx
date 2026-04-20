@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+// FIX-CONTRAST: lisibilite corrigee
 
 const PRICING = {
   monthly: {
@@ -64,22 +65,22 @@ export default function PricingSection() {
   const [billingCycle, setBillingCycle] = useState('monthly');
 
   return (
-    <section id="tarifs" className="bg-white px-4 py-20 sm:px-6 lg:px-8">
+    <section id="tarifs" className="bg-slate-50 px-4 py-20 sm:px-6 lg:px-8">
       <div className="mx-auto w-full max-w-7xl">
         <div className="mx-auto max-w-2xl text-center">
-          <h2 className="text-3xl font-black tracking-[-0.02em] text-[#111827] sm:text-4xl">
+          <h2 className="text-3xl font-black tracking-[-0.02em] text-slate-900 sm:text-4xl">
             Des tarifs simples et transparents
           </h2>
-          <p className="mt-3 text-base text-[#6b7280] sm:text-lg">
+          <p className="mt-3 text-base text-slate-600 sm:text-lg">
             Sans engagement. Annulez quand vous voulez.
           </p>
 
-          <div className="mx-auto mt-6 inline-flex rounded-full border border-[#d1d5db] bg-white p-1">
+          <div className="mx-auto mt-6 inline-flex rounded-full border border-slate-300 bg-white p-1">
             <button
               type="button"
               onClick={() => setBillingCycle('monthly')}
               className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-                billingCycle === 'monthly' ? 'bg-[#6366F1] text-white' : 'text-[#4b5563]'
+                billingCycle === 'monthly' ? 'bg-teal-600 text-white' : 'text-slate-600'
               }`}
             >
               Mensuel
@@ -88,7 +89,7 @@ export default function PricingSection() {
               type="button"
               onClick={() => setBillingCycle('yearly')}
               className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-                billingCycle === 'yearly' ? 'bg-[#6366F1] text-white' : 'text-[#4b5563]'
+                billingCycle === 'yearly' ? 'bg-teal-600 text-white' : 'text-slate-600'
               }`}
             >
               Annuel (-20%)
@@ -103,27 +104,27 @@ export default function PricingSection() {
             return (
               <article
                 key={plan.name}
-                className={`relative rounded-2xl border bg-white p-6 transition duration-300 hover:-translate-y-1 hover:shadow-xl ${
+                className={`relative rounded-2xl border p-6 transition duration-300 hover:-translate-y-1 hover:shadow-xl ${
                   isPopular
-                    ? 'border-[#6366F1] shadow-2xl shadow-indigo-100 lg:scale-[1.03]'
-                    : 'border-[#e5e7eb]'
+                    ? 'border-teal-600 bg-teal-600 shadow-2xl shadow-teal-200 lg:scale-[1.03]'
+                    : 'border-slate-200 bg-white'
                 }`}
               >
                 {isPopular && (
-                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-[#6366F1] px-3 py-1 text-xs font-bold text-white">
+                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-amber-400 px-3 py-1 text-xs font-bold text-amber-900">
                     Le plus populaire
                   </span>
                 )}
 
-                <h3 className="text-xl font-extrabold text-[#111827]">{plan.name}</h3>
-                <p className="mt-2 text-3xl font-black tracking-[-0.02em] text-[#111827]">
+                <h3 className={`text-xl font-extrabold ${isPopular ? 'text-white' : 'text-slate-900'}`}>{plan.name}</h3>
+                <p className={`mt-2 text-3xl font-black tracking-[-0.02em] ${isPopular ? 'text-white' : 'text-slate-900'}`}>
                   {PRICING[billingCycle][plan.key]}
                 </p>
 
-                <ul className="mt-6 space-y-2 text-sm text-[#4b5563]">
+                <ul className={`mt-6 space-y-2 text-sm ${isPopular ? 'text-teal-100' : 'text-slate-600'}`}>
                   {plan.features.map((feature) => (
                     <li key={feature} className="flex items-start gap-2">
-                      <span className="mt-0.5 text-green-500">✓</span>
+                      <span className={`mt-0.5 ${isPopular ? 'text-teal-200' : 'text-emerald-600'}`}>✓</span>
                       <span>{feature}</span>
                     </li>
                   ))}
@@ -133,8 +134,8 @@ export default function PricingSection() {
                   type="button"
                   className={`mt-8 w-full rounded-xl px-4 py-2.5 text-sm font-bold transition duration-300 ${
                     isPopular
-                      ? 'bg-[#6366F1] text-white hover:scale-105 hover:bg-[#4f46e5]'
-                      : 'border border-[#d1d5db] text-[#111827] hover:bg-[#f9fafb]'
+                      ? 'bg-white text-teal-700 hover:bg-teal-50'
+                      : 'border border-slate-300 text-slate-900 hover:bg-slate-100'
                   }`}
                 >
                   {plan.cta}

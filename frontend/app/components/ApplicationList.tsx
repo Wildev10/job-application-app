@@ -1,16 +1,16 @@
 'use client';
 
-import Link from 'next/link';
 import Image from 'next/image';
 import { useEffect, useMemo, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import Swal from 'sweetalert2';
+import { Alert } from '@/lib/sweetalert';
 import ApplicationCard from '@/app/components/ApplicationCard';
 import ExportModal from '@/app/components/ExportModal';
 import type { ApiError, Application, ApplicationStatus } from '@/app/types/application';
 import { apiFetch, exportCSV } from '@/lib/api';
 import { getCompany } from '@/lib/auth';
 import { useAuth } from '@/hooks/useAuth';
+// FIX-CONTRAST: lisibilite corrigee
 
 type StatusFilter = 'all' | ApplicationStatus;
 type ExportFilters = {
@@ -18,6 +18,13 @@ type ExportFilters = {
   role?: string;
   date_from?: string;
   date_to?: string;
+};
+
+type CompanyProfile = {
+  id?: number;
+  name?: string;
+  logo?: string | null;
+  slug?: string;
 };
 
 const STATUS_FILTERS: Array<{ value: StatusFilter; label: string }> = [
@@ -34,7 +41,13 @@ const EMAIL_BANNER_STORAGE_KEY = 'hide_email_banner';
 /**
  * Load and render applications list with role and sort filters.
  */
-export default function ApplicationList({ initialJobId = null }: { initialJobId?: string | null }) {
+export default function ApplicationList({
+  initialJobId = null,
+  initialStatusFilter = 'all',
+}: {
+  initialJobId?: string | null;
+  initialStatusFilter?: string;
+}) {
   const router = useRouter();
   const pathname = usePathname();
   const { logout } = useAuth();
@@ -45,12 +58,13 @@ export default function ApplicationList({ initialJobId = null }: { initialJobId?
   const [selectedJobId, setSelectedJobId] = useState<string | null>(initialJobId);
   const [selectedJobTitle, setSelectedJobTitle] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
-  const [company, setCompany] = useState<{ name?: string; logo?: string | null } | null>(null);
+  const [company, setCompany] = useState<CompanyProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isExporting, setIsExporting] = useState(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [showEmailBanner, setShowEmailBanner] = useState(false);
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || (typeof window !== 'undefined' ? window.location.origin : '');
 
   useEffect(() => {
     setCompany(getCompany());
@@ -64,8 +78,33 @@ export default function ApplicationList({ initialJobId = null }: { initialJobId?
     setSelectedJobId(initialJobId);
   }, [initialJobId]);
 
+  useEffect(() => {
+    // Sync status filter from URL entry points such as dashboard CTA.
+    if (STATUS_FILTERS.some((filter) => filter.value === initialStatusFilter)) {
+      setStatusFilter(initialStatusFilter as StatusFilter);
+    }
+  }, [initialStatusFilter]);
+
+  const copyApplyLink = async () => {
+    if (!company?.slug) {
+      return;
+    }
+
+    const link = `${appUrl}/apply/${company.slug}`;
+    await navigator.clipboard.writeText(link);
+
+    await Alert.fire({
+      toast: true,
+      position: 'top-end',
+      icon: 'success',
+      title: 'Lien copié !',
+      showConfirmButton: false,
+      timer: 2000,
+    });
+  };
+
   const openEmailDetails = async () => {
-    await Swal.fire({
+    await Alert.fire({
       title: 'Emails automatiques',
       html: `
         <div style="text-align:left;line-height:1.6;">
@@ -190,7 +229,7 @@ export default function ApplicationList({ initialJobId = null }: { initialJobId?
    * Ask confirmation before ending the authenticated company session.
    */
   const handleLogout = async () => {
-    const confirmation = await Swal.fire({
+    const confirmation = await Alert.fire({
       title: 'Se déconnecter ? ',
       text: 'Votre session admin sera fermée.',
       icon: 'question',
@@ -216,20 +255,20 @@ export default function ApplicationList({ initialJobId = null }: { initialJobId?
     setIsExportModalOpen(false);
     setIsExporting(true);
 
-    void Swal.fire({
+    void Alert.fire({
       title: 'Export en cours...',
       allowOutsideClick: false,
       allowEscapeKey: false,
       didOpen: () => {
-        Swal.showLoading();
+        Alert.showLoading();
       },
     });
 
     try {
       await exportCSV(filters);
-      Swal.close();
+      Alert.close();
 
-      await Swal.fire({
+      await Alert.fire({
         title: 'Export réussi !',
         text: 'Votre fichier CSV a été téléchargé.',
         icon: 'success',
@@ -237,9 +276,9 @@ export default function ApplicationList({ initialJobId = null }: { initialJobId?
       });
     } catch (error) {
       const apiError = error as ApiError;
-      Swal.close();
+      Alert.close();
 
-      await Swal.fire({
+      await Alert.fire({
         icon: 'error',
         title: 'Export impossible',
         text: apiError.message || 'Une erreur est survenue pendant l export du fichier.',
@@ -305,6 +344,16 @@ export default function ApplicationList({ initialJobId = null }: { initialJobId?
           </div>
 
           <div className="flex flex-col items-stretch gap-3 sm:items-end">
+            <button
+              type="button"
+              onClick={() => void copyApplyLink()}
+              disabled={!company?.slug}
+              className="inline-flex items-center justify-center gap-2 rounded-lg border border-teal-300 bg-white px-4 py-2.5 text-sm font-semibold text-teal-700 transition hover:bg-teal-50 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <span>📋</span>
+              <span>Copier mon lien de candidature</span>
+            </button>
+
             <button
               type="button"
               onClick={() => setIsExportModalOpen(true)}
@@ -389,9 +438,9 @@ export default function ApplicationList({ initialJobId = null }: { initialJobId?
         </div>
 
         {showEmailBanner && (
-          <div className="rounded-lg border border-indigo-200 bg-indigo-50 p-4">
+          <div className="rounded-lg border border-teal-200 bg-teal-50 p-4">
             <div className="flex items-start justify-between gap-4">
-              <p className="text-sm leading-6 text-indigo-900">
+              <p className="text-sm leading-6 text-teal-900">
                 <span className="mr-2">📧</span>
                 Les candidats reçoivent automatiquement un email de confirmation à chaque candidature,
                 et une notification lors de chaque changement de statut.
@@ -400,7 +449,7 @@ export default function ApplicationList({ initialJobId = null }: { initialJobId?
               <button
                 type="button"
                 onClick={hideEmailBanner}
-                className="shrink-0 rounded px-2 py-1 text-xs font-semibold text-indigo-700 hover:bg-indigo-100"
+                className="shrink-0 rounded px-2 py-1 text-xs font-semibold text-teal-700 hover:bg-teal-100"
                 aria-label="Masquer la bannière email"
               >
                 x
@@ -410,7 +459,7 @@ export default function ApplicationList({ initialJobId = null }: { initialJobId?
             <button
               type="button"
               onClick={() => void openEmailDetails()}
-              className="mt-3 text-xs font-semibold text-indigo-700 underline underline-offset-2 hover:text-indigo-900"
+              className="mt-3 text-xs font-semibold text-teal-700 underline underline-offset-2 hover:text-teal-900"
             >
               En savoir plus
             </button>
@@ -438,10 +487,6 @@ export default function ApplicationList({ initialJobId = null }: { initialJobId?
             );
           })}
         </div>
-
-        <Link href="/" className="inline-block text-sm font-medium text-[#525252] hover:text-[#0f0f0f]">
-          Retour au formulaire
-        </Link>
       </header>
 
       {isLoading && (

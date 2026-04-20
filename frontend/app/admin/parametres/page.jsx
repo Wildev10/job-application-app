@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import Swal from 'sweetalert2';
+import { Alert } from '@/lib/sweetalert';
 import { apiFetch } from '@/lib/api';
 import { getCompany, saveCompany } from '@/lib/auth';
 
@@ -37,7 +37,7 @@ export default function AdminParametresPage() {
 
   const handleSave = async () => {
     if (!name.trim()) {
-      await Swal.fire({
+      await Alert.fire({
         icon: 'warning',
         title: 'Nom requis',
         text: 'Veuillez renseigner un nom d entreprise.',
@@ -68,14 +68,14 @@ export default function AdminParametresPage() {
       setCompany(nextCompany);
       saveCompany(nextCompany);
 
-      await Swal.fire({
+      await Alert.fire({
         icon: 'success',
         title: 'Informations mises a jour',
         text: 'Vos changements ont ete sauvegardes.',
         confirmButtonColor: '#0F0F0F',
       });
     } catch (error) {
-      await Swal.fire({
+      await Alert.fire({
         icon: 'error',
         title: 'Echec de la sauvegarde',
         text: error instanceof Error ? error.message : 'Une erreur est survenue.',
@@ -94,14 +94,14 @@ export default function AdminParametresPage() {
     try {
       await navigator.clipboard.writeText(publicApplyUrl);
 
-      await Swal.fire({
+      await Alert.fire({
         icon: 'success',
         title: 'Lien copie !',
         timer: 1400,
         showConfirmButton: false,
       });
     } catch {
-      await Swal.fire({
+      await Alert.fire({
         icon: 'error',
         title: 'Impossible de copier',
         text: 'Veuillez copier le lien manuellement.',

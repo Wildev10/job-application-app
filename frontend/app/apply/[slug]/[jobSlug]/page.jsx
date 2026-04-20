@@ -3,8 +3,9 @@
 import Image from 'next/image';
 import { useParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
-import Swal from 'sweetalert2';
+import { Alert } from '@/lib/sweetalert';
 import { apiFetch } from '@/lib/api';
+// FIX-CONTRAST: lisibilite corrigee
 
 const INITIAL_FORM = {
   nom: '',
@@ -50,7 +51,7 @@ export default function ApplyByJobPage() {
     }
   }, [companySlug, jobSlug]);
 
-  const primaryColor = useMemo(() => job?.company?.color || '#4f46e5', [job]);
+  const primaryColor = useMemo(() => job?.company?.color || '#0d9488', [job]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -119,14 +120,14 @@ export default function ApplyByJobPage() {
       setForm(INITIAL_FORM);
       setErrors({});
 
-      await Swal.fire({
+      await Alert.fire({
         icon: 'success',
         title: 'Candidature envoyée !',
         text: 'Nous avons bien reçu votre candidature. Nous vous contacterons bientôt.',
         confirmButtonColor: primaryColor,
       });
     } catch (error) {
-      await Swal.fire({
+      await Alert.fire({
         icon: 'error',
         title: 'Impossible de soumettre la candidature',
         text: error instanceof Error ? error.message : 'Une erreur est survenue.',
@@ -189,7 +190,7 @@ export default function ApplyByJobPage() {
           </div>
 
           <div className="mt-4 flex flex-wrap gap-2">
-            <span className="rounded-full bg-indigo-100 px-3 py-1 text-xs font-semibold text-indigo-700">{job.type_label}</span>
+            <span className="rounded-full bg-teal-100 px-3 py-1 text-xs font-semibold text-teal-700">{job.type_label}</span>
             <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">{job.location || 'Lieu non précisé'}</span>
             <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">{job.role}</span>
           </div>

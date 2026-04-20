@@ -1,13 +1,20 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const PRIMARY_API_URL = (process.env.NEXT_PUBLIC_API_URL || '/backend-api').replace(/\/$/, '');
+const PROXY_API_URL = '/backend-api';
 
-if (!API_URL) {
-  throw new Error('NEXT_PUBLIC_API_URL is not configured.');
+function buildUrl(baseUrl, endpoint) {
+  const normalizedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  return `${baseUrl}${normalizedEndpoint}`;
 }
 
-/**
- * Unified API helper with base URL, optional Bearer token and JSON parsing.
- */
-export async function apiFetch(endpoint, options = {}) {
+function isNetworkError(error) {
+  return error instanceof TypeError;
+}
+
+function shouldRetryWithProxy(error, baseUrl) {
+  return isNetworkError(error) && baseUrl !== PROXY_API_URL;
+}
+
+async function requestJson(baseUrl, endpoint, options) {
   const { headers = {}, body, ...rest } = options;
   const normalizedHeaders = new Headers(headers);
 
@@ -27,7 +34,7 @@ export async function apiFetch(endpoint, options = {}) {
     normalizedHeaders.set('Accept', 'application/json');
   }
 
-  const response = await fetch(`${API_URL}${endpoint}`, {
+  const response = await fetch(buildUrl(baseUrl, endpoint), {
     ...rest,
     headers: normalizedHeaders,
     body,
@@ -51,6 +58,25 @@ export async function apiFetch(endpoint, options = {}) {
 }
 
 /**
+ * Unified API helper with base URL, optional Bearer token and JSON parsing.
+ */
+export async function apiFetch(endpoint, options = {}) {
+  try {
+    return await requestJson(PRIMARY_API_URL, endpoint, options);
+  } catch (error) {
+    if (shouldRetryWithProxy(error, PRIMARY_API_URL)) {
+      return requestJson(PROXY_API_URL, endpoint, options);
+    }
+
+    if (isNetworkError(error)) {
+      throw new Error('Connexion au serveur impossible. Verifiez que le backend Laravel est lance et accessible.');
+    }
+
+    throw error;
+  }
+}
+
+/**
  * Export applications as CSV and trigger a browser download.
  */
 export async function exportCSV(filters = {}) {
@@ -64,8 +90,8 @@ export async function exportCSV(filters = {}) {
 
   const token = typeof window !== 'undefined' ? localStorage.getItem('company_token') : null;
   const endpoint = query.toString()
-    ? `${API_URL}/applications/export?${query.toString()}`
-    : `${API_URL}/applications/export`;
+    ? '/applications/export?' + query.toString()
+    : '/applications/export';
   const normalizedHeaders = new Headers();
 
   if (token) {
@@ -74,10 +100,25 @@ export async function exportCSV(filters = {}) {
 
   normalizedHeaders.set('Accept', 'text/csv,application/octet-stream');
 
-  const response = await fetch(endpoint, {
-    method: 'GET',
-    headers: normalizedHeaders,
-  });
+  let response;
+
+  try {
+    response = await fetch(buildUrl(PRIMARY_API_URL, endpoint), {
+      method: 'GET',
+      headers: normalizedHeaders,
+    });
+  } catch (error) {
+    if (shouldRetryWithProxy(error, PRIMARY_API_URL)) {
+      response = await fetch(buildUrl(PROXY_API_URL, endpoint), {
+        method: 'GET',
+        headers: normalizedHeaders,
+      });
+    } else if (isNetworkError(error)) {
+      throw new Error('Connexion au serveur impossible. Verifiez que le backend Laravel est lance et accessible.');
+    } else {
+      throw error;
+    }
+  }
 
   if (!response.ok) {
     let payload = null;

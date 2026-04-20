@@ -12,11 +12,12 @@ Route::get('/jobs/public/{companySlug}/{jobSlug}', [JobController::class, 'showP
 Route::post('/applications', [ApplicationController::class, 'store']);
 Route::post('/applications/{companySlug}/{jobSlug}', [ApplicationController::class, 'store']);
 Route::post('/applications/{slug}', [ApplicationController::class, 'store']);
-Route::get('/company/{slug}', [CompanyController::class, 'show']);
 
 Route::middleware('company.auth')->group(function (): void {
 	Route::post('/auth/logout', [AuthController::class, 'logout']);
 	Route::get('/auth/me', [AuthController::class, 'me']);
+	// Return onboarding progress metrics for the authenticated company.
+	Route::get('/company/onboarding-status', [CompanyController::class, 'onboardingStatus']);
 	Route::patch('/company/profile', [CompanyController::class, 'updateProfile']);
 	Route::get('/jobs', [JobController::class, 'index']);
 	Route::post('/jobs', [JobController::class, 'store']);
@@ -27,3 +28,6 @@ Route::middleware('company.auth')->group(function (): void {
 	Route::get('/applications', [ApplicationController::class, 'index']);
 	Route::patch('/applications/{id}/status', [ApplicationController::class, 'updateStatus']);
 });
+
+// Keep this route after /company/onboarding-status to avoid slug conflicts.
+Route::get('/company/{slug}', [CompanyController::class, 'show']);
