@@ -23,6 +23,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'company.auth' => \App\Http\Middleware\CompanyAuth::class,
+            'super.admin.auth' => \App\Http\Middleware\SuperAdminAuth::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

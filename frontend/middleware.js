@@ -1,25 +1,42 @@
 import { NextResponse } from 'next/server';
 
 /**
- * Protect admin routes using company_token cookie set during authentication.
+ * Protect admin and superadmin routes with dedicated auth cookies.
  */
 export function middleware(request) {
   const { pathname } = request.nextUrl;
 
-  if (!pathname.startsWith('/admin')) {
+  if (pathname.startsWith('/admin')) {
+    const companyToken = request.cookies.get('company_token')?.value;
+
+    if (!companyToken) {
+      const loginUrl = new URL('/login', request.url);
+      return NextResponse.redirect(loginUrl);
+    }
+
     return NextResponse.next();
   }
 
-  const token = request.cookies.get('company_token')?.value;
+  if (pathname.startsWith('/superadmin')) {
+    const superAdminToken = request.cookies.get('sa_token')?.value;
+    const isLoginRoute = pathname === '/superadmin/login';
 
-  if (!token) {
-    const loginUrl = new URL('/login', request.url);
-    return NextResponse.redirect(loginUrl);
+    if (!superAdminToken && !isLoginRoute) {
+      const loginUrl = new URL('/superadmin/login', request.url);
+      return NextResponse.redirect(loginUrl);
+    }
+
+    if (superAdminToken && isLoginRoute) {
+      const dashboardUrl = new URL('/superadmin', request.url);
+      return NextResponse.redirect(dashboardUrl);
+    }
+
+    return NextResponse.next();
   }
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ['/admin/:path*'],
+  matcher: ['/admin/:path*', '/superadmin/:path*'],
 };

@@ -126,7 +126,7 @@ export default function RegisterPage() {
           </div>
 
           <div className="rounded-2xl border border-teal-200 bg-teal-100 p-4 text-sm text-teal-900">
-            <p className="font-semibold text-teal-900">Inclus dès l'inscription</p>
+            <p className="font-semibold text-teal-900">Inclus dès l&apos;inscription</p>
             <p className="mt-2 text-teal-800">Formulaire public, suivi des statuts et emails automatiques candidats.</p>
           </div>
         </div>

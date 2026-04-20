@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { BriefcaseBusiness, ClipboardList, LayoutDashboard, Settings } from 'lucide-react';
@@ -16,6 +17,31 @@ const MAIN_LINKS = [
  */
 export default function AdminLayout({ children }) {
   const pathname = usePathname();
+  const [impersonationCompanyName, setImpersonationCompanyName] = useState(() => {
+    if (typeof window === 'undefined') {
+      return '';
+    }
+
+    const token = localStorage.getItem('impersonate_token');
+    return token ? (localStorage.getItem('impersonate_company_name') || '') : '';
+  });
+
+  useEffect(() => {
+    const onStorage = () => {
+      const token = localStorage.getItem('impersonate_token');
+      setImpersonationCompanyName(token ? (localStorage.getItem('impersonate_company_name') || '') : '');
+    };
+
+    window.addEventListener('storage', onStorage);
+
+    return () => window.removeEventListener('storage', onStorage);
+  }, []);
+
+  const stopImpersonation = () => {
+    localStorage.removeItem('impersonate_token');
+    localStorage.removeItem('impersonate_company_name');
+    setImpersonationCompanyName('');
+  };
 
   return (
     <div className="min-h-[calc(100vh-3.5rem)] bg-slate-50">
@@ -63,7 +89,24 @@ export default function AdminLayout({ children }) {
           </div>
         </aside>
 
-        <main className="min-w-0 flex-1">{children}</main>
+        <main className="min-w-0 flex-1">
+          {impersonationCompanyName ? (
+            <div className="mb-4 flex flex-wrap items-center gap-3 rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
+              <span className="font-semibold">
+                ⚠️ Mode impersonation - Vous visualisez l&apos;espace de {impersonationCompanyName}
+              </span>
+              <button
+                type="button"
+                onClick={stopImpersonation}
+                className="rounded-md border border-red-300 px-2.5 py-1 text-xs font-semibold text-red-700 hover:bg-red-100"
+              >
+                Quitter
+              </button>
+            </div>
+          ) : null}
+
+          {children}
+        </main>
       </div>
     </div>
   );
