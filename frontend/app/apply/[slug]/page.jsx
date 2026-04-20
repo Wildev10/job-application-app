@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Image from 'next/image';
-import Swal from 'sweetalert2';
+import { Alert } from '@/lib/sweetalert';
 import { apiFetch } from '@/lib/api';
 
 const INITIAL_FORM = {
@@ -118,14 +118,14 @@ export default function ApplyBySlugPage() {
       setForm(INITIAL_FORM);
       setErrors({});
 
-      await Swal.fire({
+      await Alert.fire({
         icon: 'success',
         title: 'Candidature envoyée !',
         text: 'Nous avons bien reçu votre candidature.',
         confirmButtonColor: primaryColor,
       });
     } catch (error) {
-      await Swal.fire({
+      await Alert.fire({
         icon: 'error',
         title: 'Erreur',
         text: error instanceof Error ? error.message : 'Impossible de soumettre la candidature.',

@@ -2,11 +2,12 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Swal from 'sweetalert2';
+import { Alert } from '@/lib/sweetalert';
 import JobCard from '@/components/jobs/JobCard';
 import JobFormModal from '@/components/jobs/JobFormModal';
 import { useJobs } from '@/hooks/useJobs';
 import { getCompany } from '@/lib/auth';
+// FIX-CONTRAST: lisibilite corrigee
 
 const FILTERS = [
   { value: 'all', label: 'Tous' },
@@ -31,7 +32,7 @@ export default function AdminPostesPage() {
       return;
     }
 
-    void Swal.fire({
+    void Alert.fire({
       icon: 'error',
       title: 'Chargement impossible',
       text: error,
@@ -62,7 +63,7 @@ export default function AdminPostesPage() {
       const result = await updateJob(editingJob.id, data);
 
       if (!result.success) {
-        await Swal.fire({
+        await Alert.fire({
           icon: 'error',
           title: 'Échec de la modification',
           text: result.message || 'Impossible de modifier ce poste.',
@@ -74,11 +75,11 @@ export default function AdminPostesPage() {
       setIsModalOpen(false);
       setEditingJob(null);
 
-      await Swal.fire({
+      await Alert.fire({
         icon: 'success',
         title: 'Poste mis à jour',
         text: 'Les informations du poste ont été sauvegardées.',
-        confirmButtonColor: '#4f46e5',
+        confirmButtonColor: '#0d9488',
       });
 
       return;
@@ -87,7 +88,7 @@ export default function AdminPostesPage() {
     const result = await createJob(data);
 
     if (!result.success) {
-      await Swal.fire({
+      await Alert.fire({
         icon: 'error',
         title: 'Échec de la création',
         text: result.message || 'Impossible de créer ce poste.',
@@ -103,16 +104,16 @@ export default function AdminPostesPage() {
       ? `${appUrl}/apply/${company.slug}/${result.job.slug}`
       : `${appUrl}/apply/{companySlug}/${result.job.slug}`;
 
-    await Swal.fire({
+    await Alert.fire({
       icon: 'success',
       title: 'Poste créé !',
       html: `<p>Partagez ce lien :</p><p style="margin-top:8px;word-break:break-all;font-weight:600;">${publicLink}</p>`,
-      confirmButtonColor: '#4f46e5',
+      confirmButtonColor: '#0d9488',
     });
   };
 
   const handleCloseJob = async (job) => {
-    const confirmation = await Swal.fire({
+    const confirmation = await Alert.fire({
       title: 'Êtes-vous sûr de vouloir clôturer ce poste ?',
       text: 'Les candidatures existantes seront conservées.',
       icon: 'warning',
@@ -130,7 +131,7 @@ export default function AdminPostesPage() {
     const result = await closeJob(job.id);
 
     if (!result.success) {
-      await Swal.fire({
+      await Alert.fire({
         icon: 'error',
         title: 'Clôture impossible',
         text: result.message || 'Une erreur est survenue.',
@@ -139,11 +140,11 @@ export default function AdminPostesPage() {
       return;
     }
 
-    await Swal.fire({
+    await Alert.fire({
       icon: 'success',
       title: 'Poste clôturé',
       text: 'Le poste a été clôturé avec succès.',
-      confirmButtonColor: '#4f46e5',
+      confirmButtonColor: '#0d9488',
     });
   };
 
@@ -154,7 +155,7 @@ export default function AdminPostesPage() {
         <button
           type="button"
           onClick={openCreateModal}
-          className="rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-700"
+          className="rounded-lg bg-teal-500 px-4 py-2.5 text-sm font-semibold text-slate-950 transition hover:bg-teal-400"
         >
           Nouveau poste
         </button>
@@ -168,7 +169,7 @@ export default function AdminPostesPage() {
             onClick={() => setFilter(item.value)}
             className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${
               filter === item.value
-                ? 'bg-[#111827] text-white'
+                ? 'bg-teal-600 text-white'
                 : 'bg-[#f3f4f6] text-[#374151] hover:bg-[#e5e7eb]'
             }`}
           >

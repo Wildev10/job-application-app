@@ -2,8 +2,9 @@
 
 import { useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import Swal from 'sweetalert2';
+import { Alert } from '@/lib/sweetalert';
 import { getCompany } from '@/lib/auth';
+// FIX-CONTRAST: lisibilite corrigee
 
 /**
  * Display onboarding checklist for newly created companies.
@@ -41,25 +42,25 @@ export default function OnboardingBanner({ status }) {
 
     await navigator.clipboard.writeText(applyLink);
 
-    await Swal.fire({
+    await Alert.fire({
       icon: 'success',
       title: 'Lien copié !',
       text: 'Votre lien de candidature est prêt à être partagé.',
-      confirmButtonColor: '#6366F1',
+      confirmButtonColor: '#0d9488',
     });
   };
 
   return (
-    <section className="rounded-xl border-2 border-indigo-200 bg-gradient-to-br from-indigo-50 to-white p-6 shadow-sm sm:p-8">
+    <section className="rounded-xl border-2 border-teal-200 bg-gradient-to-br from-teal-50 to-white p-6 shadow-sm sm:p-8">
       <div className="mb-6 space-y-3">
         <div className="flex items-center justify-between gap-3">
-          <p className="text-sm font-semibold text-indigo-700">Progression de l&apos;onboarding</p>
-          <p className="text-sm font-medium text-indigo-800">Étape {completedSteps} sur 3 complétée</p>
+          <p className="text-sm font-semibold text-teal-700">Progression de l&apos;onboarding</p>
+          <p className="text-sm font-medium text-teal-800">Étape {completedSteps} sur 3 complétée</p>
         </div>
 
-        <div className="h-2 w-full overflow-hidden rounded-full bg-indigo-100">
+        <div className="h-2 w-full overflow-hidden rounded-full bg-teal-100">
           <div
-            className="h-full rounded-full bg-indigo-600 transition-all duration-500"
+            className="h-full rounded-full bg-teal-600 transition-all duration-500"
             style={{ width: `${progress}%` }}
           />
         </div>
@@ -76,7 +77,7 @@ export default function OnboardingBanner({ status }) {
           <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-700">Complété</span>
         </div>
 
-        <div className="flex flex-col gap-3 rounded-lg border border-indigo-200 bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 rounded-lg border border-teal-200 bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
           {status?.has_jobs ? (
             <p className="text-sm text-gray-500 line-through">✅ Créer votre premier poste</p>
           ) : (
@@ -89,14 +90,14 @@ export default function OnboardingBanner({ status }) {
             <button
               type="button"
               onClick={() => router.push('/admin/postes')}
-              className="w-fit rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700"
+              className="w-fit rounded-lg bg-teal-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-teal-700"
             >
               Créer un poste →
             </button>
           )}
         </div>
 
-        <div className="flex flex-col gap-3 rounded-lg border border-indigo-200 bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 rounded-lg border border-teal-200 bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
           {status?.has_applications ? (
             <p className="text-sm text-gray-500 line-through">✅ Partager votre lien de candidature</p>
           ) : (
@@ -111,7 +112,7 @@ export default function OnboardingBanner({ status }) {
             <button
               type="button"
               onClick={() => void copyApplyLink()}
-              className="w-fit rounded-lg border border-indigo-300 bg-white px-4 py-2 text-sm font-semibold text-indigo-700 transition hover:bg-indigo-50"
+              className="w-fit rounded-lg border border-teal-300 bg-white px-4 py-2 text-sm font-semibold text-teal-700 transition hover:bg-teal-50"
             >
               Copier mon lien
             </button>

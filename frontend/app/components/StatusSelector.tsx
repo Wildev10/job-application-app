@@ -1,9 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Swal from 'sweetalert2';
+import { Alert } from '@/lib/sweetalert';
 import type { ApiError, Application, ApplicationStatus } from '@/app/types/application';
 import { apiFetch } from '@/lib/api';
+// FIX-CONTRAST: lisibilite corrigee
 
 interface StatusSelectorProps {
   applicationId: number;
@@ -38,7 +39,7 @@ export default function StatusSelector({ applicationId, currentStatus, onStatusU
     const previousStatus = selectedStatus;
     setSelectedStatus(nextStatus);
 
-    const confirmation = await Swal.fire({
+    const confirmation = await Alert.fire({
       title: 'Modifier le statut ?',
       text: 'Voulez-vous vraiment changer le statut de cette candidature ?',
       icon: 'question',
@@ -65,7 +66,7 @@ export default function StatusSelector({ applicationId, currentStatus, onStatusU
       onStatusUpdated(updatedApplication);
       setSelectedStatus(updatedApplication.status);
 
-      await Swal.fire({
+      await Alert.fire({
         icon: 'success',
         title: 'Succès',
         text: 'Statut mis à jour avec succès',
@@ -76,7 +77,7 @@ export default function StatusSelector({ applicationId, currentStatus, onStatusU
       const apiError = error as ApiError;
       setSelectedStatus(previousStatus);
 
-      await Swal.fire({
+      await Alert.fire({
         icon: 'error',
         title: 'Erreur',
         text: apiError.message || 'Impossible de mettre à jour le statut.',
@@ -94,7 +95,7 @@ export default function StatusSelector({ applicationId, currentStatus, onStatusU
         value={selectedStatus}
         onChange={(event) => void handleStatusChange(event.target.value as ApplicationStatus)}
         disabled={isUpdating}
-        className="rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-xs text-gray-700 outline-none transition focus:border-gray-500 disabled:cursor-not-allowed disabled:opacity-60"
+        className="rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-xs text-slate-700 outline-none transition focus:border-teal-500 disabled:cursor-not-allowed disabled:opacity-60"
       >
         {STATUS_OPTIONS.map((option) => (
           <option key={option.value} value={option.value}>
@@ -103,7 +104,7 @@ export default function StatusSelector({ applicationId, currentStatus, onStatusU
         ))}
       </select>
 
-      {isUpdating && <span className="text-xs text-gray-500">Mise à jour...</span>}
+      {isUpdating && <span className="text-xs text-slate-500">Mise à jour...</span>}
     </div>
   );
 }

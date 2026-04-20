@@ -2,9 +2,10 @@
 
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
-import Swal from 'sweetalert2';
+import { Alert } from '@/lib/sweetalert';
 import { submitApplication } from '@/app/lib/api';
 import type { ApiError, ApplicationFormData } from '@/app/types/application';
+// FIX-CONTRAST: lisibilite corrigee
 
 type FormErrors = Partial<Record<keyof ApplicationFormData, string>>;
 
@@ -129,11 +130,11 @@ export default function ApplicationForm() {
         setForm((previous) => ({ ...previous, cv: null }));
         event.target.value = '';
 
-        void Swal.fire({
+        void Alert.fire({
           icon: 'error',
           title: 'Format de CV invalide',
           text: 'Veuillez sélectionner un fichier PDF, DOC ou DOCX.',
-          confirmButtonColor: '#4f46e5',
+          confirmButtonColor: '#0d9488',
         });
 
         return;
@@ -175,7 +176,7 @@ export default function ApplicationForm() {
       setForm(INITIAL_FORM);
       setErrors({});
 
-      await Swal.fire({
+      await Alert.fire({
         icon: 'success',
         title: 'Candidature envoyée !',
         text: 'Nous avons bien reçu votre candidature. Nous vous contacterons bientôt.',
@@ -196,7 +197,7 @@ export default function ApplicationForm() {
       if (apiError.status === 422) {
         setErrors(mapApiErrors(apiError));
       } else {
-        void Swal.fire({
+        void Alert.fire({
           icon: 'error',
           title: 'Une erreur est survenue',
           text: 'Impossible de soumettre votre candidature. Veuillez réessayer.',

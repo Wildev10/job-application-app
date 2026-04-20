@@ -1,13 +1,16 @@
 'use client';
+// FIX-CONTRAST: lisibilite corrigee
+
+import { Archive, Briefcase, CalendarDays, Eye, MapPin, PencilLine, Users } from 'lucide-react';
 
 /**
  * Display a single job card with actions for admin management.
  */
 export default function JobCard({ job, onEdit, onClose, onViewApplications }) {
   const statusMap = {
-    open: 'bg-emerald-100 text-emerald-700',
-    closed: 'bg-red-100 text-red-700',
-    draft: 'bg-gray-100 text-gray-700',
+    open: 'bg-teal-100 text-teal-800',
+    closed: 'bg-slate-100 text-slate-700',
+    draft: 'bg-amber-100 text-amber-800',
   };
 
   const statusLabelMap = {
@@ -22,53 +25,76 @@ export default function JobCard({ job, onEdit, onClose, onViewApplications }) {
   const isSoon = expiresAt ? expiresAt.getTime() - now.getTime() <= sevenDays && expiresAt.getTime() > now.getTime() : false;
 
   return (
-    <article className="overflow-hidden rounded-2xl border border-[#e5e7eb] bg-white p-5 shadow-sm">
-      <div className="mb-4 flex items-center justify-between gap-3">
-        <span className={`rounded-full px-3 py-1 text-xs font-semibold ${statusMap[job.status] || statusMap.draft}`}>
+    <article className="overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:shadow-md">
+      <header className="mb-4 flex items-start justify-between gap-3 border-b border-slate-100 pb-4">
+        <div className="min-w-0">
+          <h3 className="truncate text-xl font-extrabold tracking-[-0.01em] text-slate-900" title={job.title}>{job.title}</h3>
+          <p className="mt-1 text-xs font-medium uppercase tracking-[0.08em] text-slate-500">
+            Réf. poste #{job.id}
+          </p>
+        </div>
+
+        <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${statusMap[job.status] || statusMap.draft}`}>
           {job.status_label || statusLabelMap[job.status] || 'Brouillon'}
         </span>
-        <span className="text-xs text-[#6b7280]">#{job.id}</span>
+      </header>
+
+      <div className="grid gap-3 rounded-xl border border-slate-100 bg-slate-50 p-3 text-sm text-slate-700">
+        <div className="flex items-center gap-2">
+          <Briefcase size={15} className="text-teal-600" />
+          <span className="font-medium text-slate-900">Rôle:</span>
+          <span>{job.role}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <PencilLine size={15} className="text-teal-600" />
+          <span className="font-medium text-slate-900">Type:</span>
+          <span>{job.type_label || job.type}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <MapPin size={15} className="text-teal-600" />
+          <span className="font-medium text-slate-900">Lieu:</span>
+          <span>{job.location || 'Non précisée'}</span>
+        </div>
       </div>
 
-      <h3 className="truncate text-xl font-extrabold tracking-[-0.01em] text-[#111827]" title={job.title}>{job.title}</h3>
-
-      <div className="mt-3 space-y-1 text-sm text-[#4b5563]">
-        <p>👤 {job.role}</p>
-        <p>📄 {job.type_label || job.type}</p>
-        <p>📍 {job.location || 'Non précisée'}</p>
+      <div className="mt-4 flex items-center justify-between rounded-lg border border-teal-100 bg-teal-50 px-3 py-2">
+        <p className="inline-flex items-center gap-2 text-sm font-semibold text-teal-800">
+          <Users size={15} />
+          {job.applications_count || 0} candidature(s)
+        </p>
       </div>
-
-      <p className="mt-4 text-sm font-medium text-[#374151]">
-        {job.applications_count || 0} candidature(s)
-      </p>
 
       {expiresAt && (
-        <p className={`mt-2 text-sm font-medium ${isSoon ? 'text-orange-600' : 'text-[#6b7280]'}`}>
+        <div className={`mt-3 inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold ${isSoon ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-600'}`}>
+          <CalendarDays size={14} />
           Expire le {new Intl.DateTimeFormat('fr-FR', { dateStyle: 'long' }).format(expiresAt)}
-        </p>
+        </div>
       )}
 
       <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
         <button
           type="button"
           onClick={onViewApplications}
-          className="w-fit rounded-lg bg-indigo-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700"
+          className="inline-flex w-fit items-center gap-2 rounded-lg bg-teal-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-teal-700"
         >
+          <Eye size={14} />
           Voir candidatures
         </button>
         <button
           type="button"
           onClick={onEdit}
-          className="w-fit rounded-lg bg-gray-200 px-3 py-2 text-sm font-semibold text-gray-800 transition hover:bg-gray-300"
+          className="inline-flex w-fit items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
         >
+          <PencilLine size={14} />
           Modifier
         </button>
         <button
           type="button"
           onClick={onClose}
           disabled={job.status === 'closed'}
-          className="w-fit rounded-lg bg-red-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-55"
+          className="inline-flex w-fit items-center gap-2 rounded-lg bg-red-500 px-3 py-2 text-sm font-semibold text-white transition hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-55"
         >
+          <Archive size={14} />
           Clôturer
         </button>
       </div>

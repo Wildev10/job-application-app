@@ -3,13 +3,14 @@
 import Image from 'next/image';
 import { useEffect, useMemo, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import Swal from 'sweetalert2';
+import { Alert } from '@/lib/sweetalert';
 import ApplicationCard from '@/app/components/ApplicationCard';
 import ExportModal from '@/app/components/ExportModal';
 import type { ApiError, Application, ApplicationStatus } from '@/app/types/application';
 import { apiFetch, exportCSV } from '@/lib/api';
 import { getCompany } from '@/lib/auth';
 import { useAuth } from '@/hooks/useAuth';
+// FIX-CONTRAST: lisibilite corrigee
 
 type StatusFilter = 'all' | ApplicationStatus;
 type ExportFilters = {
@@ -92,7 +93,7 @@ export default function ApplicationList({
     const link = `${appUrl}/apply/${company.slug}`;
     await navigator.clipboard.writeText(link);
 
-    await Swal.fire({
+    await Alert.fire({
       toast: true,
       position: 'top-end',
       icon: 'success',
@@ -103,7 +104,7 @@ export default function ApplicationList({
   };
 
   const openEmailDetails = async () => {
-    await Swal.fire({
+    await Alert.fire({
       title: 'Emails automatiques',
       html: `
         <div style="text-align:left;line-height:1.6;">
@@ -228,7 +229,7 @@ export default function ApplicationList({
    * Ask confirmation before ending the authenticated company session.
    */
   const handleLogout = async () => {
-    const confirmation = await Swal.fire({
+    const confirmation = await Alert.fire({
       title: 'Se déconnecter ? ',
       text: 'Votre session admin sera fermée.',
       icon: 'question',
@@ -254,20 +255,20 @@ export default function ApplicationList({
     setIsExportModalOpen(false);
     setIsExporting(true);
 
-    void Swal.fire({
+    void Alert.fire({
       title: 'Export en cours...',
       allowOutsideClick: false,
       allowEscapeKey: false,
       didOpen: () => {
-        Swal.showLoading();
+        Alert.showLoading();
       },
     });
 
     try {
       await exportCSV(filters);
-      Swal.close();
+      Alert.close();
 
-      await Swal.fire({
+      await Alert.fire({
         title: 'Export réussi !',
         text: 'Votre fichier CSV a été téléchargé.',
         icon: 'success',
@@ -275,9 +276,9 @@ export default function ApplicationList({
       });
     } catch (error) {
       const apiError = error as ApiError;
-      Swal.close();
+      Alert.close();
 
-      await Swal.fire({
+      await Alert.fire({
         icon: 'error',
         title: 'Export impossible',
         text: apiError.message || 'Une erreur est survenue pendant l export du fichier.',
@@ -347,7 +348,7 @@ export default function ApplicationList({
               type="button"
               onClick={() => void copyApplyLink()}
               disabled={!company?.slug}
-              className="inline-flex items-center justify-center gap-2 rounded-lg border border-indigo-300 bg-white px-4 py-2.5 text-sm font-semibold text-indigo-700 transition hover:bg-indigo-50 disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex items-center justify-center gap-2 rounded-lg border border-teal-300 bg-white px-4 py-2.5 text-sm font-semibold text-teal-700 transition hover:bg-teal-50 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <span>📋</span>
               <span>Copier mon lien de candidature</span>
@@ -437,9 +438,9 @@ export default function ApplicationList({
         </div>
 
         {showEmailBanner && (
-          <div className="rounded-lg border border-indigo-200 bg-indigo-50 p-4">
+          <div className="rounded-lg border border-teal-200 bg-teal-50 p-4">
             <div className="flex items-start justify-between gap-4">
-              <p className="text-sm leading-6 text-indigo-900">
+              <p className="text-sm leading-6 text-teal-900">
                 <span className="mr-2">📧</span>
                 Les candidats reçoivent automatiquement un email de confirmation à chaque candidature,
                 et une notification lors de chaque changement de statut.
@@ -448,7 +449,7 @@ export default function ApplicationList({
               <button
                 type="button"
                 onClick={hideEmailBanner}
-                className="shrink-0 rounded px-2 py-1 text-xs font-semibold text-indigo-700 hover:bg-indigo-100"
+                className="shrink-0 rounded px-2 py-1 text-xs font-semibold text-teal-700 hover:bg-teal-100"
                 aria-label="Masquer la bannière email"
               >
                 x
@@ -458,7 +459,7 @@ export default function ApplicationList({
             <button
               type="button"
               onClick={() => void openEmailDetails()}
-              className="mt-3 text-xs font-semibold text-indigo-700 underline underline-offset-2 hover:text-indigo-900"
+              className="mt-3 text-xs font-semibold text-teal-700 underline underline-offset-2 hover:text-teal-900"
             >
               En savoir plus
             </button>

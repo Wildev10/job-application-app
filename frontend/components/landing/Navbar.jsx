@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { BriefcaseBusiness, Menu, X } from 'lucide-react';
 
 const NAV_LINKS = [
   { href: '#fonctionnalites', label: 'Fonctionnalités' },
@@ -30,15 +31,14 @@ export default function Navbar() {
 
   return (
     <header
-      className={`fixed inset-x-0 top-0 z-50 border-b border-transparent bg-white/90 backdrop-blur transition-all duration-300 ${
-        isScrolled ? 'shadow-[0_8px_22px_-18px_rgba(15,23,42,0.45)]' : ''
+      className={`fixed inset-x-0 top-0 z-50 border-b border-transparent bg-white/95 backdrop-blur-xl transition-all duration-300 ${
+        isScrolled ? 'border-slate-200 shadow-[0_14px_30px_-24px_rgba(15,23,42,0.35)]' : ''
       }`}
     >
       <div className="mx-auto flex h-20 w-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        <Link href="/" className="flex items-center gap-2 text-[#111827]">
-          <span className="relative inline-flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#6366F1] to-[#8B5CF6]">
-            <span className="h-3 w-3 rounded-full border-2 border-white/90" />
-            <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-white/90" />
+        <Link href="/" className="flex items-center gap-3 text-slate-900">
+          <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-teal-400 to-cyan-300 text-slate-950">
+            <BriefcaseBusiness size={20} strokeWidth={2.5} />
           </span>
           <span className="text-base font-extrabold tracking-[-0.02em] sm:text-lg">Vaybe Recrutement</span>
         </Link>
@@ -48,7 +48,7 @@ export default function Navbar() {
             <a
               key={link.href}
               href={link.href}
-              className="text-sm font-medium text-[#4b5563] transition duration-300 hover:text-[#6366F1]"
+              className="text-sm font-medium text-slate-600 transition duration-300 hover:text-teal-700"
             >
               {link.label}
             </a>
@@ -58,13 +58,13 @@ export default function Navbar() {
         <div className="hidden items-center gap-3 lg:flex">
           <Link
             href="/login"
-            className="rounded-xl border border-[#6366F1] px-4 py-2 text-sm font-semibold text-[#6366F1] transition duration-300 hover:bg-[#eef2ff]"
+            className="rounded-xl border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition duration-300 hover:border-teal-400 hover:text-teal-700"
           >
             Se connecter
           </Link>
           <Link
             href="/register"
-            className="rounded-xl bg-[#6366F1] px-4 py-2 text-sm font-semibold text-white transition duration-300 hover:scale-105 hover:bg-[#4f46e5]"
+            className="rounded-xl bg-teal-500 px-4 py-2 text-sm font-semibold text-slate-950 transition duration-300 hover:bg-teal-400"
           >
             Essayer gratuitement
           </Link>
@@ -73,15 +73,15 @@ export default function Navbar() {
         <button
           type="button"
           onClick={() => setIsDrawerOpen((previous) => !previous)}
-          className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-[#e5e7eb] text-xl text-[#374151] transition hover:bg-[#f8fafc] lg:hidden"
+          className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-300 text-slate-700 transition hover:border-slate-400 hover:bg-slate-100 lg:hidden"
           aria-label="Ouvrir le menu"
         >
-          {isDrawerOpen ? '×' : '☰'}
+          {isDrawerOpen ? <X size={20} /> : <Menu size={20} />}
         </button>
       </div>
 
       <div
-        className={`overflow-hidden border-t border-[#eef2ff] bg-white transition-all duration-300 lg:hidden ${
+        className={`overflow-hidden border-t border-slate-200 bg-white transition-all duration-300 lg:hidden ${
           isDrawerOpen ? 'max-h-80' : 'max-h-0'
         }`}
       >
@@ -92,7 +92,7 @@ export default function Navbar() {
                 key={link.href}
                 href={link.href}
                 onClick={() => setIsDrawerOpen(false)}
-                className="text-sm font-medium text-[#374151] transition hover:text-[#6366F1]"
+                className="text-sm font-medium text-slate-700 transition hover:text-teal-700"
               >
                 {link.label}
               </a>
@@ -103,14 +103,14 @@ export default function Navbar() {
             <Link
               href="/login"
               onClick={() => setIsDrawerOpen(false)}
-              className="rounded-xl border border-[#6366F1] px-4 py-2 text-center text-sm font-semibold text-[#6366F1]"
+              className="rounded-xl border border-slate-300 px-4 py-2 text-center text-sm font-semibold text-slate-700"
             >
               Se connecter
             </Link>
             <Link
               href="/register"
               onClick={() => setIsDrawerOpen(false)}
-              className="rounded-xl bg-[#6366F1] px-4 py-2 text-center text-sm font-semibold text-white"
+              className="rounded-xl bg-teal-500 px-4 py-2 text-center text-sm font-semibold text-slate-950"
             >
               Essayer gratuitement
             </Link>

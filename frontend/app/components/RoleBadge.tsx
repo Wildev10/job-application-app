@@ -1,4 +1,5 @@
 import type { Role } from '@/app/types/application';
+// FIX-CONTRAST: lisibilite corrigee
 
 interface RoleBadgeProps {
   role: Role;
@@ -14,7 +15,7 @@ export default function RoleBadge({ role }: RoleBadgeProps) {
     <span
       className={[
         'inline-flex items-center border-l-2 pl-2 text-xs font-semibold uppercase tracking-[0.12em] bg-transparent',
-        isDev ? 'border-l-blue-500 text-blue-700' : 'border-l-purple-500 text-purple-700',
+        isDev ? 'border-l-teal-500 text-teal-700' : 'border-l-slate-500 text-slate-700',
       ].join(' ')}
     >
       {role}

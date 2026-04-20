@@ -2,8 +2,9 @@
 
 import { useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import Swal from 'sweetalert2';
+import { Alert } from '@/lib/sweetalert';
 import { getCompany } from '@/lib/auth';
+// FIX-CONTRAST: lisibilite corrigee
 
 /**
  * Show onboarding welcome modal once per company when welcome mode is enabled.
@@ -31,14 +32,14 @@ export default function WelcomeToast({ shouldShow, onConsumed }) {
 
     displayedRef.current = true;
 
-    void Swal.fire({
+    void Alert.fire({
       title: '👋 Bienvenue !',
       text: 'Votre compte a bien été créé. Commencez par créer votre premier poste pour recevoir des candidatures.',
       icon: 'success',
       confirmButtonText: 'Créer mon premier poste',
       showCancelButton: true,
       cancelButtonText: 'Explorer d\'abord',
-      confirmButtonColor: '#6366F1',
+      confirmButtonColor: '#0d9488',
     }).then((result) => {
       localStorage.setItem(storageKey, 'true');
 
