@@ -26,7 +26,7 @@ export default function RegisterPage() {
         icon: 'error',
         title: 'Champs obligatoires',
         text: 'Tous les champs sont requis.',
-        confirmButtonColor: '#0f766e',
+        confirmButtonColor: '#4f46e5',
       });
       return;
     }
@@ -36,7 +36,7 @@ export default function RegisterPage() {
         icon: 'error',
         title: 'Email invalide',
         text: 'Veuillez entrer une adresse email valide.',
-        confirmButtonColor: '#0f766e',
+        confirmButtonColor: '#4f46e5',
       });
       return;
     }
@@ -46,7 +46,7 @@ export default function RegisterPage() {
         icon: 'error',
         title: 'Mot de passe trop court',
         text: 'Le mot de passe doit contenir au moins 8 caractères.',
-        confirmButtonColor: '#0f766e',
+        confirmButtonColor: '#4f46e5',
       });
       return;
     }
@@ -56,7 +56,7 @@ export default function RegisterPage() {
         icon: 'error',
         title: 'Confirmation invalide',
         text: 'Les mots de passe ne correspondent pas.',
-        confirmButtonColor: '#0f766e',
+        confirmButtonColor: '#4f46e5',
       });
       return;
     }
@@ -79,7 +79,7 @@ export default function RegisterPage() {
       await Swal.fire({
         icon: 'success',
         title: 'Compte créé avec succès !',
-        confirmButtonColor: '#16a34a',
+        confirmButtonColor: '#4f46e5',
       });
 
       router.push('/admin');
@@ -102,7 +102,7 @@ export default function RegisterPage() {
               type="text"
               value={name}
               onChange={(event) => setName(event.target.value)}
-              className="w-full rounded-md border border-[#d4d4d4] px-3 py-2.5 text-sm text-[#0f0f0f] outline-none focus:border-[#0f766e]"
+              className="w-full rounded-md border border-[#d4d4d4] px-3 py-2.5 text-sm text-[#0f0f0f] outline-none focus:border-[#4f46e5] focus:ring-2 focus:ring-[#e0e7ff]"
               placeholder="Orange Bénin"
             />
           </div>
@@ -114,7 +114,7 @@ export default function RegisterPage() {
               type="email"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
-              className="w-full rounded-md border border-[#d4d4d4] px-3 py-2.5 text-sm text-[#0f0f0f] outline-none focus:border-[#0f766e]"
+              className="w-full rounded-md border border-[#d4d4d4] px-3 py-2.5 text-sm text-[#0f0f0f] outline-none focus:border-[#4f46e5] focus:ring-2 focus:ring-[#e0e7ff]"
               placeholder="company@example.com"
             />
           </div>
@@ -126,7 +126,7 @@ export default function RegisterPage() {
               type="password"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
-              className="w-full rounded-md border border-[#d4d4d4] px-3 py-2.5 text-sm text-[#0f0f0f] outline-none focus:border-[#0f766e]"
+              className="w-full rounded-md border border-[#d4d4d4] px-3 py-2.5 text-sm text-[#0f0f0f] outline-none focus:border-[#4f46e5] focus:ring-2 focus:ring-[#e0e7ff]"
               placeholder="Minimum 8 caractères"
             />
           </div>
@@ -138,7 +138,7 @@ export default function RegisterPage() {
               type="password"
               value={passwordConfirmation}
               onChange={(event) => setPasswordConfirmation(event.target.value)}
-              className="w-full rounded-md border border-[#d4d4d4] px-3 py-2.5 text-sm text-[#0f0f0f] outline-none focus:border-[#0f766e]"
+              className="w-full rounded-md border border-[#d4d4d4] px-3 py-2.5 text-sm text-[#0f0f0f] outline-none focus:border-[#4f46e5] focus:ring-2 focus:ring-[#e0e7ff]"
               placeholder="Répétez le mot de passe"
             />
           </div>
@@ -146,7 +146,7 @@ export default function RegisterPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="inline-flex w-full items-center justify-center rounded-md bg-[#0f766e] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#115e59] disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex w-full items-center justify-center rounded-md bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isSubmitting ? 'Création...' : 'Créer mon compte'}
           </button>
@@ -154,7 +154,7 @@ export default function RegisterPage() {
 
         <p className="mt-5 text-sm text-[#737373]">
           Déjà inscrit ?{' '}
-          <Link href="/login" className="font-semibold text-[#0f766e] hover:text-[#115e59]">
+          <Link href="/login" className="font-semibold text-indigo-600 hover:text-indigo-700">
             Se connecter
           </Link>
         </p>

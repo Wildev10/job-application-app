@@ -13,6 +13,16 @@ class Job extends Model
     use HasFactory;
 
     /**
+     * Default values for model attributes.
+     *
+     * @var array<string, mixed>
+     */
+    protected $attributes = [
+        // Ensure newly created jobs default to the open status.
+        'status' => 'open',
+    ];
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var list<string>

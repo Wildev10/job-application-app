@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import Swal from 'sweetalert2';
 import { useAuth } from '@/hooks/useAuth';
+import { apiFetch } from '@/lib/api';
 
 /**
  * Render company login form.
@@ -24,7 +25,7 @@ export default function LoginPage() {
         icon: 'error',
         title: 'Champs obligatoires',
         text: 'Veuillez renseigner l\'email et le mot de passe.',
-        confirmButtonColor: '#0f766e',
+        confirmButtonColor: '#4f46e5',
       });
       return;
     }
@@ -34,7 +35,7 @@ export default function LoginPage() {
         icon: 'error',
         title: 'Email invalide',
         text: 'Veuillez entrer une adresse email valide.',
-        confirmButtonColor: '#0f766e',
+        confirmButtonColor: '#4f46e5',
       });
       return;
     }
@@ -57,10 +58,16 @@ export default function LoginPage() {
       await Swal.fire({
         icon: 'success',
         title: 'Connexion réussie !',
-        confirmButtonColor: '#16a34a',
+        confirmButtonColor: '#4f46e5',
       });
 
-      router.push('/admin');
+      // Route new companies through onboarding welcome mode right after login.
+      try {
+        const onboardingStatus = await apiFetch('/company/onboarding-status', { method: 'GET' });
+        router.push(onboardingStatus?.is_new ? '/admin?welcome=true' : '/admin');
+      } catch {
+        router.push('/admin');
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -80,7 +87,7 @@ export default function LoginPage() {
               type="email"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
-              className="w-full rounded-md border border-[#d4d4d4] px-3 py-2.5 text-sm text-[#0f0f0f] outline-none focus:border-[#0f766e]"
+              className="w-full rounded-md border border-[#d4d4d4] px-3 py-2.5 text-sm text-[#0f0f0f] outline-none focus:border-[#4f46e5] focus:ring-2 focus:ring-[#e0e7ff]"
               placeholder="company@example.com"
             />
           </div>
@@ -92,7 +99,7 @@ export default function LoginPage() {
               type="password"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
-              className="w-full rounded-md border border-[#d4d4d4] px-3 py-2.5 text-sm text-[#0f0f0f] outline-none focus:border-[#0f766e]"
+              className="w-full rounded-md border border-[#d4d4d4] px-3 py-2.5 text-sm text-[#0f0f0f] outline-none focus:border-[#4f46e5] focus:ring-2 focus:ring-[#e0e7ff]"
               placeholder="••••••••"
             />
           </div>
@@ -100,7 +107,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="inline-flex w-full items-center justify-center rounded-md bg-[#0f766e] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#115e59] disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex w-full items-center justify-center rounded-md bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isSubmitting ? 'Connexion...' : 'Se connecter'}
           </button>
@@ -108,7 +115,7 @@ export default function LoginPage() {
 
         <p className="mt-5 text-sm text-[#737373]">
           Pas encore de compte ?{' '}
-          <Link href="/register" className="font-semibold text-[#0f766e] hover:text-[#115e59]">
+          <Link href="/register" className="font-semibold text-indigo-600 hover:text-indigo-700">
             Créer un compte
           </Link>
         </p>

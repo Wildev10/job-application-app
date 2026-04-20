@@ -22,7 +22,7 @@ export default function JobCard({ job, onEdit, onClose, onViewApplications }) {
   const isSoon = expiresAt ? expiresAt.getTime() - now.getTime() <= sevenDays && expiresAt.getTime() > now.getTime() : false;
 
   return (
-    <article className="rounded-2xl border border-[#e5e7eb] bg-white p-5 shadow-sm">
+    <article className="overflow-hidden rounded-2xl border border-[#e5e7eb] bg-white p-5 shadow-sm">
       <div className="mb-4 flex items-center justify-between gap-3">
         <span className={`rounded-full px-3 py-1 text-xs font-semibold ${statusMap[job.status] || statusMap.draft}`}>
           {job.status_label || statusLabelMap[job.status] || 'Brouillon'}
@@ -30,7 +30,7 @@ export default function JobCard({ job, onEdit, onClose, onViewApplications }) {
         <span className="text-xs text-[#6b7280]">#{job.id}</span>
       </div>
 
-      <h3 className="text-xl font-extrabold tracking-[-0.01em] text-[#111827]">{job.title}</h3>
+      <h3 className="truncate text-xl font-extrabold tracking-[-0.01em] text-[#111827]" title={job.title}>{job.title}</h3>
 
       <div className="mt-3 space-y-1 text-sm text-[#4b5563]">
         <p>👤 {job.role}</p>
@@ -48,18 +48,18 @@ export default function JobCard({ job, onEdit, onClose, onViewApplications }) {
         </p>
       )}
 
-      <div className="mt-5 grid grid-cols-1 gap-2 sm:grid-cols-3">
+      <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
         <button
           type="button"
           onClick={onViewApplications}
-          className="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700"
+          className="w-fit rounded-lg bg-indigo-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700"
         >
           Voir candidatures
         </button>
         <button
           type="button"
           onClick={onEdit}
-          className="rounded-lg bg-gray-200 px-3 py-2 text-sm font-semibold text-gray-800 transition hover:bg-gray-300"
+          className="w-fit rounded-lg bg-gray-200 px-3 py-2 text-sm font-semibold text-gray-800 transition hover:bg-gray-300"
         >
           Modifier
         </button>
@@ -67,7 +67,7 @@ export default function JobCard({ job, onEdit, onClose, onViewApplications }) {
           type="button"
           onClick={onClose}
           disabled={job.status === 'closed'}
-          className="rounded-lg bg-red-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-55"
+          className="w-fit rounded-lg bg-red-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-55"
         >
           Clôturer
         </button>

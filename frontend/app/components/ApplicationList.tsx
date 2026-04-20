@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import Image from 'next/image';
 import { useEffect, useMemo, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
@@ -20,6 +19,13 @@ type ExportFilters = {
   date_to?: string;
 };
 
+type CompanyProfile = {
+  id?: number;
+  name?: string;
+  logo?: string | null;
+  slug?: string;
+};
+
 const STATUS_FILTERS: Array<{ value: StatusFilter; label: string }> = [
   { value: 'all', label: 'Tous' },
   { value: 'pending', label: 'En attente' },
@@ -34,7 +40,13 @@ const EMAIL_BANNER_STORAGE_KEY = 'hide_email_banner';
 /**
  * Load and render applications list with role and sort filters.
  */
-export default function ApplicationList({ initialJobId = null }: { initialJobId?: string | null }) {
+export default function ApplicationList({
+  initialJobId = null,
+  initialStatusFilter = 'all',
+}: {
+  initialJobId?: string | null;
+  initialStatusFilter?: string;
+}) {
   const router = useRouter();
   const pathname = usePathname();
   const { logout } = useAuth();
@@ -45,12 +57,13 @@ export default function ApplicationList({ initialJobId = null }: { initialJobId?
   const [selectedJobId, setSelectedJobId] = useState<string | null>(initialJobId);
   const [selectedJobTitle, setSelectedJobTitle] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
-  const [company, setCompany] = useState<{ name?: string; logo?: string | null } | null>(null);
+  const [company, setCompany] = useState<CompanyProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isExporting, setIsExporting] = useState(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [showEmailBanner, setShowEmailBanner] = useState(false);
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || (typeof window !== 'undefined' ? window.location.origin : '');
 
   useEffect(() => {
     setCompany(getCompany());
@@ -63,6 +76,31 @@ export default function ApplicationList({ initialJobId = null }: { initialJobId?
   useEffect(() => {
     setSelectedJobId(initialJobId);
   }, [initialJobId]);
+
+  useEffect(() => {
+    // Sync status filter from URL entry points such as dashboard CTA.
+    if (STATUS_FILTERS.some((filter) => filter.value === initialStatusFilter)) {
+      setStatusFilter(initialStatusFilter as StatusFilter);
+    }
+  }, [initialStatusFilter]);
+
+  const copyApplyLink = async () => {
+    if (!company?.slug) {
+      return;
+    }
+
+    const link = `${appUrl}/apply/${company.slug}`;
+    await navigator.clipboard.writeText(link);
+
+    await Swal.fire({
+      toast: true,
+      position: 'top-end',
+      icon: 'success',
+      title: 'Lien copié !',
+      showConfirmButton: false,
+      timer: 2000,
+    });
+  };
 
   const openEmailDetails = async () => {
     await Swal.fire({
@@ -307,6 +345,16 @@ export default function ApplicationList({ initialJobId = null }: { initialJobId?
           <div className="flex flex-col items-stretch gap-3 sm:items-end">
             <button
               type="button"
+              onClick={() => void copyApplyLink()}
+              disabled={!company?.slug}
+              className="inline-flex items-center justify-center gap-2 rounded-lg border border-indigo-300 bg-white px-4 py-2.5 text-sm font-semibold text-indigo-700 transition hover:bg-indigo-50 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <span>📋</span>
+              <span>Copier mon lien de candidature</span>
+            </button>
+
+            <button
+              type="button"
               onClick={() => setIsExportModalOpen(true)}
               disabled={isExporting}
               className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#15803d] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#166534] disabled:cursor-not-allowed disabled:opacity-60"
@@ -438,10 +486,6 @@ export default function ApplicationList({ initialJobId = null }: { initialJobId?
             );
           })}
         </div>
-
-        <Link href="/" className="inline-block text-sm font-medium text-[#525252] hover:text-[#0f0f0f]">
-          Retour au formulaire
-        </Link>
       </header>
 
       {isLoading && (

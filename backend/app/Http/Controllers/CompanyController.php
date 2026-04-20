@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\UpdateCompanyProfileRequest;
 use App\Models\Company;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Throwable;
 
@@ -76,6 +77,50 @@ class CompanyController extends Controller
             return response()->json([
                 'message' => 'Profil entreprise mis à jour.',
                 'company' => Arr::except($company->toArray(), ['password', 'api_token']),
+            ], 200)->header('Content-Type', 'application/json');
+        } catch (Throwable) {
+            return response()->json([
+                'message' => 'Une erreur serveur est survenue.',
+            ], 500)->header('Content-Type', 'application/json');
+        }
+    }
+
+    /**
+     * Return onboarding indicators for the authenticated company.
+     */
+    public function onboardingStatus(Request $request): JsonResponse
+    {
+        try {
+            /** @var Company|null $company */
+            $company = $request->attributes->get('company');
+
+            if ($company === null) {
+                return response()->json([
+                    'message' => 'Non authentifié',
+                ], 401)->header('Content-Type', 'application/json');
+            }
+
+            // Load all onboarding counters in a single query scoped to this company.
+            $company->loadCount([
+                'jobs',
+                'applications',
+                'jobs as open_jobs_count' => static fn ($query) => $query->where('status', 'open'),
+                'applications as pending_applications_count' => static fn ($query) => $query->where('status', 'pending'),
+            ]);
+
+            $jobsCount = (int) $company->jobs_count;
+            $applicationsCount = (int) $company->applications_count;
+            $openJobsCount = (int) $company->open_jobs_count;
+            $pendingApplicationsCount = (int) $company->pending_applications_count;
+
+            return response()->json([
+                'is_new' => $jobsCount === 0,
+                'has_jobs' => $jobsCount > 0,
+                'has_applications' => $applicationsCount > 0,
+                'jobs_count' => $jobsCount,
+                'applications_count' => $applicationsCount,
+                'open_jobs_count' => $openJobsCount,
+                'pending_applications_count' => $pendingApplicationsCount,
             ], 200)->header('Content-Type', 'application/json');
         } catch (Throwable) {
             return response()->json([
