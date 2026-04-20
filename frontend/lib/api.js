@@ -19,7 +19,7 @@ async function requestJson(baseUrl, endpoint, options) {
   const normalizedHeaders = new Headers(headers);
 
   if (typeof window !== 'undefined') {
-    const token = localStorage.getItem('company_token');
+    const token = localStorage.getItem('impersonate_token') || localStorage.getItem('company_token');
     if (token) {
       normalizedHeaders.set('Authorization', `Bearer ${token}`);
     }
@@ -88,7 +88,9 @@ export async function exportCSV(filters = {}) {
     }
   });
 
-  const token = typeof window !== 'undefined' ? localStorage.getItem('company_token') : null;
+  const token = typeof window !== 'undefined'
+    ? localStorage.getItem('impersonate_token') || localStorage.getItem('company_token')
+    : null;
   const endpoint = query.toString()
     ? '/applications/export?' + query.toString()
     : '/applications/export';

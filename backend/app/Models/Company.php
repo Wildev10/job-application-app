@@ -5,11 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 
 class Company extends Model
 {
     use HasFactory;
+    use SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -24,6 +26,11 @@ class Company extends Model
         'logo',
         'color',
         'api_token',
+        'is_suspended',
+        'plan',
+        'plan_expires_at',
+        'impersonate_token',
+        'impersonate_expires_at',
     ];
 
     /**
@@ -34,6 +41,7 @@ class Company extends Model
     protected $hidden = [
         'password',
         'api_token',
+        'impersonate_token',
     ];
 
     /**
@@ -45,6 +53,9 @@ class Company extends Model
     {
         return [
             'password' => 'hashed',
+            'is_suspended' => 'boolean',
+            'plan_expires_at' => 'datetime',
+            'impersonate_expires_at' => 'datetime',
         ];
     }
 

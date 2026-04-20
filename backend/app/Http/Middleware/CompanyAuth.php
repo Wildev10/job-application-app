@@ -25,14 +25,28 @@ class CompanyAuth
 
         $company = Company::where('api_token', $token)->first();
 
-        if ($company === null) {
-            return response()->json([
-                'message' => 'Non authentifié',
-            ], 401)->header('Content-Type', 'application/json');
+        if ($company !== null) {
+            $request->attributes->set('company', $company);
+
+            return $next($request);
         }
 
-        $request->attributes->set('company', $company);
+        $impersonatedCompany = Company::where('impersonate_token', $token)->first();
 
-        return $next($request);
+        if ($impersonatedCompany !== null) {
+            if ($impersonatedCompany->impersonate_expires_at === null || $impersonatedCompany->impersonate_expires_at->lte(now())) {
+                return response()->json([
+                    'message' => 'Token expiré',
+                ], 401)->header('Content-Type', 'application/json');
+            }
+
+            $request->attributes->set('company', $impersonatedCompany);
+
+            return $next($request);
+        }
+
+        return response()->json([
+            'message' => 'Non authentifié',
+        ], 401)->header('Content-Type', 'application/json');
     }
 }
