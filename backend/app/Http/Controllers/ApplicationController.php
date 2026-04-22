@@ -9,6 +9,7 @@ use App\Models\Application;
 use App\Models\Company;
 use App\Models\Job;
 use App\Services\MailService;
+use App\Services\PlanService;
 use App\Services\ScoringService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -103,6 +104,14 @@ class ApplicationController extends Controller
             return response()->json([
                 'message' => 'Non authentifié',
             ], 401)->header('Content-Type', 'application/json');
+        }
+
+        if (! PlanService::canExportCSV($company)) {
+            return response()->json([
+                'message' => 'L\'export CSV est disponible uniquement sur le plan Pro.',
+                'upgrade_required' => true,
+                'current_plan' => PlanService::getPlanLimits($company)['plan'],
+            ], 403)->header('Content-Type', 'application/json');
         }
 
         // Validate the optional export filters before generating the file.
@@ -228,6 +237,15 @@ class ApplicationController extends Controller
                 return response()->json([
                     'message' => 'Entreprise introuvable.',
                 ], 404)->header('Content-Type', 'application/json');
+            }
+
+            $applicationLimitCheck = PlanService::canReceiveApplication($company);
+            if (($applicationLimitCheck['allowed'] ?? false) === false) {
+                return response()->json([
+                    'message' => 'Ce formulaire n\'accepte plus de candidatures pour le moment.',
+                    'reason' => 'limite_candidatures',
+                    'upgrade_required' => true,
+                ], 403)->header('Content-Type', 'application/json');
             }
 
             $job = null;

@@ -31,7 +31,7 @@ class CompaniesController extends Controller
 
         if ($validator->fails()) {
             return response()->json([
-                'message' => 'Validation failed.',
+                'message' => 'Validation échouée.',
                 'errors' => $validator->errors(),
             ], 422)->header('Content-Type', 'application/json');
         }
@@ -299,6 +299,60 @@ class CompaniesController extends Controller
         } catch (Throwable) {
             return response()->json([
                 'message' => 'Impossible de générer un token d\'impersonation.',
+            ], 500)->header('Content-Type', 'application/json');
+        }
+    }
+
+    /**
+     * Update a company plan and notify the company by email.
+     */
+    public function updatePlan(Request $request, int $id): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'plan' => ['required', 'in:starter,pro'],
+            'plan_expires_at' => ['required_if:plan,pro', 'nullable', 'date', 'after:today'],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Validation échouée.',
+                'errors' => $validator->errors(),
+            ], 422)->header('Content-Type', 'application/json');
+        }
+
+        try {
+            $company = Company::query()->find($id);
+
+            if ($company === null) {
+                return response()->json([
+                    'message' => 'Entreprise introuvable.',
+                ], 404)->header('Content-Type', 'application/json');
+            }
+
+            $data = $validator->validated();
+            $nextPlan = (string) $data['plan'];
+
+            $updates = [
+                'plan' => $nextPlan,
+                'plan_expires_at' => $nextPlan === 'pro' ? $data['plan_expires_at'] : null,
+            ];
+
+            $company->forceFill($updates)->save();
+
+            $mailMessage = $nextPlan === 'pro'
+                ? '🎉 Votre compte a été upgradé vers le plan Pro !'
+                : 'Votre compte a été rétrogradé vers le plan Starter.';
+
+            Mail::raw($mailMessage, static function ($message) use ($company): void {
+                $message->to($company->email)->subject('Mise à jour de votre plan');
+            });
+
+            return response()->json([
+                'company' => $company->fresh(),
+            ], 200)->header('Content-Type', 'application/json');
+        } catch (Throwable) {
+            return response()->json([
+                'message' => 'Impossible de mettre à jour le plan de cette entreprise.',
             ], 500)->header('Content-Type', 'application/json');
         }
     }

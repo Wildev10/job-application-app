@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Company;
 use App\Models\Job;
+use App\Services\PlanService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -59,11 +60,22 @@ class JobController extends Controller
             'expires_at' => ['nullable', 'date', 'after:today'],
         ]);
 
+        $jobCreationCheck = PlanService::canCreateJob($company);
+        if (($jobCreationCheck['allowed'] ?? false) === false) {
+            return response()->json([
+                'message' => $jobCreationCheck['message'] ?? 'Action non autorisée pour ce plan.',
+                'reason' => $jobCreationCheck['reason'] ?? 'limite_jobs',
+                'upgrade_required' => true,
+                'current_plan' => PlanService::getPlanLimits($company)['plan'],
+            ], 403)->header('Content-Type', 'application/json');
+        }
+
         $data['slug'] = $this->generateUniqueSlug($company->id, $data['title']);
         $data['status'] = 'open';
         $data['company_id'] = $company->id;
 
         $job = Job::create($data);
+        $job->setAttribute('remaining_jobs', $jobCreationCheck['remaining'] ?? null);
 
         return response()->json($job, 201)->header('Content-Type', 'application/json');
     }

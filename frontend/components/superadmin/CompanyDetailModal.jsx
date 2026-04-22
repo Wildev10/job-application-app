@@ -1,20 +1,60 @@
 'use client';
 
+import { useState } from 'react';
+import Swal from 'sweetalert2';
 import { X } from 'lucide-react';
 import ActivityChart from '@/components/superadmin/ActivityChart';
+import PlanBadge from '@/components/PlanBadge';
 
 /**
  * Display full company details and actions inside a dark modal.
  */
-export default function CompanyDetailModal({ open, data, onClose, onSuspend, onActivate, onImpersonate }) {
+export default function CompanyDetailModal({
+  open,
+  data,
+  onClose,
+  onSuspend,
+  onActivate,
+  onImpersonate,
+  onUpdatePlan,
+}) {
+  const [showPlanForm, setShowPlanForm] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState('starter');
+  const [planExpiresAt, setPlanExpiresAt] = useState('');
+
+  const company = data?.company || {};
+  const stats = data?.applications_stats || {};
+  const recent = Array.isArray(data?.recent_applications) ? data.recent_applications : [];
+  const history = Array.isArray(data?.activity_last_30_days) ? data.activity_last_30_days : [];
+
   if (!open || !data) {
     return null;
   }
 
-  const company = data.company || {};
-  const stats = data.applications_stats || {};
-  const recent = Array.isArray(data.recent_applications) ? data.recent_applications : [];
-  const history = Array.isArray(data.activity_last_30_days) ? data.activity_last_30_days : [];
+  const handleConfirmPlan = async () => {
+    const result = await Swal.fire({
+      background: '#111827',
+      color: '#F9FAFB',
+      icon: 'question',
+      title: 'Confirmer le changement de plan ? ',
+      showCancelButton: true,
+      confirmButtonText: 'Confirmer',
+      cancelButtonText: 'Annuler',
+      confirmButtonColor: '#0D9488',
+      cancelButtonColor: '#374151',
+    });
+
+    if (!result.isConfirmed) {
+      return;
+    }
+
+    await onUpdatePlan(company, {
+      plan: selectedPlan,
+      plan_expires_at: selectedPlan === 'pro' ? planExpiresAt || null : null,
+    });
+
+    setShowPlanForm(false);
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
@@ -24,6 +64,9 @@ export default function CompanyDetailModal({ open, data, onClose, onSuspend, onA
             <p className="text-xs uppercase tracking-widest text-gray-500">Entreprise</p>
             <h3 className="mt-1 text-xl font-bold text-white">{company.name}</h3>
             <p className="text-sm text-gray-400">{company.email}</p>
+            <div className="mt-2">
+              <PlanBadge plan={company.plan === 'pro' ? 'pro' : 'starter'} size="sm" />
+            </div>
           </div>
           <button type="button" onClick={onClose} className="text-gray-400 hover:text-white">
             <X size={18} />
@@ -91,7 +134,58 @@ export default function CompanyDetailModal({ open, data, onClose, onSuspend, onA
           >
             Se connecter en tant que cette entreprise
           </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setShowPlanForm((value) => {
+                const nextOpen = !value;
+
+                if (nextOpen) {
+                  setSelectedPlan(company.plan === 'pro' ? 'pro' : 'starter');
+                  setPlanExpiresAt('');
+                }
+
+                return nextOpen;
+              });
+            }}
+            className="rounded-lg bg-teal-600 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-500"
+          >
+            Changer le plan
+          </button>
         </div>
+
+        {showPlanForm && (
+          <div className="mt-4 space-y-3 rounded-lg border border-teal-500/30 bg-teal-500/10 p-4">
+            <p className="text-sm font-semibold text-teal-300">Mise à jour du plan</p>
+
+            <select
+              value={selectedPlan}
+              onChange={(event) => setSelectedPlan(event.target.value)}
+              className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white"
+            >
+              <option value="starter">Starter</option>
+              <option value="pro">Pro</option>
+            </select>
+
+            {selectedPlan === 'pro' && (
+              <input
+                type="date"
+                value={planExpiresAt}
+                onChange={(event) => setPlanExpiresAt(event.target.value)}
+                className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white"
+              />
+            )}
+
+            <button
+              type="button"
+              onClick={() => void handleConfirmPlan()}
+              className="rounded-lg bg-teal-600 px-3 py-2 text-sm font-semibold text-white hover:bg-teal-500"
+            >
+              Confirmer
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

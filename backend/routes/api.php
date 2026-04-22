@@ -3,6 +3,7 @@
 use App\Http\Controllers\ApplicationController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CompanyController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\JobController;
 use App\Http\Controllers\SuperAdmin\AuthController as SuperAdminAuthController;
 use App\Http\Controllers\SuperAdmin\BroadcastController as SuperAdminBroadcastController;
@@ -22,12 +23,14 @@ Route::middleware('company.auth')->group(function (): void {
 	Route::get('/auth/me', [AuthController::class, 'me']);
 	// Return onboarding progress metrics for the authenticated company.
 	Route::get('/company/onboarding-status', [CompanyController::class, 'onboardingStatus']);
+	Route::get('/company/plan-status', [CompanyController::class, 'planStatus']);
 	Route::patch('/company/profile', [CompanyController::class, 'updateProfile']);
 	Route::get('/jobs', [JobController::class, 'index']);
 	Route::post('/jobs', [JobController::class, 'store']);
 	Route::get('/jobs/{id}', [JobController::class, 'show']);
 	Route::patch('/jobs/{id}', [JobController::class, 'update']);
 	Route::delete('/jobs/{id}', [JobController::class, 'destroy']);
+	Route::get('/applications/stats', [DashboardController::class, 'stats']);
 	Route::get('/applications/export', [ApplicationController::class, 'export']);
 	Route::get('/applications', [ApplicationController::class, 'index']);
 	Route::patch('/applications/{id}/status', [ApplicationController::class, 'updateStatus']);
@@ -50,6 +53,7 @@ Route::prefix('superadmin')
 		Route::get('/stats', [SuperAdminDashboardController::class, 'stats']);
 		Route::get('/companies', [SuperAdminCompaniesController::class, 'index']);
 		Route::get('/companies/{id}', [SuperAdminCompaniesController::class, 'show']);
+		Route::patch('/companies/{id}/plan', [SuperAdminCompaniesController::class, 'updatePlan']);
 		Route::patch('/companies/{id}/suspend', [SuperAdminCompaniesController::class, 'suspend']);
 		Route::patch('/companies/{id}/activate', [SuperAdminCompaniesController::class, 'activate']);
 		Route::delete('/companies/{id}', [SuperAdminCompaniesController::class, 'destroy']);

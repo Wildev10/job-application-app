@@ -26,6 +26,8 @@ class ApplicationExportTest extends TestCase
             'password' => Hash::make('password123'),
             'slug' => Company::generateSlug($name),
             'color' => '#0f766e',
+            'plan' => 'pro',
+            'plan_expires_at' => now()->addMonth(),
         ]);
 
         $token = $company->generateToken();
