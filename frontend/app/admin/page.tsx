@@ -6,6 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import OnboardingBanner from '@/components/onboarding/OnboardingBanner';
 import WelcomeToast from '@/components/onboarding/WelcomeToast';
 import { useOnboarding } from '@/hooks/useOnboarding';
+import { usePlanStatus } from '@/hooks/usePlanStatus';
 
 /**
  * Render the admin dashboard overview.
@@ -14,6 +15,7 @@ export default function AdminPage() {
   const router = useRouter();
   const pathname = usePathname();
   const { status, loading } = useOnboarding();
+  const { planStatus, loading: planLoading } = usePlanStatus();
   const [showWelcomeToast, setShowWelcomeToast] = useState(() => {
     // Read welcome mode from query string once when the page hydrates.
     if (typeof window === 'undefined') {
@@ -108,6 +110,54 @@ export default function AdminPage() {
             </article>
           ))}
         </div>
+      </div>
+
+      <div className="rounded-2xl border border-[#e5e5e5] bg-white p-5 sm:p-7">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-lg font-bold text-[#0f0f0f]">Plan et limites</h2>
+          <span className={`rounded-full px-3 py-1 text-xs font-semibold ${planStatus.is_pro ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-800'}`}>
+            {planStatus.is_pro ? 'Plan Pro' : 'Plan Starter'}
+          </span>
+        </div>
+
+        {planLoading ? (
+          <div className="mt-4 h-20 animate-pulse rounded-lg bg-[#eef0f3]" />
+        ) : (
+          <>
+            <div className="mt-4 grid gap-4 sm:grid-cols-2">
+              <article className="rounded-lg border border-[#e5e5e5] bg-[#fafaf9] p-4">
+                <p className="text-xs uppercase tracking-[0.12em] text-[#737373]">Postes actifs</p>
+                <p className="mt-2 text-2xl font-extrabold text-[#0f0f0f]">{planStatus.jobs.current}{planStatus.jobs.limit !== null ? ` / ${planStatus.jobs.limit}` : ''}</p>
+                <p className="mt-2 text-sm text-[#525252]">
+                  {planStatus.jobs.remaining !== null
+                    ? `${planStatus.jobs.remaining} poste(s) restant(s)`
+                    : 'Postes illimités'}
+                </p>
+              </article>
+
+              <article className="rounded-lg border border-[#e5e5e5] bg-[#fafaf9] p-4">
+                <p className="text-xs uppercase tracking-[0.12em] text-[#737373]">Candidatures mensuelles</p>
+                <p className="mt-2 text-2xl font-extrabold text-[#0f0f0f]">
+                  {planStatus.applications.current_month}{planStatus.applications.limit !== null ? ` / ${planStatus.applications.limit}` : ''}
+                </p>
+                <p className="mt-2 text-sm text-[#525252]">
+                  {planStatus.applications.remaining !== null
+                    ? `${planStatus.applications.remaining} candidature(s) restante(s) ce mois-ci`
+                    : 'Candidatures illimitées'}
+                </p>
+              </article>
+            </div>
+
+            <div className="mt-4 flex flex-wrap gap-2 text-xs">
+              <span className={`rounded-full px-2.5 py-1 font-semibold ${planStatus.features.export_csv ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-700'}`}>
+                Export CSV {planStatus.features.export_csv ? 'activé' : 'désactivé'}
+              </span>
+              <span className={`rounded-full px-2.5 py-1 font-semibold ${planStatus.features.advanced_stats ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-700'}`}>
+                Stats avancées {planStatus.features.advanced_stats ? 'activées' : 'désactivées'}
+              </span>
+            </div>
+          </>
+        )}
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">

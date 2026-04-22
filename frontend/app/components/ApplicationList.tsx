@@ -6,10 +6,12 @@ import { usePathname, useRouter } from 'next/navigation';
 import { Alert } from '@/lib/sweetalert';
 import ApplicationCard from '@/app/components/ApplicationCard';
 import ExportModal from '@/app/components/ExportModal';
+import UpgradeModal from '@/components/UpgradeModal';
 import type { ApiError, Application, ApplicationStatus } from '@/app/types/application';
 import { apiFetch, exportCSV } from '@/lib/api';
 import { getCompany } from '@/lib/auth';
 import { useAuth } from '@/hooks/useAuth';
+import { usePlanStatus } from '@/hooks/usePlanStatus';
 // FIX-CONTRAST: lisibilite corrigee
 
 type StatusFilter = 'all' | ApplicationStatus;
@@ -62,8 +64,10 @@ export default function ApplicationList({
   const [isLoading, setIsLoading] = useState(true);
   const [isExporting, setIsExporting] = useState(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [showEmailBanner, setShowEmailBanner] = useState(false);
+  const { canExportCSV, isStarter } = usePlanStatus();
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || (typeof window !== 'undefined' ? window.location.origin : '');
 
   useEffect(() => {
@@ -356,9 +360,21 @@ export default function ApplicationList({
 
             <button
               type="button"
-              onClick={() => setIsExportModalOpen(true)}
+              onClick={() => {
+                if (isStarter && !canExportCSV) {
+                  setIsUpgradeModalOpen(true);
+                  return;
+                }
+
+                setIsExportModalOpen(true);
+              }}
               disabled={isExporting}
-              className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#15803d] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#166534] disabled:cursor-not-allowed disabled:opacity-60"
+              title={isStarter && !canExportCSV ? 'Fonctionnalité Pro' : undefined}
+              className={`inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold text-white transition disabled:cursor-not-allowed disabled:opacity-60 ${
+                isStarter && !canExportCSV
+                  ? 'cursor-pointer bg-[#166534] opacity-75 hover:bg-[#14532d]'
+                  : 'bg-[#15803d] hover:bg-[#166534]'
+              }`}
             >
               {isExporting ? (
                 <>
@@ -367,7 +383,7 @@ export default function ApplicationList({
                 </>
               ) : (
                 <>
-                  <span aria-hidden="true">↓</span>
+                  <span aria-hidden="true">{isStarter && !canExportCSV ? '🔒' : '↓'}</span>
                   <span>Exporter CSV</span>
                 </>
               )}
@@ -526,6 +542,12 @@ export default function ApplicationList({
         isOpen={isExportModalOpen}
         onClose={() => setIsExportModalOpen(false)}
         onExport={(filters: ExportFilters) => void handleExport(filters)}
+      />
+
+      <UpgradeModal
+        isOpen={isUpgradeModalOpen}
+        onClose={() => setIsUpgradeModalOpen(false)}
+        reason="export_csv"
       />
     </section>
   );

@@ -4,6 +4,9 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { BriefcaseBusiness, ClipboardList, LayoutDashboard, Settings } from 'lucide-react';
+import PlanBadge from '@/components/PlanBadge';
+import { PlanStatusProvider, usePlanStatus } from '@/hooks/usePlanStatus';
+import { getCompany } from '@/lib/auth';
 // FIX-CONTRAST: lisibilite corrigee
 
 const MAIN_LINKS = [
@@ -15,8 +18,10 @@ const MAIN_LINKS = [
 /**
  * Admin shell with responsive sidebar navigation.
  */
-export default function AdminLayout({ children }) {
+function AdminLayoutShell({ children }) {
   const pathname = usePathname();
+  const { planLimits, isStarter } = usePlanStatus();
+  const [companyName, setCompanyName] = useState(() => getCompany()?.name || 'Entreprise');
   const [impersonationCompanyName, setImpersonationCompanyName] = useState(() => {
     if (typeof window === 'undefined') {
       return '';
@@ -30,6 +35,7 @@ export default function AdminLayout({ children }) {
     const onStorage = () => {
       const token = localStorage.getItem('impersonate_token');
       setImpersonationCompanyName(token ? (localStorage.getItem('impersonate_company_name') || '') : '');
+      setCompanyName(getCompany()?.name || 'Entreprise');
     };
 
     window.addEventListener('storage', onStorage);
@@ -50,6 +56,10 @@ export default function AdminLayout({ children }) {
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Administration</p>
             <p className="mt-2 text-lg font-extrabold tracking-[-0.02em] text-white">Espace entreprise</p>
+            <p className="mt-1 text-xs text-slate-400">{companyName}</p>
+            <div className="mt-3">
+              <PlanBadge plan={planLimits?.plan || 'starter'} size="sm" />
+            </div>
           </div>
 
           <nav className="mt-5 flex flex-col gap-2">
@@ -75,6 +85,19 @@ export default function AdminLayout({ children }) {
           </nav>
 
           <div className="mt-6 border-t border-slate-800 pt-4 lg:mt-auto">
+            {isStarter && (
+              <div className="mx-2 mb-4 rounded-xl border border-teal-500/20 bg-teal-900/20 p-3">
+                <p className="text-xs font-semibold text-teal-300">✦ Passez au Pro</p>
+                <p className="mt-1 text-xs text-teal-400/90">Postes illimités, stats avancées...</p>
+                <Link
+                  href="/admin/upgrade"
+                  className="mt-2 inline-flex text-xs font-semibold text-teal-400 transition hover:text-teal-300"
+                >
+                  Voir les offres →
+                </Link>
+              </div>
+            )}
+
             <Link
               href="/admin/parametres"
               className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition ${
@@ -109,5 +132,16 @@ export default function AdminLayout({ children }) {
         </main>
       </div>
     </div>
+  );
+}
+
+/**
+ * Wrap admin layout content with plan status context.
+ */
+export default function AdminLayout({ children }) {
+  return (
+    <PlanStatusProvider>
+      <AdminLayoutShell>{children}</AdminLayoutShell>
+    </PlanStatusProvider>
   );
 }

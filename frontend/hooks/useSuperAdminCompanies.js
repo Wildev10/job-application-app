@@ -71,6 +71,13 @@ export function useSuperAdminCompanies() {
     });
   }, []);
 
+  const updateCompanyPlan = useCallback(async (id, payload) => {
+    return saFetch(`/superadmin/companies/${id}/plan`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    });
+  }, []);
+
   return {
     companies,
     pagination,
@@ -81,5 +88,6 @@ export function useSuperAdminCompanies() {
     suspendCompany,
     activateCompany,
     impersonateCompany,
+    updateCompanyPlan,
   };
 }

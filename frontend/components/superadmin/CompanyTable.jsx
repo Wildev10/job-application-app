@@ -4,6 +4,7 @@ import {
   Eye,
   LogIn,
 } from 'lucide-react';
+import PlanBadge from '@/components/PlanBadge';
 
 function activityClass(lastActivityAt) {
   if (!lastActivityAt) {
@@ -62,16 +63,7 @@ export default function CompanyTable({ rows, onView, onSuspend, onActivate, onIm
                 <p className="text-xs text-gray-400">{company.email}</p>
               </td>
               <td className="px-4 py-3">
-                <span
-                  className={[
-                    'inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold',
-                    company.plan === 'pro'
-                      ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-400'
-                      : 'border-gray-600 bg-gray-700 text-gray-400',
-                  ].join(' ')}
-                >
-                  {company.plan === 'pro' ? 'Pro' : 'Starter'}
-                </span>
+                <PlanBadge plan={company.plan === 'pro' ? 'pro' : 'starter'} size="sm" />
               </td>
               <td className="px-4 py-3 text-sm text-gray-300">{company.applications_count}</td>
               <td className="px-4 py-3 text-sm text-gray-300">{company.jobs_count}</td>

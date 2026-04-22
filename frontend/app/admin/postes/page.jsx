@@ -5,7 +5,10 @@ import { useRouter } from 'next/navigation';
 import { Alert } from '@/lib/sweetalert';
 import JobCard from '@/components/jobs/JobCard';
 import JobFormModal from '@/components/jobs/JobFormModal';
+import PlanLimitBar from '@/components/PlanLimitBar';
+import UpgradeModal from '@/components/UpgradeModal';
 import { useJobs } from '@/hooks/useJobs';
+import { usePlanStatus } from '@/hooks/usePlanStatus';
 import { getCompany } from '@/lib/auth';
 // FIX-CONTRAST: lisibilite corrigee
 
@@ -21,8 +24,16 @@ const FILTERS = [
 export default function AdminPostesPage() {
   const router = useRouter();
   const { jobs, loading, error, createJob, updateJob, closeJob } = useJobs();
+  const {
+    planLimits,
+    loading: planLoading,
+    isStarter,
+    jobsRemaining,
+    refreshPlanLimits,
+  } = usePlanStatus();
   const [filter, setFilter] = useState('all');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
   const [editingJob, setEditingJob] = useState(null);
 
   const company = getCompany();
@@ -49,6 +60,11 @@ export default function AdminPostesPage() {
   }, [jobs, filter]);
 
   const openCreateModal = () => {
+    if (isStarter && Number(jobsRemaining || 0) <= 0) {
+      setIsUpgradeModalOpen(true);
+      return;
+    }
+
     setEditingJob(null);
     setIsModalOpen(true);
   };
@@ -98,6 +114,8 @@ export default function AdminPostesPage() {
     }
 
     setIsModalOpen(false);
+
+    await refreshPlanLimits();
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin;
     const publicLink = company?.slug
@@ -160,6 +178,16 @@ export default function AdminPostesPage() {
           Nouveau poste
         </button>
       </header>
+
+      {!planLoading && isStarter && (
+        <div className="rounded-xl border border-[#e5e5e5] bg-white p-4 text-sm text-[#334155]">
+          <PlanLimitBar
+            label="Postes actifs"
+            current={planLimits?.jobs?.current || 0}
+            limit={planLimits?.jobs?.limit || 2}
+          />
+        </div>
+      )}
 
       <div className="flex flex-wrap items-center gap-2">
         {FILTERS.map((item) => (
@@ -229,6 +257,12 @@ export default function AdminPostesPage() {
         }}
         onSubmit={handleSubmit}
         initialData={editingJob}
+      />
+
+      <UpgradeModal
+        isOpen={isUpgradeModalOpen}
+        onClose={() => setIsUpgradeModalOpen(false)}
+        reason="limite_jobs"
       />
     </section>
   );

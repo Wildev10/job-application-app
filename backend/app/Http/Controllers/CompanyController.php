@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\UpdateCompanyProfileRequest;
 use App\Models\Company;
+use App\Services\PlanService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -127,5 +128,23 @@ class CompanyController extends Controller
                 'message' => 'Une erreur serveur est survenue.',
             ], 500)->header('Content-Type', 'application/json');
         }
+    }
+
+    /**
+     * Return current plan limits for the authenticated company.
+     */
+    public function planStatus(Request $request): JsonResponse
+    {
+        /** @var Company|null $company */
+        $company = $request->attributes->get('company');
+
+        if ($company === null) {
+            return response()->json([
+                'message' => 'Non authentifié',
+            ], 401)->header('Content-Type', 'application/json');
+        }
+
+        return response()->json(PlanService::getPlanLimits($company), 200)
+            ->header('Content-Type', 'application/json');
     }
 }

@@ -21,6 +21,7 @@ export default function SuperAdminCompaniesPage() {
     suspendCompany,
     activateCompany,
     impersonateCompany,
+    updateCompanyPlan,
   } = useSuperAdminCompanies();
 
   const [search, setSearch] = useState('');
@@ -128,7 +129,7 @@ export default function SuperAdminCompaniesPage() {
         color: '#F9FAFB',
         icon: 'success',
         title: 'Impersonation activée',
-        text: `Un nouvel onglet admin a été ouvert pour ${company.name}.`,
+        text: `Un nouvel onglet d'administration a été ouvert pour ${company.name}.`,
         confirmButtonColor: '#10B981',
       });
     } catch (error) {
@@ -138,6 +139,48 @@ export default function SuperAdminCompaniesPage() {
         icon: 'error',
         title: 'Impersonation impossible',
         text: error instanceof Error ? error.message : 'Impossible de démarrer l\'impersonation.',
+      });
+    }
+  };
+
+  const handleUpdatePlan = async (company, payload) => {
+    try {
+      const response = await updateCompanyPlan(company.id, payload);
+      const updatedCompany = response?.company;
+
+      if (updatedCompany) {
+        setSelectedCompany((previous) => {
+          if (!previous?.company) {
+            return previous;
+          }
+
+          return {
+            ...previous,
+            company: {
+              ...previous.company,
+              ...updatedCompany,
+            },
+          };
+        });
+      }
+
+      await fetchCompanies(params);
+
+      await Swal.fire({
+        background: '#111827',
+        color: '#F9FAFB',
+        icon: 'success',
+        title: 'Plan mis à jour',
+        text: 'Le plan de l\'entreprise a été modifié avec succès.',
+        confirmButtonColor: '#10B981',
+      });
+    } catch (error) {
+      await Swal.fire({
+        background: '#111827',
+        color: '#F9FAFB',
+        icon: 'error',
+        title: 'Mise à jour impossible',
+        text: error instanceof Error ? error.message : 'Impossible de changer le plan.',
       });
     }
   };
@@ -251,6 +294,7 @@ export default function SuperAdminCompaniesPage() {
         onSuspend={handleSuspend}
         onActivate={handleActivate}
         onImpersonate={handleImpersonate}
+        onUpdatePlan={handleUpdatePlan}
       />
     </section>
   );
