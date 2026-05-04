@@ -12,6 +12,7 @@ import PlanBadge from '@/components/PlanBadge';
 export default function CompanyDetailModal({
   open,
   data,
+  payments = [],
   onClose,
   onSuspend,
   onActivate,
@@ -19,6 +20,7 @@ export default function CompanyDetailModal({
   onUpdatePlan,
 }) {
   const [showPlanForm, setShowPlanForm] = useState(false);
+  const [activeTab, setActiveTab] = useState('overview');
   const [selectedPlan, setSelectedPlan] = useState('starter');
   const [planExpiresAt, setPlanExpiresAt] = useState('');
 
@@ -30,6 +32,22 @@ export default function CompanyDetailModal({
   if (!open || !data) {
     return null;
   }
+
+  const statusBadgeClass = (status) => {
+    if (status === 'approved') return 'bg-emerald-500/20 text-emerald-300';
+    if (status === 'pending') return 'bg-amber-500/20 text-amber-300';
+    if (status === 'canceled') return 'bg-slate-700 text-slate-300';
+    if (status === 'declined') return 'bg-red-500/20 text-red-300';
+    return 'bg-slate-700 text-slate-300';
+  };
+
+  const statusLabel = (status) => {
+    if (status === 'approved') return 'Confirme ✓';
+    if (status === 'pending') return 'En attente...';
+    if (status === 'canceled') return 'Annule';
+    if (status === 'declined') return 'Refuse';
+    return 'Inconnu';
+  };
 
   const handleConfirmPlan = async () => {
     const result = await Swal.fire({
@@ -88,25 +106,103 @@ export default function CompanyDetailModal({
           </div>
         </div>
 
-        <div className="mt-6 rounded-lg border border-gray-700 bg-gray-800/30 p-4">
-          <p className="text-xs uppercase tracking-widest text-gray-500">Historique activité (30j)</p>
-          <div className="mt-3">
-            <ActivityChart data={history} height={180} />
-          </div>
+        <div className="mt-6 flex gap-2 border-b border-gray-700 pb-2">
+          <button
+            type="button"
+            onClick={() => setActiveTab('overview')}
+            className={`rounded-md px-3 py-1.5 text-sm font-semibold transition ${
+              activeTab === 'overview'
+                ? 'bg-teal-600 text-white'
+                : 'text-gray-400 hover:bg-gray-800 hover:text-gray-200'
+            }`}
+          >
+            Détails
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('payments')}
+            className={`rounded-md px-3 py-1.5 text-sm font-semibold transition ${
+              activeTab === 'payments'
+                ? 'bg-teal-600 text-white'
+                : 'text-gray-400 hover:bg-gray-800 hover:text-gray-200'
+            }`}
+          >
+            Paiements
+          </button>
         </div>
 
-        <div className="mt-6 rounded-lg border border-gray-700 bg-gray-800/30 p-4">
-          <p className="text-xs uppercase tracking-widest text-gray-500">Dernières candidatures</p>
-          <div className="mt-3 space-y-3">
-            {recent.length === 0 && <p className="text-sm text-gray-500">Aucune candidature récente.</p>}
-            {recent.map((application) => (
-              <div key={application.id} className="rounded-lg border border-gray-700 bg-gray-900 p-3">
-                <p className="text-sm font-semibold text-white">{application.nom}</p>
-                <p className="text-xs text-gray-400">{application.email} • {application.job?.title || 'Poste non renseigné'}</p>
+        {activeTab === 'overview' ? (
+          <>
+            <div className="mt-6 rounded-lg border border-gray-700 bg-gray-800/30 p-4">
+              <p className="text-xs uppercase tracking-widest text-gray-500">Historique activité (30j)</p>
+              <div className="mt-3">
+                <ActivityChart data={history} height={180} />
               </div>
-            ))}
+            </div>
+
+            <div className="mt-6 rounded-lg border border-gray-700 bg-gray-800/30 p-4">
+              <p className="text-xs uppercase tracking-widest text-gray-500">Dernières candidatures</p>
+              <div className="mt-3 space-y-3">
+                {recent.length === 0 && <p className="text-sm text-gray-500">Aucune candidature récente.</p>}
+                {recent.map((application) => (
+                  <div key={application.id} className="rounded-lg border border-gray-700 bg-gray-900 p-3">
+                    <p className="text-sm font-semibold text-white">{application.nom}</p>
+                    <p className="text-xs text-gray-400">{application.email} • {application.job?.title || 'Poste non renseigné'}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className="mt-6 rounded-lg border border-gray-700 bg-gray-800/30 p-4">
+            <p className="text-xs uppercase tracking-widest text-gray-500">Historique des paiements</p>
+            {payments.length === 0 ? (
+              <p className="mt-4 text-sm text-gray-500">Aucun paiement enregistré.</p>
+            ) : (
+              <div className="mt-4 overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-700 text-sm">
+                  <thead className="bg-gray-800/60">
+                    <tr>
+                      <th className="px-3 py-2 text-left font-semibold text-gray-400">Date</th>
+                      <th className="px-3 py-2 text-left font-semibold text-gray-400">Montant</th>
+                      <th className="px-3 py-2 text-left font-semibold text-gray-400">Methode</th>
+                      <th className="px-3 py-2 text-left font-semibold text-gray-400">Periode</th>
+                      <th className="px-3 py-2 text-left font-semibold text-gray-400">Statut</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-800">
+                    {payments.map((payment) => {
+                      const paidDate = payment?.paid_at || payment?.created_at;
+                      const displayDate = paidDate
+                        ? new Date(paidDate).toLocaleDateString('fr-FR')
+                        : '-';
+                      const start = payment?.period_start
+                        ? new Date(payment.period_start).toLocaleDateString('fr-FR')
+                        : null;
+                      const end = payment?.period_end
+                        ? new Date(payment.period_end).toLocaleDateString('fr-FR')
+                        : null;
+
+                      return (
+                        <tr key={payment.id}>
+                          <td className="px-3 py-2 text-gray-200">{displayDate}</td>
+                          <td className="px-3 py-2 text-gray-100">{payment.amount_formatted || '-'}</td>
+                          <td className="px-3 py-2 text-gray-300">{payment.payment_method || 'Mobile Money'}</td>
+                          <td className="px-3 py-2 text-gray-300">{start && end ? `${start} - ${end}` : '-'}</td>
+                          <td className="px-3 py-2">
+                            <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${statusBadgeClass(payment.status)}`}>
+                              {statusLabel(payment.status)}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
-        </div>
+        )}
 
         <div className="mt-6 flex flex-wrap gap-3">
           {company.is_suspended ? (

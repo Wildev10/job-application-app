@@ -64,7 +64,7 @@ export default function Navbar() {
           </Link>
           <Link
             href="/register"
-            className="rounded-xl bg-teal-500 px-4 py-2 text-sm font-semibold text-slate-950 transition duration-300 hover:bg-teal-400"
+            className="rounded-xl bg-teal-500 px-4 py-2 text-sm font-semibold text-white transition duration-300 hover:bg-teal-400"
           >
             Essayer gratuitement
           </Link>
@@ -110,7 +110,7 @@ export default function Navbar() {
             <Link
               href="/register"
               onClick={() => setIsDrawerOpen(false)}
-              className="rounded-xl bg-teal-500 px-4 py-2 text-center text-sm font-semibold text-slate-950"
+              className="rounded-xl bg-teal-500 px-4 py-2 text-center text-sm font-semibold text-white"
             >
               Essayer gratuitement
             </Link>

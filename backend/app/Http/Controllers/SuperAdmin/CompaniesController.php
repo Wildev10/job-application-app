@@ -5,6 +5,7 @@ namespace App\Http\Controllers\SuperAdmin;
 use App\Http\Controllers\Controller;
 use App\Models\Application;
 use App\Models\Company;
+use App\Models\Payment;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
@@ -353,6 +354,33 @@ class CompaniesController extends Controller
         } catch (Throwable) {
             return response()->json([
                 'message' => 'Impossible de mettre à jour le plan de cette entreprise.',
+            ], 500)->header('Content-Type', 'application/json');
+        }
+    }
+
+    /**
+     * Return a paginated payment history for a specific company.
+     */
+    public function payments(int $id): JsonResponse
+    {
+        try {
+            $company = Company::query()->find($id);
+
+            if ($company === null) {
+                return response()->json([
+                    'message' => 'Entreprise introuvable.',
+                ], 404)->header('Content-Type', 'application/json');
+            }
+
+            $payments = Payment::query()
+                ->where('company_id', $company->id)
+                ->latest()
+                ->paginate(15);
+
+            return response()->json($payments, 200)->header('Content-Type', 'application/json');
+        } catch (Throwable) {
+            return response()->json([
+                'message' => 'Une erreur serveur est survenue.',
             ], 500)->header('Content-Type', 'application/json');
         }
     }

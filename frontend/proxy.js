@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 /**
  * Protect admin and superadmin routes with dedicated auth cookies.
  */
-export function middleware(request) {
+export function proxy(request) {
   const { pathname } = request.nextUrl;
 
   if (pathname.startsWith('/admin')) {

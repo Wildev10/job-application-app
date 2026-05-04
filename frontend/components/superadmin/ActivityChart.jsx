@@ -1,14 +1,26 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
 /**
  * Render a dark area chart for 30-day activity evolution.
  */
 export default function ActivityChart({ data = [], dataKey = 'count', height = 280 }) {
+  const [isReady, setIsReady] = useState(false);
+
+  useEffect(() => {
+    const frameId = requestAnimationFrame(() => setIsReady(true));
+    return () => cancelAnimationFrame(frameId);
+  }, []);
+
+  if (!isReady) {
+    return <div style={{ width: '100%', height, minWidth: 0, minHeight: height }} aria-hidden />;
+  }
+
   return (
-    <div style={{ width: '100%', height }}>
-      <ResponsiveContainer>
+    <div style={{ width: '100%', height, minWidth: 0, minHeight: height }}>
+      <ResponsiveContainer width="100%" height="100%" minWidth={0}>
         <AreaChart data={data} margin={{ top: 8, right: 12, left: -18, bottom: 0 }}>
           <defs>
             <linearGradient id="saArea" x1="0" y1="0" x2="0" y2="1">

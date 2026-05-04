@@ -6,6 +6,60 @@ import {
 } from 'lucide-react';
 import PlanBadge from '@/components/PlanBadge';
 
+function resolveCompanyStatus(company) {
+  if (company?.is_suspended) {
+    return 'suspended';
+  }
+
+  if (!company?.last_activity_at) {
+    return 'inactive';
+  }
+
+  const lastActivityAt = new Date(company.last_activity_at).getTime();
+  if (Number.isNaN(lastActivityAt)) {
+    return 'inactive';
+  }
+
+  const daysSinceLastActivity = Math.floor((Date.now() - lastActivityAt) / (1000 * 60 * 60 * 24));
+  return daysSinceLastActivity <= 30 ? 'active' : 'inactive';
+}
+
+function statusPresentation(company) {
+  const status = resolveCompanyStatus(company);
+
+  if (status === 'suspended') {
+    return {
+      className: 'bg-red-500/10 text-red-400',
+      label: 'Suspendue',
+    };
+  }
+
+  if (status === 'inactive') {
+    return {
+      className: 'bg-amber-500/10 text-amber-300',
+      label: 'Inactive',
+    };
+  }
+
+  return {
+    className: 'bg-emerald-500/10 text-emerald-400',
+    label: 'Active',
+  };
+}
+
+function formatSignupDate(value) {
+  if (!value) {
+    return '-';
+  }
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return '-';
+  }
+
+  return date.toLocaleDateString('fr-FR');
+}
+
 function activityClass(lastActivityAt) {
   if (!lastActivityAt) {
     return 'text-gray-600';
@@ -45,7 +99,7 @@ export default function CompanyTable({ rows, onView, onSuspend, onActivate, onIm
       <table className="min-w-full divide-y divide-gray-800">
         <thead className="bg-gray-800/50">
           <tr>
-            {['Entreprise', 'Plan', 'Candidatures', 'Postes', 'Dernière activité', 'Statut', 'Actions'].map((label) => (
+            {['Entreprise', 'Inscription', 'Plan', 'Candidatures', 'Postes', 'Dernière activité', 'Statut', 'Actions'].map((label) => (
               <th
                 key={label}
                 className="px-4 py-3 text-left text-xs uppercase tracking-widest text-gray-400"
@@ -56,53 +110,63 @@ export default function CompanyTable({ rows, onView, onSuspend, onActivate, onIm
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-800 bg-gray-900">
-          {rows.map((company) => (
-            <tr key={company.id} className="hover:bg-gray-800/50">
-              <td className="px-4 py-3">
-                <p className="text-sm font-medium text-white">{company.name}</p>
-                <p className="text-xs text-gray-400">{company.email}</p>
-              </td>
-              <td className="px-4 py-3">
-                <PlanBadge plan={company.plan === 'pro' ? 'pro' : 'starter'} size="sm" />
-              </td>
-              <td className="px-4 py-3 text-sm text-gray-300">{company.applications_count}</td>
-              <td className="px-4 py-3 text-sm text-gray-300">{company.jobs_count}</td>
-              <td className={`px-4 py-3 text-sm ${activityClass(company.last_activity_at)}`}>
-                {activityLabel(company.last_activity_at)}
-              </td>
-              <td className="px-4 py-3">
-                <span
-                  className={[
-                    'inline-flex rounded-full px-2.5 py-1 text-xs font-semibold',
-                    company.is_suspended
-                      ? 'bg-red-500/10 text-red-400'
-                      : 'bg-emerald-500/10 text-emerald-400',
-                  ].join(' ')}
-                >
-                  {company.is_suspended ? 'Suspendue' : 'Active'}
-                </span>
-              </td>
-              <td className="px-4 py-3">
-                <div className="flex items-center gap-2 text-gray-400">
-                  <button type="button" onClick={() => onView(company)} className="hover:text-white" title="Voir">
-                    <Eye size={16} />
-                  </button>
-                  {company.is_suspended ? (
-                    <button type="button" onClick={() => onActivate(company)} className="hover:text-emerald-400" title="Activer">
-                      <CheckCircle size={16} />
-                    </button>
-                  ) : (
-                    <button type="button" onClick={() => onSuspend(company)} className="hover:text-amber-400" title="Suspendre">
-                      <Ban size={16} />
-                    </button>
-                  )}
-                  <button type="button" onClick={() => onImpersonate(company)} className="hover:text-blue-400" title="Impersonate">
-                    <LogIn size={16} />
-                  </button>
-                </div>
+          {rows.length === 0 && (
+            <tr>
+              <td colSpan={8} className="px-4 py-6 text-center text-sm text-gray-400">
+                Aucune entreprise trouvée pour ces filtres.
               </td>
             </tr>
-          ))}
+          )}
+          {rows.map((company) => {
+            const status = statusPresentation(company);
+
+            return (
+              <tr key={company.id} className="hover:bg-gray-800/50">
+                <td className="px-4 py-3">
+                  <p className="text-sm font-medium text-white">{company.name}</p>
+                  <p className="text-xs text-gray-400">{company.email}</p>
+                </td>
+                <td className="px-4 py-3 text-sm text-gray-300">{formatSignupDate(company.created_at)}</td>
+                <td className="px-4 py-3">
+                  <PlanBadge plan={company.plan === 'pro' ? 'pro' : 'starter'} size="sm" />
+                </td>
+                <td className="px-4 py-3 text-sm text-gray-300">{company.applications_count}</td>
+                <td className="px-4 py-3 text-sm text-gray-300">{company.jobs_count}</td>
+                <td className={`px-4 py-3 text-sm ${activityClass(company.last_activity_at)}`}>
+                  {activityLabel(company.last_activity_at)}
+                </td>
+                <td className="px-4 py-3">
+                  <span
+                    className={[
+                      'inline-flex rounded-full px-2.5 py-1 text-xs font-semibold',
+                      status.className,
+                    ].join(' ')}
+                  >
+                    {status.label}
+                  </span>
+                </td>
+                <td className="px-4 py-3">
+                  <div className="flex items-center gap-2 text-gray-400">
+                    <button type="button" onClick={() => onView(company)} className="hover:text-white" title="Voir">
+                      <Eye size={16} />
+                    </button>
+                    {company.is_suspended ? (
+                      <button type="button" onClick={() => onActivate(company)} className="hover:text-emerald-400" title="Activer">
+                        <CheckCircle size={16} />
+                      </button>
+                    ) : (
+                      <button type="button" onClick={() => onSuspend(company)} className="hover:text-amber-400" title="Suspendre">
+                        <Ban size={16} />
+                      </button>
+                    )}
+                    <button type="button" onClick={() => onImpersonate(company)} className="hover:text-blue-400" title="Impersonate">
+                      <LogIn size={16} />
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>

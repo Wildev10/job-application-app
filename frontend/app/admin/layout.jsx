@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { BriefcaseBusiness, ClipboardList, LayoutDashboard, Settings } from 'lucide-react';
+import { BriefcaseBusiness, ClipboardList, LayoutDashboard, Settings, X } from 'lucide-react';
 import PlanBadge from '@/components/PlanBadge';
 import { PlanStatusProvider, usePlanStatus } from '@/hooks/usePlanStatus';
 import { getCompany } from '@/lib/auth';
@@ -21,23 +21,27 @@ const MAIN_LINKS = [
 function AdminLayoutShell({ children }) {
   const pathname = usePathname();
   const { planLimits, isStarter } = usePlanStatus();
-  const [companyName, setCompanyName] = useState(() => getCompany()?.name || 'Entreprise');
-  const [impersonationCompanyName, setImpersonationCompanyName] = useState(() => {
-    if (typeof window === 'undefined') {
-      return '';
-    }
-
-    const token = localStorage.getItem('impersonate_token');
-    return token ? (localStorage.getItem('impersonate_company_name') || '') : '';
-  });
+  const [companyName, setCompanyName] = useState('Entreprise');
+  const [companyExpiryRaw, setCompanyExpiryRaw] = useState(null);
+  const [impersonationCompanyName, setImpersonationCompanyName] = useState('');
+  const [isExpiryBannerDismissed, setIsExpiryBannerDismissed] = useState(false);
 
   useEffect(() => {
-    const onStorage = () => {
+    const syncFromStorage = () => {
+      const company = getCompany();
       const token = localStorage.getItem('impersonate_token');
+
+      setCompanyName(company?.name || 'Entreprise');
+      setCompanyExpiryRaw(company?.plan_expires_at || null);
       setImpersonationCompanyName(token ? (localStorage.getItem('impersonate_company_name') || '') : '');
-      setCompanyName(getCompany()?.name || 'Entreprise');
+      setIsExpiryBannerDismissed(window.sessionStorage.getItem('pro_expiry_banner_dismissed') === '1');
     };
 
+    const onStorage = () => {
+      syncFromStorage();
+    };
+
+    syncFromStorage();
     window.addEventListener('storage', onStorage);
 
     return () => window.removeEventListener('storage', onStorage);
@@ -47,6 +51,26 @@ function AdminLayoutShell({ children }) {
     localStorage.removeItem('impersonate_token');
     localStorage.removeItem('impersonate_company_name');
     setImpersonationCompanyName('');
+  };
+
+  const companyExpiryDate = companyExpiryRaw ? new Date(companyExpiryRaw) : null;
+  const hasValidExpiry = companyExpiryDate && !Number.isNaN(companyExpiryDate.getTime());
+  const nowDate = new Date();
+  const expiresInLessThan7Days = hasValidExpiry
+    ? companyExpiryDate.getTime() > nowDate.getTime()
+      && companyExpiryDate.getTime() - nowDate.getTime() <= 7 * 24 * 60 * 60 * 1000
+    : false;
+  const showExpiryBanner = companyExpiryRaw !== null
+    && planLimits?.is_pro === true
+    && expiresInLessThan7Days
+    && !isExpiryBannerDismissed;
+
+  const dismissExpiryBanner = () => {
+    if (typeof window !== 'undefined') {
+      window.sessionStorage.setItem('pro_expiry_banner_dismissed', '1');
+    }
+
+    setIsExpiryBannerDismissed(true);
   };
 
   return (
@@ -113,6 +137,27 @@ function AdminLayoutShell({ children }) {
         </aside>
 
         <main className="min-w-0 flex-1">
+          {showExpiryBanner ? (
+            <div className="mb-4 flex items-start justify-between gap-3 border-b border-amber-200 bg-amber-50 px-6 py-2 text-sm">
+              <div>
+                <p className="text-amber-800">
+                  ⚠️ Votre plan Pro expire le {companyExpiryDate.toLocaleDateString('fr-FR')}. Renouvelez maintenant pour ne pas perdre vos fonctionnalités.
+                </p>
+                <Link href="/admin/upgrade" className="mt-1 inline-flex font-semibold text-amber-700 hover:text-amber-800">
+                  Renouveler →
+                </Link>
+              </div>
+              <button
+                type="button"
+                onClick={dismissExpiryBanner}
+                className="mt-1 rounded p-1 text-amber-700 transition hover:bg-amber-100"
+                aria-label="Fermer l'alerte expiration"
+              >
+                <X size={16} />
+              </button>
+            </div>
+          ) : null}
+
           {impersonationCompanyName ? (
             <div className="mb-4 flex flex-wrap items-center gap-3 rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
               <span className="font-semibold">

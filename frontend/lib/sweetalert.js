@@ -11,5 +11,4 @@ export const Toast = Swal.mixin({
 export const Alert = Swal.mixin({
   confirmButtonColor: '#0D9488',
   cancelButtonColor: '#94A3B8',
-  borderRadius: '12px',
 });

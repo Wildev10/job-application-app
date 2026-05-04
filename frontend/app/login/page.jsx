@@ -62,6 +62,7 @@ export default function LoginPage() {
         icon: 'success',
         title: 'Connexion réussie !',
         confirmButtonColor: '#0d9488',
+        customClass: { popup: 'swal-custom-popup' },
       });
 
       // Route new companies through onboarding welcome mode right after login.

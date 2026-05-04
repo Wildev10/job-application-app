@@ -21,6 +21,10 @@ return Application::configure(basePath: dirname(__DIR__))
             \Illuminate\Http\Middleware\HandleCors::class,
         ]);
 
+        $middleware->validateCsrfTokens(except: [
+            'api/payments/webhook',
+        ]);
+
         $middleware->alias([
             'company.auth' => \App\Http\Middleware\CompanyAuth::class,
             'super.admin.auth' => \App\Http\Middleware\SuperAdminAuth::class,

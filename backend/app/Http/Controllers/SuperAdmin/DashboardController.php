@@ -5,6 +5,7 @@ namespace App\Http\Controllers\SuperAdmin;
 use App\Http\Controllers\Controller;
 use App\Models\Application;
 use App\Models\Company;
+use App\Models\Payment;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Collection;
@@ -63,6 +64,23 @@ class DashboardController extends Controller
                     && $application->created_at->gte($weekStart))
                 ->count();
 
+            $approvedPayments = Payment::query()->approved();
+            $approvedThisMonth = Payment::query()
+                ->approved()
+                ->where('paid_at', '>=', $monthStart)
+                ->where('paid_at', '<=', $now);
+
+            $lastMonthStart = $now->copy()->subMonthNoOverflow()->startOfMonth();
+            $lastMonthEnd = $now->copy()->subMonthNoOverflow()->endOfMonth();
+            $approvedLastMonth = Payment::query()
+                ->approved()
+                ->where('paid_at', '>=', $lastMonthStart)
+                ->where('paid_at', '<=', $lastMonthEnd);
+
+            $totalRevenueCents = (int) $approvedPayments->sum('amount');
+            $revenueThisMonthCents = (int) $approvedThisMonth->sum('amount');
+            $revenueLastMonthCents = (int) $approvedLastMonth->sum('amount');
+
             $companiesWithZeroActivity = $companies
                 ->filter(static fn (Company $company): bool => (int) $company->applications_count === 0)
                 ->count();
@@ -101,6 +119,9 @@ class DashboardController extends Controller
                 'total_applications' => $totalApplications,
                 'applications_this_month' => $applicationsThisMonth,
                 'applications_this_week' => $applicationsThisWeek,
+                'total_revenue' => intdiv($totalRevenueCents, 100),
+                'revenue_this_month' => intdiv($revenueThisMonthCents, 100),
+                'revenue_last_month' => intdiv($revenueLastMonthCents, 100),
                 'avg_applications_per_company' => $avgApplicationsPerCompany,
                 'companies_with_zero_activity' => $companiesWithZeroActivity,
                 'companies_inactive_30_days' => $companiesInactive30Days,

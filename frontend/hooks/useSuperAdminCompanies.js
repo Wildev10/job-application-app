@@ -9,7 +9,7 @@ import { saFetch } from '@/lib/superAdminApi';
 export function useSuperAdminCompanies() {
   const [companies, setCompanies] = useState([]);
   const [pagination, setPagination] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   const fetchCompanies = useCallback(async (params = {}) => {
@@ -78,6 +78,10 @@ export function useSuperAdminCompanies() {
     });
   }, []);
 
+  const fetchCompanyPayments = useCallback(async (id) => {
+    return saFetch(`/superadmin/companies/${id}/payments`, { method: 'GET' });
+  }, []);
+
   return {
     companies,
     pagination,
@@ -89,5 +93,6 @@ export function useSuperAdminCompanies() {
     activateCompany,
     impersonateCompany,
     updateCompanyPlan,
+    fetchCompanyPayments,
   };
 }

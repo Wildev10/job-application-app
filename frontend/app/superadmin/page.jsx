@@ -1,7 +1,7 @@
 'use client';
 
-import { useMemo } from 'react';
-import { Building2, Percent, TrendingUp, Users } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { Building2, CreditCard, Percent, TrendingUp, Users } from 'lucide-react';
 import {
   Cell,
   Pie,
@@ -18,6 +18,12 @@ import { useSuperAdmin } from '@/hooks/useSuperAdmin';
  */
 export default function SuperAdminDashboardPage() {
   const { stats, loading } = useSuperAdmin();
+  const [pieReady, setPieReady] = useState(false);
+
+  useEffect(() => {
+    const frameId = requestAnimationFrame(() => setPieReady(true));
+    return () => cancelAnimationFrame(frameId);
+  }, []);
 
   const pieData = useMemo(() => {
     if (!stats) {
@@ -31,12 +37,18 @@ export default function SuperAdminDashboardPage() {
   }, [stats]);
 
   const totalCompanies = (stats?.total_companies || 0);
+  const revenueThisMonth = Number(stats?.revenue_this_month || 0);
+  const revenueLastMonth = Number(stats?.revenue_last_month || 0);
+  const revenueDeltaPercent = revenueLastMonth > 0
+    ? Number((((revenueThisMonth - revenueLastMonth) / revenueLastMonth) * 100).toFixed(2))
+    : 0;
+  const formatFcfa = (value) => `${new Intl.NumberFormat('fr-FR').format(value)} FCFA`;
 
   return (
     <section className="space-y-6">
       <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
         <h1 className="text-2xl font-bold text-white">Vue d&apos;ensemble</h1>
-        <p className="text-sm text-gray-400">{new Date().toLocaleString('fr-FR')}</p>
+        <p className="text-sm text-gray-400" suppressHydrationWarning>{new Date().toLocaleString('fr-FR')}</p>
       </div>
 
       <div className="grid gap-4 xl:grid-cols-4">
@@ -72,6 +84,23 @@ export default function SuperAdminDashboardPage() {
           color="emerald"
           loading={loading}
         />
+        <StatCard
+          title="Revenus ce mois"
+          value={formatFcfa(revenueThisMonth)}
+          subtitle="Paiements approuvés"
+          icon={CreditCard}
+          color="emerald"
+          loading={loading}
+        />
+        <StatCard
+          title="Revenus mois précédent"
+          value={formatFcfa(revenueLastMonth)}
+          subtitle="Comparaison mensuelle"
+          icon={CreditCard}
+          trend={revenueDeltaPercent}
+          color="emerald"
+          loading={loading}
+        />
       </div>
 
       <div className="grid gap-4 xl:grid-cols-5">
@@ -82,23 +111,27 @@ export default function SuperAdminDashboardPage() {
           </div>
         </article>
 
-        <article className="rounded-xl border border-gray-700 bg-gray-900 p-5 xl:col-span-2">
+        <article className="min-w-0 rounded-xl border border-gray-700 bg-gray-900 p-5 xl:col-span-2">
           <p className="text-xs uppercase tracking-widest text-gray-400">Répartition des plans</p>
           <div className="mt-3 h-[280px]">
-            <ResponsiveContainer>
-              <PieChart>
-                <Pie data={pieData} dataKey="value" nameKey="name" innerRadius={70} outerRadius={100} paddingAngle={2}>
-                  {pieData.map((entry) => <Cell key={entry.name} fill={entry.color} />)}
-                </Pie>
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: '#111827',
-                    border: '1px solid #374151',
-                    color: '#F9FAFB',
-                  }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
+            {pieReady ? (
+              <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+                <PieChart>
+                  <Pie data={pieData} dataKey="value" nameKey="name" innerRadius={70} outerRadius={100} paddingAngle={2}>
+                    {pieData.map((entry) => <Cell key={entry.name} fill={entry.color} />)}
+                  </Pie>
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: '#111827',
+                      border: '1px solid #374151',
+                      color: '#F9FAFB',
+                    }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-full w-full" aria-hidden />
+            )}
           </div>
           <div className="-mt-7 text-center">
             <p className="text-xs uppercase tracking-widest text-gray-500">Total</p>
