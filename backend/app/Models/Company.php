@@ -76,6 +76,14 @@ class Company extends Model
     }
 
     /**
+     * Get all payments that belong to this company.
+     */
+    public function payments(): HasMany
+    {
+        return $this->hasMany(Payment::class);
+    }
+
+    /**
      * Build a URL-friendly slug from a company name.
      */
     public static function generateSlug(string $name): string

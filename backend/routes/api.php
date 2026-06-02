@@ -5,6 +5,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\JobController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\SuperAdmin\AuthController as SuperAdminAuthController;
 use App\Http\Controllers\SuperAdmin\BroadcastController as SuperAdminBroadcastController;
 use App\Http\Controllers\SuperAdmin\CompaniesController as SuperAdminCompaniesController;
@@ -17,6 +18,7 @@ Route::get('/jobs/public/{companySlug}/{jobSlug}', [JobController::class, 'showP
 Route::post('/applications', [ApplicationController::class, 'store']);
 Route::post('/applications/{companySlug}/{jobSlug}', [ApplicationController::class, 'store']);
 Route::post('/applications/{slug}', [ApplicationController::class, 'store']);
+Route::post('/payments/webhook', [PaymentController::class, 'webhook']);
 
 Route::middleware('company.auth')->group(function (): void {
 	Route::post('/auth/logout', [AuthController::class, 'logout']);
@@ -34,6 +36,9 @@ Route::middleware('company.auth')->group(function (): void {
 	Route::get('/applications/export', [ApplicationController::class, 'export']);
 	Route::get('/applications', [ApplicationController::class, 'index']);
 	Route::patch('/applications/{id}/status', [ApplicationController::class, 'updateStatus']);
+	Route::post('/payments/initiate', [PaymentController::class, 'initiate']);
+	Route::get('/payments/history', [PaymentController::class, 'history']);
+	Route::get('/payments/status/{paymentId}', [PaymentController::class, 'status']);
 });
 
 // Keep this route after /company/onboarding-status to avoid slug conflicts.
@@ -53,6 +58,7 @@ Route::prefix('superadmin')
 		Route::get('/stats', [SuperAdminDashboardController::class, 'stats']);
 		Route::get('/companies', [SuperAdminCompaniesController::class, 'index']);
 		Route::get('/companies/{id}', [SuperAdminCompaniesController::class, 'show']);
+		Route::get('/companies/{id}/payments', [SuperAdminCompaniesController::class, 'payments']);
 		Route::patch('/companies/{id}/plan', [SuperAdminCompaniesController::class, 'updatePlan']);
 		Route::patch('/companies/{id}/suspend', [SuperAdminCompaniesController::class, 'suspend']);
 		Route::patch('/companies/{id}/activate', [SuperAdminCompaniesController::class, 'activate']);

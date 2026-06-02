@@ -16,8 +16,10 @@ export default function SuperAdminCompaniesPage() {
     companies,
     pagination,
     loading,
+    error,
     fetchCompanies,
     fetchCompanyById,
+    fetchCompanyPayments,
     suspendCompany,
     activateCompany,
     impersonateCompany,
@@ -30,6 +32,7 @@ export default function SuperAdminCompaniesPage() {
   const [sort, setSort] = useState('recent');
   const [page, setPage] = useState(1);
   const [selectedCompany, setSelectedCompany] = useState(null);
+  const [selectedCompanyPayments, setSelectedCompanyPayments] = useState([]);
   const [detailOpen, setDetailOpen] = useState(false);
 
   const params = useMemo(() => ({
@@ -43,7 +46,9 @@ export default function SuperAdminCompaniesPage() {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      void fetchCompanies(params);
+      void fetchCompanies(params).catch(() => {
+        // Error state is already managed inside the hook.
+      });
     }, 200);
 
     return () => clearTimeout(timer);
@@ -51,8 +56,13 @@ export default function SuperAdminCompaniesPage() {
 
   const openDetails = async (company) => {
     try {
-      const details = await fetchCompanyById(company.id);
+      const [details, paymentsResponse] = await Promise.all([
+        fetchCompanyById(company.id),
+        fetchCompanyPayments(company.id),
+      ]);
+
       setSelectedCompany(details);
+      setSelectedCompanyPayments(Array.isArray(paymentsResponse?.data) ? paymentsResponse.data : []);
       setDetailOpen(true);
     } catch (error) {
       await Swal.fire({
@@ -255,6 +265,10 @@ export default function SuperAdminCompaniesPage() {
         <div className="rounded-xl border border-gray-800 bg-gray-900 p-5 text-sm text-gray-400">
           Chargement des entreprises...
         </div>
+      ) : error ? (
+        <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-5 text-sm text-red-300">
+          {error}
+        </div>
       ) : (
         <CompanyTable
           rows={companies}
@@ -290,6 +304,7 @@ export default function SuperAdminCompaniesPage() {
       <CompanyDetailModal
         open={detailOpen}
         data={selectedCompany}
+        payments={selectedCompanyPayments}
         onClose={() => setDetailOpen(false)}
         onSuspend={handleSuspend}
         onActivate={handleActivate}

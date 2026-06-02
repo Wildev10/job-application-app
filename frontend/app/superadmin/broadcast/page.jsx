@@ -10,6 +10,7 @@ import { saFetch } from '@/lib/superAdminApi';
  */
 export default function SuperAdminBroadcastPage() {
   const [counts, setCounts] = useState({ all: 0, pro: 0, starter: 0 });
+  const [countsError, setCountsError] = useState('');
   const [history, setHistory] = useState(() => {
     if (typeof window === 'undefined') {
       return [];
@@ -28,21 +29,29 @@ export default function SuperAdminBroadcastPage() {
   });
 
   const loadCounts = async () => {
-    const pro = await saFetch('/superadmin/companies?plan=pro&per_page=1');
-    const starter = await saFetch('/superadmin/companies?plan=starter&per_page=1');
-    const active = await saFetch('/superadmin/companies?status=active&per_page=1');
-    const inactive = await saFetch('/superadmin/companies?status=inactive&per_page=1');
+    try {
+      setCountsError('');
 
-    setCounts({
-      all: (active.total || 0) + (inactive.total || 0),
-      pro: pro.total || 0,
-      starter: starter.total || 0,
-    });
+      const pro = await saFetch('/superadmin/companies?plan=pro&per_page=1');
+      const starter = await saFetch('/superadmin/companies?plan=starter&per_page=1');
+      const active = await saFetch('/superadmin/companies?status=active&per_page=1');
+      const inactive = await saFetch('/superadmin/companies?status=inactive&per_page=1');
+
+      setCounts({
+        all: (active.total || 0) + (inactive.total || 0),
+        pro: pro.total || 0,
+        starter: starter.total || 0,
+      });
+    } catch (error) {
+      setCountsError(error instanceof Error ? error.message : 'Impossible de charger les audiences.');
+    }
   };
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      void loadCounts();
+      void loadCounts().catch(() => {
+        // Error state is handled by loadCounts.
+      });
     }, 0);
 
     return () => clearTimeout(timer);
@@ -99,6 +108,11 @@ export default function SuperAdminBroadcastPage() {
   return (
     <section className="grid gap-6 xl:grid-cols-3">
       <div className="xl:col-span-2">
+        {countsError ? (
+          <div className="mb-4 rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-300">
+            {countsError}
+          </div>
+        ) : null}
         <BroadcastForm counts={counts} onSubmit={handleSubmit} />
       </div>
 

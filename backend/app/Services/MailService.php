@@ -4,8 +4,13 @@ namespace App\Services;
 
 use App\Mail\CandidatureReceivedAdmin;
 use App\Mail\CandidatureReceivedApplicant;
+use App\Mail\PaymentConfirmationMail;
+use App\Mail\PaymentFailedMail;
+use App\Mail\PlanExpiredMail;
 use App\Mail\StatusUpdated;
 use App\Models\Application;
+use App\Models\Company;
+use App\Models\Payment;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Throwable;
@@ -70,6 +75,77 @@ class MailService
             Log::error('Failed to send status update email.', [
                 'application_id' => $application->id,
                 'status' => $application->status,
+                'message' => $exception->getMessage(),
+            ]);
+        }
+    }
+
+    /**
+     * Send payment confirmation email after a successful Pro upgrade.
+     */
+    public static function sendPaymentConfirmation(Payment $payment): void
+    {
+        try {
+            if (! $payment->relationLoaded('company')) {
+                $payment->load('company');
+            }
+
+            $company = $payment->company;
+            if ($company === null) {
+                Log::error('Unable to send payment confirmation email: company missing.', [
+                    'payment_id' => $payment->id,
+                ]);
+
+                return;
+            }
+
+            Mail::to($company->email)->send(new PaymentConfirmationMail($payment));
+        } catch (Throwable $exception) {
+            Log::error('Failed to send payment confirmation email.', [
+                'payment_id' => $payment->id,
+                'message' => $exception->getMessage(),
+            ]);
+        }
+    }
+
+    /**
+     * Send plan expiration notification email to the company.
+     */
+    public static function sendPlanExpired(Company $company): void
+    {
+        try {
+            Mail::to($company->email)->send(new PlanExpiredMail($company));
+        } catch (Throwable $exception) {
+            Log::error('Failed to send plan expired email.', [
+                'company_id' => $company->id,
+                'message' => $exception->getMessage(),
+            ]);
+        }
+    }
+
+    /**
+     * Send payment failure notification email.
+     */
+    public static function sendPaymentFailed(Payment $payment): void
+    {
+        try {
+            if (! $payment->relationLoaded('company')) {
+                $payment->load('company');
+            }
+
+            $company = $payment->company;
+            if ($company === null) {
+                Log::error('Unable to send payment failure email: company missing.', [
+                    'payment_id' => $payment->id,
+                ]);
+
+                return;
+            }
+
+            Mail::to($company->email)->send(new PaymentFailedMail($payment));
+        } catch (Throwable $exception) {
+            Log::error('Failed to send payment failure email.', [
+                'payment_id' => $payment->id,
                 'message' => $exception->getMessage(),
             ]);
         }

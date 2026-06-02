@@ -81,3 +81,7 @@ select {
     transform: translateY(0);
   }
 }
+
+.swal-custom-popup {
+  border-radius: 10px !important;
+}

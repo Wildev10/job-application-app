@@ -54,7 +54,7 @@ export default function Footer() {
       </div>
 
       <div className="mx-auto mt-10 w-full max-w-7xl border-t border-slate-800 pt-6 text-xs text-slate-600 sm:text-sm">
-        © 2025 Vaybe. Tous droits réservés.
+        © {new Date().getFullYear()} Vaybe. Tous droits réservés.
       </div>
     </footer>
   );

@@ -1,6 +1,10 @@
 'use client';
 
+import Link from 'next/link';
 import { useMemo, useState } from 'react';
+import PaymentHistory from '@/components/PaymentHistory';
+import PlanBadge from '@/components/PlanBadge';
+import { usePlanStatus } from '@/hooks/usePlanStatus';
 import { Alert } from '@/lib/sweetalert';
 import { apiFetch } from '@/lib/api';
 import { getCompany, saveCompany } from '@/lib/auth';
@@ -10,6 +14,7 @@ import { getCompany, saveCompany } from '@/lib/auth';
  */
 export default function AdminParametresPage() {
   const initialCompany = getCompany();
+  const { planLimits, isPro, isStarter } = usePlanStatus();
   const [company, setCompany] = useState(initialCompany);
   const [name, setName] = useState(initialCompany?.name || '');
   const [color, setColor] = useState(initialCompany?.color || '#0f766e');
@@ -34,6 +39,29 @@ export default function AdminParametresPage() {
 
     return `${publicBaseUrl.replace(/\/$/, '')}/apply/${company.slug}`;
   }, [company, publicBaseUrl]);
+
+  const planExpirationDate = useMemo(() => {
+    const raw = company?.plan_expires_at;
+    if (!raw) {
+      return null;
+    }
+
+    const parsed = new Date(raw);
+    if (Number.isNaN(parsed.getTime())) {
+      return null;
+    }
+
+    return parsed;
+  }, [company?.plan_expires_at]);
+
+  const expiresSoon = useMemo(() => {
+    if (!planExpirationDate) {
+      return false;
+    }
+
+    const diffMs = planExpirationDate.getTime() - Date.now();
+    return diffMs > 0 && diffMs <= 7 * 24 * 60 * 60 * 1000;
+  }, [planExpirationDate]);
 
   const handleSave = async () => {
     if (!name.trim()) {
@@ -179,6 +207,50 @@ export default function AdminParametresPage() {
           Ces emails sont envoyes depuis noreply@vaybe.tech au nom de votre entreprise.
         </p>
       </div>
+
+      <div className="rounded-2xl border border-[#e5e5e5] bg-white p-5 sm:p-7">
+        <h2 className="text-lg font-bold text-[#0f0f0f]">Abonnement & Paiements</h2>
+
+        <div className="mt-4 flex flex-wrap items-center gap-3">
+          <PlanBadge plan={planLimits?.plan || 'starter'} />
+
+          {isPro && planExpirationDate && (
+            <p className="text-sm text-slate-600">
+              Valide jusqu&apos;au {planExpirationDate.toLocaleDateString('fr-FR')}
+            </p>
+          )}
+
+          {isPro && expiresSoon && (
+            <span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-700">
+              ⚠️ Expire bientôt
+            </span>
+          )}
+        </div>
+
+        <div className="mt-4">
+          {isPro ? (
+            <Link
+              href="/admin/upgrade"
+              className="inline-flex rounded-lg border border-teal-600 px-4 py-2 text-sm font-semibold text-teal-700 transition hover:bg-teal-50"
+            >
+              Renouveler
+            </Link>
+          ) : null}
+
+          {isStarter ? (
+            <Link
+              href="/admin/upgrade"
+              className="inline-flex rounded-lg bg-teal-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-teal-700"
+            >
+              Passer au Pro
+            </Link>
+          ) : null}
+        </div>
+
+        <p className="mt-4 text-sm text-teal-600">Besoin d&apos;une facture ? Contactez-nous</p>
+      </div>
+
+      <PaymentHistory />
 
       <div className="rounded-2xl border border-[#e5e5e5] bg-white p-5 sm:p-7">
         <h2 className="text-lg font-bold text-[#0f0f0f]">Lien de candidature public</h2>
