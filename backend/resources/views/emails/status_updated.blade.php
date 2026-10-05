@@ -19,7 +19,7 @@
 
     $statusMessages = [
         'reviewing' => 'Bonne nouvelle ! Votre candidature est en cours d\'examen par notre équipe.',
-        'interview' => 'Félicitations ! Vous êtes sélectionné(e) pour un entretien. Notre équipe vous contactera très prochainement pour convenir d\'un rendez-vous.',
+        'interview' => 'Félicitations ! Vous êtes sélectionné(e) pour un entretien.',
         'accepted' => "🎉 Félicitations ! Votre candidature a été acceptée. Bienvenue dans l'équipe {$company->name} !",
         'rejected' => "Nous avons bien examiné votre candidature et nous vous remercions de l'intérêt que vous portez à {$company->name}. Malheureusement, nous ne donnons pas suite à votre candidature pour le moment. Nous vous souhaitons bonne continuation.",
         'pending' => 'Votre candidature est en attente d\'examen.',
@@ -52,6 +52,26 @@
                     <td style="padding:28px 24px;">
                         <h1 style="margin:0 0 16px;font-size:24px;line-height:1.35;color:#111827;">Bonjour {{ $application->nom }},</h1>
                         <p style="margin:0 0 18px;font-size:15px;line-height:1.7;">{{ $message }}</p>
+
+                        @if ($application->status === 'interview' && ($application->interview_date || $application->interview_location))
+                        <table role="presentation" cellspacing="0" cellpadding="0" style="border-collapse:collapse;margin:0 0 18px;width:100%;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;">
+                            <tr>
+                                <td style="padding:16px 20px;background-color:#f9fafb;">
+                                    <p style="margin:0 0 4px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#9ca3af;">Détails de l'entretien</p>
+                                    @if ($application->interview_date)
+                                    <p style="margin:8px 0 0;font-size:14px;color:#111827;">
+                                        <strong>📅 Date :</strong> {{ $application->interview_date->locale('fr')->isoFormat('dddd D MMMM YYYY [à] HH:mm') }}
+                                    </p>
+                                    @endif
+                                    @if ($application->interview_location)
+                                    <p style="margin:6px 0 0;font-size:14px;color:#111827;">
+                                        <strong>📍 Lieu :</strong> {{ $application->interview_location }}
+                                    </p>
+                                    @endif
+                                </td>
+                            </tr>
+                        </table>
+                        @endif
 
                         <div style="margin:8px 0 0;">
                             <span style="display:inline-block;padding:8px 12px;border-radius:999px;background-color:{{ $badgeColor }};color:#ffffff;font-size:13px;font-weight:700;line-height:1;">

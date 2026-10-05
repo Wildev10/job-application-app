@@ -16,6 +16,8 @@ export interface Application {
   status: ApplicationStatus;
   status_label: string;
   status_color: ApplicationStatusColor;
+  interview_date: string | null;
+  interview_location: string | null;
   created_at: string;
   updated_at: string;
 }

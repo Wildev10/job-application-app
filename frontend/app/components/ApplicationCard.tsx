@@ -11,7 +11,7 @@ import { downloadApplicationCv } from '@/lib/api';
 
 interface ApplicationCardProps {
   application: Application;
-  onStatusUpdated: (updatedApplication: Pick<Application, 'id' | 'status' | 'status_label' | 'status_color'>) => void;
+  onStatusUpdated: (updatedApplication: Pick<Application, 'id' | 'status' | 'status_label' | 'status_color' | 'interview_date' | 'interview_location'>) => void;
 }
 
 const AVATAR_COLORS = [

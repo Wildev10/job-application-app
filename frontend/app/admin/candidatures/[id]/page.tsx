@@ -6,9 +6,11 @@ import {
   ArrowLeft,
   Briefcase,
   Calendar,
+  Clock,
   Download,
   ExternalLink,
   Mail,
+  MapPin,
   Star,
   User,
 } from 'lucide-react';
@@ -64,7 +66,7 @@ export default function ApplicationDetailPage() {
     if (id) void load();
   }, [id]);
 
-  const handleStatusUpdated = (updated: Pick<Application, 'id' | 'status' | 'status_label' | 'status_color'>) => {
+  const handleStatusUpdated = (updated: Pick<Application, 'id' | 'status' | 'status_label' | 'status_color' | 'interview_date' | 'interview_location'>) => {
     setApplication((prev) => prev ? { ...prev, ...updated } : prev);
   };
 
@@ -221,6 +223,46 @@ export default function ApplicationDetailPage() {
           {application.motivation || <span className="italic text-[#9CA3AF]">Aucune lettre de motivation fournie.</span>}
         </p>
       </div>
+
+      {/* Interview details (visible only when status = interview) */}
+      {application.status === 'interview' && (application.interview_date || application.interview_location) && (
+        <div className="overflow-hidden rounded-2xl border border-[#FDE68A] bg-amber-50 p-6 shadow-sm sm:p-8">
+          <h2 className="mb-4 text-[11px] font-bold uppercase tracking-[0.18em] text-amber-600">Entretien planifié</h2>
+          <div className="flex flex-col gap-3 sm:flex-row sm:gap-6">
+            {application.interview_date && (
+              <div className="flex items-center gap-3">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-700">
+                  <Clock size={16} />
+                </div>
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-amber-600">Date</p>
+                  <p className="text-[14px] font-bold text-[#0E0E10]">
+                    {new Intl.DateTimeFormat('fr-FR', {
+                      weekday: 'long',
+                      day: '2-digit',
+                      month: 'long',
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    }).format(new Date(application.interview_date))}
+                  </p>
+                </div>
+              </div>
+            )}
+            {application.interview_location && (
+              <div className="flex items-center gap-3">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-700">
+                  <MapPin size={16} />
+                </div>
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-amber-600">Lieu</p>
+                  <p className="text-[14px] font-bold text-[#0E0E10]">{application.interview_location}</p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Actions + status */}
       <div className="rounded-2xl border border-[#E5E5E5] bg-white p-6 shadow-sm sm:p-8">

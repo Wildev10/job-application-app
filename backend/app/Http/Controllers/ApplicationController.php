@@ -416,9 +416,14 @@ class ApplicationController extends Controller
             $statusChanged = $application->status !== $nextStatus;
 
             if ($statusChanged) {
-                $application->update([
-                    'status' => $nextStatus,
-                ]);
+                $updateData = ['status' => $nextStatus];
+
+                if ($nextStatus === 'interview') {
+                    $updateData['interview_date'] = $request->validated('interview_date');
+                    $updateData['interview_location'] = $request->validated('interview_location');
+                }
+
+                $application->update($updateData);
 
                 $application->setRelation('company', $company);
                 MailService::sendStatusUpdated($application);
@@ -429,6 +434,8 @@ class ApplicationController extends Controller
                 'status' => $application->status,
                 'status_label' => $application->status_label,
                 'status_color' => $application->status_color,
+                'interview_date' => $application->interview_date?->toIso8601String(),
+                'interview_location' => $application->interview_location,
             ], 200)->header('Content-Type', 'application/json');
         } catch (Throwable) {
             return response()->json([

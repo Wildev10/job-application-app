@@ -197,11 +197,11 @@ export default function ApplicationList({
     return applications.filter((a) => a.status === statusFilter);
   }, [applications, statusFilter]);
 
-  const handleStatusUpdated = (updatedApplication: Pick<Application, 'id' | 'status' | 'status_label' | 'status_color'>) => {
+  const handleStatusUpdated = (updatedApplication: Pick<Application, 'id' | 'status' | 'status_label' | 'status_color' | 'interview_date' | 'interview_location'>) => {
     setApplications((previous) =>
       previous.map((application) =>
         application.id === updatedApplication.id
-          ? { ...application, status: updatedApplication.status, status_label: updatedApplication.status_label, status_color: updatedApplication.status_color }
+          ? { ...application, ...updatedApplication }
           : application,
       ),
     );
