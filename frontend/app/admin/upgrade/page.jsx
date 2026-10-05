@@ -70,7 +70,19 @@ export default function AdminUpgradePage() {
     }
 
     const params = new URLSearchParams(window.location.search);
-    return params.get('payment');
+    const raw = params.get('payment');
+
+    // FedaPay appends its own "id" and "status" parameters to the callback URL,
+    // sometimes after a second "?": stay tolerant, the real status is polled anyway.
+    if (raw?.startsWith('cancel')) {
+      return 'cancelled';
+    }
+
+    if (raw?.startsWith('success') || params.has('status')) {
+      return 'success';
+    }
+
+    return raw;
   });
 
   const proPriceLabel = process.env.NEXT_PUBLIC_PLAN_PRO_PRICE_LABEL || '15 000 FCFA';
