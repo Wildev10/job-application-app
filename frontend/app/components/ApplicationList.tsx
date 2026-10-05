@@ -36,11 +36,7 @@ const STATUS_FILTERS: Array<{ value: StatusFilter; label: string }> = [
   { value: 'rejected', label: 'Refusé' },
 ];
 
-const ROLE_FILTERS = [
-  { value: '', label: 'Tous les rôles' },
-  { value: 'dev', label: 'Dev' },
-  { value: 'designer', label: 'Designer' },
-];
+const ALL_ROLES_FILTER = { value: '', label: 'Tous les rôles' };
 
 const EMAIL_BANNER_STORAGE_KEY = 'hide_email_banner';
 
@@ -59,6 +55,7 @@ export default function ApplicationList({
   const [applications, setApplications] = useState<Application[]>([]);
   const [total, setTotal] = useState(0);
   const [role, setRole] = useState('');
+  const [knownRoles, setKnownRoles] = useState<string[]>([]);
   const [sort, setSort] = useState('date');
   const [selectedJobId, setSelectedJobId] = useState<string | null>(initialJobId);
   const [selectedJobTitle, setSelectedJobTitle] = useState('');
@@ -146,6 +143,11 @@ export default function ApplicationList({
 
         const response = await apiFetch(`/applications?${query.toString()}`, { method: 'GET' });
         setApplications(response.data);
+        // Keep every role seen so far so the filter does not shrink once applied.
+        setKnownRoles((previous) => Array.from(new Set([
+          ...previous,
+          ...response.data.map((item: Application) => item.role).filter(Boolean),
+        ])).sort((a, b) => a.localeCompare(b)));
         setTotal(response.total);
 
         if (selectedJobId) {
@@ -354,7 +356,7 @@ export default function ApplicationList({
             <div className="flex items-center gap-2">
               <span className="text-[12px] font-semibold uppercase tracking-wide text-[#9CA3AF]">Rôle</span>
               <div className="flex items-center gap-1.5">
-                {ROLE_FILTERS.map((item) => (
+                {[ALL_ROLES_FILTER, ...knownRoles.map((value) => ({ value, label: value }))].map((item) => (
                   <button
                     key={item.value}
                     type="button"

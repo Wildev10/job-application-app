@@ -73,7 +73,6 @@ export default function ApplyByJobPage() {
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
       nextErrors.email = 'Email invalide.';
     }
-    if (!form.role) nextErrors.role = 'Le rôle est obligatoire.';
     if (!form.motivation.trim()) {
       nextErrors.motivation = 'La motivation est obligatoire.';
     } else if (form.motivation.trim().length < 20) {
@@ -101,7 +100,7 @@ export default function ApplyByJobPage() {
       const payload = new FormData();
       payload.append('nom', form.nom.trim());
       payload.append('email', form.email.trim());
-      payload.append('role', form.role);
+      payload.append('role', job?.role || '');
       payload.append('motivation', form.motivation.trim());
 
       if (form.portfolio.trim()) {
@@ -213,20 +212,11 @@ export default function ApplyByJobPage() {
             {errors.nom && <p className="mt-1 text-sm text-red-600">{errors.nom}</p>}
           </div>
 
-          <div className="grid gap-5 sm:grid-cols-2">
+          <div className="grid gap-5">
             <div>
               <label htmlFor="email" className="mb-1 block text-sm font-medium text-[#525252]">Email</label>
               <input id="email" name="email" type="email" value={form.email} onChange={handleChange} className="w-full rounded-md border border-[#d4d4d4] px-3 py-2.5 text-sm outline-none" />
               {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
-            </div>
-            <div>
-              <label htmlFor="role" className="mb-1 block text-sm font-medium text-[#525252]">Rôle</label>
-              <select id="role" name="role" value={form.role} onChange={handleChange} className="w-full rounded-md border border-[#d4d4d4] px-3 py-2.5 text-sm outline-none">
-                <option value="">Choisir</option>
-                <option value="dev">Dev</option>
-                <option value="designer">Designer</option>
-              </select>
-              {errors.role && <p className="mt-1 text-sm text-red-600">{errors.role}</p>}
             </div>
           </div>
 

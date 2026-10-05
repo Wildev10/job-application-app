@@ -24,13 +24,6 @@ const STATUS_OPTIONS = [
   { value: 'rejected', label: 'Refusé' },
 ];
 
-const ROLE_OPTIONS = [
-  { value: '', label: 'Tous' },
-  { value: 'dev', label: 'Développeur' },
-  { value: 'designer', label: 'Designer' },
-  { value: 'other', label: 'Autre' },
-];
-
 /**
  * Display export filters before triggering the CSV download.
  */
@@ -61,7 +54,7 @@ export default function ExportModal({ isOpen, onClose, onExport }: ExportModalPr
 
   const summary = useMemo(() => {
     const selectedStatus = STATUS_OPTIONS.find((option) => option.value === status)?.label.toLowerCase() || 'tous statuts';
-    const selectedRole = ROLE_OPTIONS.find((option) => option.value === role)?.label.toLowerCase() || 'tous rôles';
+    const selectedRole = role.trim() ? `rôle « ${role.trim()} »` : 'tous rôles';
 
     let selectedPeriod = 'sur toute la période';
 
@@ -132,17 +125,14 @@ export default function ExportModal({ isOpen, onClose, onExport }: ExportModalPr
 
             <label className="space-y-2 text-sm text-[#44403c]">
               <span className="font-medium">Rôle</span>
-              <select
+              <input
+                type="text"
                 value={role}
                 onChange={(event) => setRole(event.target.value)}
+                placeholder="Tous (laisser vide)"
+                maxLength={100}
                 className="w-full rounded-lg border border-[#d6d3d1] bg-white px-3 py-2.5 outline-none focus:border-[#15803d]"
-              >
-                {ROLE_OPTIONS.map((option) => (
-                  <option key={option.value || 'all-roles'} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
+              />
             </label>
           </div>
 

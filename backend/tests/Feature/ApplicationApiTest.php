@@ -43,7 +43,7 @@ class ApplicationApiTest extends TestCase
         $response = $this->postJson("/api/applications/{$auth['company']->slug}", []);
 
         $response->assertStatus(422)
-            ->assertJsonValidationErrors(['nom', 'email', 'role', 'motivation']);
+            ->assertJsonValidationErrors(['nom', 'email', 'motivation']);
     }
 
     public function test_store_creates_application_and_calculates_score_with_uploaded_cv(): void
