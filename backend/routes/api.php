@@ -31,6 +31,8 @@ Route::middleware('company.auth')->group(function (): void {
 	Route::get('/company/onboarding-status', [CompanyController::class, 'onboardingStatus']);
 	Route::get('/company/plan-status', [CompanyController::class, 'planStatus']);
 	Route::patch('/company/profile', [CompanyController::class, 'updateProfile']);
+	Route::post('/company/logo', [CompanyController::class, 'updateLogo']);
+	Route::delete('/company/logo', [CompanyController::class, 'deleteLogo']);
 	Route::get('/jobs', [JobController::class, 'index']);
 	Route::post('/jobs', [JobController::class, 'store']);
 	Route::get('/jobs/{id}', [JobController::class, 'show']);
@@ -39,6 +41,7 @@ Route::middleware('company.auth')->group(function (): void {
 	Route::get('/applications/stats', [DashboardController::class, 'stats']);
 	Route::get('/applications/export', [ApplicationController::class, 'export']);
 	Route::get('/applications', [ApplicationController::class, 'index']);
+	Route::get('/applications/{id}', [ApplicationController::class, 'show'])->whereNumber('id');
 	Route::get('/applications/{id}/cv', [ApplicationController::class, 'downloadCv']);
 	Route::patch('/applications/{id}/status', [ApplicationController::class, 'updateStatus']);
 	Route::post('/payments/initiate', [PaymentController::class, 'initiate']);

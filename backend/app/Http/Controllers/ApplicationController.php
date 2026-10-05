@@ -63,7 +63,7 @@ class ApplicationController extends Controller
             }
 
             $role = $request->query('role');
-            if (in_array($role, ['dev', 'designer'], true)) {
+            if (is_string($role) && $role !== '') {
                 $query->where('role', $role);
             }
 
@@ -273,6 +273,15 @@ class ApplicationController extends Controller
 
             $data = $request->validated();
 
+            // A job application takes the job's role; the general form requires one.
+            $data['role'] = $job?->role ?: ($data['role'] ?? null);
+            if (empty($data['role'])) {
+                return response()->json([
+                    'message' => 'Validation failed.',
+                    'errors' => ['role' => ['Le poste visé est obligatoire.']],
+                ], 422)->header('Content-Type', 'application/json');
+            }
+
             if ($request->hasFile('cv')) {
                 $data['cv'] = $request->file('cv')->store('cvs', 'local');
             }
@@ -294,6 +303,32 @@ class ApplicationController extends Controller
                 'message' => 'Une erreur serveur est survenue.',
             ], 500)->header('Content-Type', 'application/json');
         }
+    }
+
+    /**
+     * Return the full detail of one application owned by the authenticated company.
+     */
+    public function show(Request $request, int $id): JsonResponse
+    {
+        /** @var Company|null $company */
+        $company = $request->attributes->get('company');
+
+        $application = Application::query()
+            ->with('job:id,title')
+            ->where('id', $id)
+            ->where('company_id', $company?->id)
+            ->first();
+
+        if ($application === null) {
+            return response()->json([
+                'message' => 'Candidature introuvable.',
+            ], 404)->header('Content-Type', 'application/json');
+        }
+
+        $application->setAttribute('job_title', $application->job?->title);
+        $application->setAttribute('has_cv', ! empty($application->cv));
+
+        return response()->json($application, 200)->header('Content-Type', 'application/json');
     }
 
     /**

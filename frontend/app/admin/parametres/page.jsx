@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import PaymentHistory from '@/components/PaymentHistory';
 import PlanBadge from '@/components/PlanBadge';
 import { usePlanStatus } from '@/hooks/usePlanStatus';
@@ -19,6 +19,8 @@ export default function AdminParametresPage() {
   const [name, setName] = useState(initialCompany?.name || '');
   const [color, setColor] = useState(initialCompany?.color || '#0f766e');
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+  const logoInputRef = useRef(null);
 
   const publicBaseUrl = useMemo(() => {
     if (process.env.NEXT_PUBLIC_APP_URL) {
@@ -114,6 +116,68 @@ export default function AdminParametresPage() {
     }
   };
 
+  const updateLogoState = (logo) => {
+    const nextCompany = { ...(company || {}), logo };
+    setCompany(nextCompany);
+    saveCompany(nextCompany);
+  };
+
+  const handleLogoChange = async (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+
+    if (!file) {
+      return;
+    }
+
+    if (file.size > 1024 * 1024) {
+      await Alert.fire({
+        icon: 'warning',
+        title: 'Logo trop lourd',
+        text: 'Le logo ne doit pas dépasser 1 Mo.',
+        confirmButtonColor: '#0F0F0F',
+      });
+
+      return;
+    }
+
+    setIsUploadingLogo(true);
+
+    try {
+      const body = new FormData();
+      body.append('logo', file);
+      const payload = await apiFetch('/company/logo', { method: 'POST', body });
+      updateLogoState(payload?.logo || null);
+    } catch (error) {
+      await Alert.fire({
+        icon: 'error',
+        title: 'Échec de l\'envoi du logo',
+        text: error instanceof Error ? error.message : 'Une erreur est survenue.',
+        confirmButtonColor: '#DC2626',
+      });
+    } finally {
+      setIsUploadingLogo(false);
+    }
+  };
+
+  const handleLogoRemove = async () => {
+    setIsUploadingLogo(true);
+
+    try {
+      await apiFetch('/company/logo', { method: 'DELETE' });
+      updateLogoState(null);
+    } catch (error) {
+      await Alert.fire({
+        icon: 'error',
+        title: 'Suppression impossible',
+        text: error instanceof Error ? error.message : 'Une erreur est survenue.',
+        confirmButtonColor: '#DC2626',
+      });
+    } finally {
+      setIsUploadingLogo(false);
+    }
+  };
+
   const handleCopyLink = async () => {
     if (!publicApplyUrl) {
       return;
@@ -157,6 +221,41 @@ export default function AdminParametresPage() {
 
       <div className="rounded-2xl border border-[#e5e5e5] bg-white p-5 sm:p-7">
         <h2 className="text-lg font-bold text-[#0f0f0f]">Informations de l entreprise</h2>
+
+        <div className="mt-4 flex flex-wrap items-center gap-4 rounded-lg bg-[#f5f5f4] p-4">
+          {company?.logo ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={company.logo} alt="Logo de l entreprise" className="h-16 w-16 rounded-md bg-white object-contain" />
+          ) : (
+            <div className="flex h-16 w-16 items-center justify-center rounded-md bg-white text-xl font-semibold text-[#78716c]">
+              {(company?.name || '?').slice(0, 1).toUpperCase()}
+            </div>
+          )}
+          <div className="space-y-2">
+            <p className="text-sm font-medium text-[#44403c]">Logo (png, jpg ou webp, 1 Mo max)</p>
+            <input ref={logoInputRef} type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => void handleLogoChange(event)} className="hidden" />
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => logoInputRef.current?.click()}
+                disabled={isUploadingLogo}
+                className="rounded-lg border border-[#d6d3d1] px-3 py-1.5 text-sm font-semibold text-[#292524] hover:bg-white disabled:opacity-60"
+              >
+                {isUploadingLogo ? 'Envoi...' : company?.logo ? 'Changer' : 'Ajouter un logo'}
+              </button>
+              {company?.logo ? (
+                <button
+                  type="button"
+                  onClick={() => void handleLogoRemove()}
+                  disabled={isUploadingLogo}
+                  className="rounded-lg px-3 py-1.5 text-sm font-semibold text-red-600 hover:bg-red-50 disabled:opacity-60"
+                >
+                  Supprimer
+                </button>
+              ) : null}
+            </div>
+          </div>
+        </div>
 
         <div className="mt-4 grid gap-4 md:grid-cols-2">
           <label className="space-y-2 text-sm text-[#44403c]">

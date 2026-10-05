@@ -1,4 +1,4 @@
-export type Role = 'dev' | 'designer';
+export type Role = string;
 export type ApplicationStatus = 'pending' | 'reviewing' | 'interview' | 'accepted' | 'rejected';
 export type ApplicationStatusColor = 'gray' | 'blue' | 'yellow' | 'green' | 'red';
 

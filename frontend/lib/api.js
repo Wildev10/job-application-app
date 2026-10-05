@@ -77,30 +77,19 @@ export async function apiFetch(endpoint, options = {}) {
 }
 
 /**
- * Export applications as CSV and trigger a browser download.
+ * Download an authenticated file endpoint and trigger a browser download.
  */
-export async function exportCSV(filters = {}) {
-  const query = new URLSearchParams();
-
-  Object.entries(filters).forEach(([key, value]) => {
-    if (value !== null && value !== undefined && value !== '') {
-      query.set(key, value);
-    }
-  });
-
+async function downloadAuthenticated(endpoint, accept, fallbackFilename) {
   const token = typeof window !== 'undefined'
     ? localStorage.getItem('impersonate_token') || localStorage.getItem('company_token')
     : null;
-  const endpoint = query.toString()
-    ? '/applications/export?' + query.toString()
-    : '/applications/export';
   const normalizedHeaders = new Headers();
 
   if (token) {
     normalizedHeaders.set('Authorization', `Bearer ${token}`);
   }
 
-  normalizedHeaders.set('Accept', 'text/csv,application/octet-stream');
+  normalizedHeaders.set('Accept', accept);
 
   let response;
 
@@ -140,7 +129,7 @@ export async function exportCSV(filters = {}) {
   const blob = await response.blob();
   const disposition = response.headers.get('Content-Disposition') || response.headers.get('content-disposition') || '';
   const filenameMatch = disposition.match(/filename="?([^"]+)"?/i);
-  const filename = filenameMatch?.[1] || 'export.csv';
+  const filename = filenameMatch?.[1] || fallbackFilename;
   const objectUrl = window.URL.createObjectURL(blob);
   const anchor = document.createElement('a');
 
@@ -154,4 +143,30 @@ export async function exportCSV(filters = {}) {
   return {
     filename,
   };
+}
+
+/**
+ * Export applications as CSV and trigger a browser download.
+ */
+export async function exportCSV(filters = {}) {
+  const query = new URLSearchParams();
+
+  Object.entries(filters).forEach(([key, value]) => {
+    if (value !== null && value !== undefined && value !== '') {
+      query.set(key, value);
+    }
+  });
+
+  const endpoint = query.toString()
+    ? '/applications/export?' + query.toString()
+    : '/applications/export';
+
+  return downloadAuthenticated(endpoint, 'text/csv,application/octet-stream', 'export.csv');
+}
+
+/**
+ * Download the (private) CV of an application owned by the current company.
+ */
+export async function downloadApplicationCv(applicationId) {
+  return downloadAuthenticated(`/applications/${applicationId}/cv`, '*/*', 'cv');
 }

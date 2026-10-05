@@ -6,7 +6,7 @@ import { Alert } from '@/lib/sweetalert';
 import type { Application } from '@/app/types/application';
 import StatusBadge from '@/app/components/StatusBadge';
 import StatusSelector from '@/app/components/StatusSelector';
-import { getCvPublicUrl } from '@/app/lib/api';
+import { downloadApplicationCv } from '@/lib/api';
 
 interface ApplicationCardProps {
   application: Application;
@@ -59,7 +59,19 @@ export default function ApplicationCard({ application, onStatusUpdated }: Applic
     });
   };
 
-  const cvUrl = getCvPublicUrl(application.cv);
+  const handleDownloadCv = async (): Promise<void> => {
+    try {
+      await downloadApplicationCv(application.id);
+    } catch (error) {
+      await Alert.fire({
+        icon: 'error',
+        title: 'Téléchargement impossible',
+        text: error instanceof Error ? error.message : 'Une erreur est survenue.',
+        confirmButtonColor: '#DC2626',
+      });
+    }
+  };
+
   const submittedAt = new Intl.DateTimeFormat('fr-FR', {
     day: '2-digit',
     month: 'short',
@@ -160,16 +172,15 @@ export default function ApplicationCard({ application, onStatusUpdated }: Applic
               </span>
             )}
 
-            {cvUrl ? (
-              <a
-                href={cvUrl}
-                target="_blank"
-                rel="noreferrer"
+            {application.cv ? (
+              <button
+                type="button"
+                onClick={() => void handleDownloadCv()}
                 title="Télécharger le CV"
                 className="flex h-8 w-8 items-center justify-center rounded-[6px] border border-[#E5E7EB] text-[#6B7280] transition hover:border-[#1EB88A] hover:text-[#1EB88A]"
               >
                 <Download size={14} />
-              </a>
+              </button>
             ) : (
               <span title="CV non fourni" className="flex h-8 w-8 cursor-not-allowed items-center justify-center rounded-[6px] border border-[#E5E7EB] text-[#D1D5DB]">
                 <Download size={14} />

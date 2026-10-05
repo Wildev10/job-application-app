@@ -2,10 +2,12 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class Company extends Model
@@ -57,6 +59,20 @@ class Company extends Model
             'plan_expires_at' => 'datetime',
             'impersonate_expires_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Expose the logo as an absolute URL (the raw column holds a storage path).
+     */
+    protected function logo(): Attribute
+    {
+        return Attribute::get(static function (?string $value): ?string {
+            if ($value === null || $value === '') {
+                return null;
+            }
+
+            return str_starts_with($value, 'http') ? $value : Storage::disk('public')->url($value);
+        });
     }
 
     /**

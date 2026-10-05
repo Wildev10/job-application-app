@@ -8,6 +8,8 @@ use App\Services\PlanService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 use Throwable;
 
 class CompanyController extends Controller
@@ -84,6 +86,59 @@ class CompanyController extends Controller
                 'message' => 'Une erreur serveur est survenue.',
             ], 500)->header('Content-Type', 'application/json');
         }
+    }
+
+    /**
+     * Upload or replace the logo of the authenticated company.
+     */
+    public function updateLogo(Request $request): JsonResponse
+    {
+        /** @var Company $company */
+        $company = $request->attributes->get('company');
+
+        $validator = Validator::make($request->all(), [
+            'logo' => ['required', 'file', 'mimes:png,jpg,jpeg,webp', 'max:1024'],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Le logo doit être une image png, jpg ou webp de 1 Mo maximum.',
+                'errors' => $validator->errors(),
+            ], 422)->header('Content-Type', 'application/json');
+        }
+
+        $previous = $company->getRawOriginal('logo');
+        $path = $request->file('logo')->store('logos', 'public');
+        $company->update(['logo' => $path]);
+
+        if ($previous && ! str_starts_with($previous, 'http')) {
+            Storage::disk('public')->delete($previous);
+        }
+
+        return response()->json([
+            'message' => 'Logo mis à jour.',
+            'logo' => $company->fresh()->logo,
+        ], 200)->header('Content-Type', 'application/json');
+    }
+
+    /**
+     * Remove the logo of the authenticated company.
+     */
+    public function deleteLogo(Request $request): JsonResponse
+    {
+        /** @var Company $company */
+        $company = $request->attributes->get('company');
+
+        $previous = $company->getRawOriginal('logo');
+        $company->update(['logo' => null]);
+
+        if ($previous && ! str_starts_with($previous, 'http')) {
+            Storage::disk('public')->delete($previous);
+        }
+
+        return response()->json([
+            'message' => 'Logo supprimé.',
+        ], 200)->header('Content-Type', 'application/json');
     }
 
     /**

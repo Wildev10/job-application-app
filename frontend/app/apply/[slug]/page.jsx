@@ -71,7 +71,7 @@ export default function ApplyBySlugPage() {
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
       nextErrors.email = 'Email invalide.';
     }
-    if (!form.role) nextErrors.role = 'Le rôle est obligatoire.';
+    if (!form.role) nextErrors.role = 'Le poste visé est obligatoire.';
     if (!form.motivation.trim()) {
       nextErrors.motivation = 'La motivation est obligatoire.';
     } else if (form.motivation.trim().length < 20) {
@@ -197,12 +197,8 @@ export default function ApplyBySlugPage() {
               {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
             </div>
             <div>
-              <label htmlFor="role" className="mb-1 block text-sm font-medium text-[#525252]">Rôle</label>
-              <select id="role" name="role" value={form.role} onChange={handleChange} className="w-full rounded-md border border-[#d4d4d4] px-3 py-2.5 text-sm outline-none">
-                <option value="">Choisir</option>
-                <option value="dev">Dev</option>
-                <option value="designer">Designer</option>
-              </select>
+              <label htmlFor="role" className="mb-1 block text-sm font-medium text-[#525252]">Poste visé</label>
+              <input id="role" name="role" value={form.role} onChange={handleChange} maxLength={100} placeholder="Ex : Comptable, Commercial, Développeur…" className="w-full rounded-md border border-[#d4d4d4] px-3 py-2.5 text-sm outline-none" />
               {errors.role && <p className="mt-1 text-sm text-red-600">{errors.role}</p>}
             </div>
           </div>
