@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import PaymentHistory from '@/components/PaymentHistory';
 import PlanBadge from '@/components/PlanBadge';
 import { usePlanStatus } from '@/hooks/usePlanStatus';
@@ -22,6 +22,25 @@ export default function AdminParametresPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const logoInputRef = useRef(null);
+
+  const [emailDefaults, setEmailDefaults] = useState({});
+  const [emailTemplates, setEmailTemplates] = useState({ reviewing: '', interview: '', accepted: '', rejected: '' });
+  const [isSavingTemplates, setIsSavingTemplates] = useState(false);
+
+  useEffect(() => {
+    apiFetch('/company/email-templates', { method: 'GET' })
+      .then((data) => {
+        setEmailDefaults(data.defaults || {});
+        const saved = data.custom || {};
+        setEmailTemplates({
+          reviewing: saved.reviewing || '',
+          interview: saved.interview || '',
+          accepted: saved.accepted || '',
+          rejected: saved.rejected || '',
+        });
+      })
+      .catch(() => {});
+  }, []);
 
   const publicBaseUrl = useMemo(() => {
     if (process.env.NEXT_PUBLIC_APP_URL) {
@@ -213,6 +232,30 @@ export default function AdminParametresPage() {
     window.open(publicApplyUrl, '_blank', 'noopener,noreferrer');
   };
 
+  const handleSaveTemplates = async () => {
+    setIsSavingTemplates(true);
+    try {
+      await apiFetch('/company/email-templates', {
+        method: 'PUT',
+        body: JSON.stringify(emailTemplates),
+      });
+      await Alert.fire({
+        icon: 'success',
+        title: 'Templates sauvegardés',
+        confirmButtonColor: '#F2600C',
+      });
+    } catch (error) {
+      await Alert.fire({
+        icon: 'error',
+        title: 'Échec de la sauvegarde',
+        text: error instanceof Error ? error.message : 'Une erreur est survenue.',
+        confirmButtonColor: '#dc2626',
+      });
+    } finally {
+      setIsSavingTemplates(false);
+    }
+  };
+
   return (
     <section className="space-y-6">
       <div className="rounded-2xl border border-[#E5E5E5] bg-white p-5 sm:p-7">
@@ -330,6 +373,52 @@ export default function AdminParametresPage() {
         <p className="mt-4 text-sm text-[#9CA3AF]">
           Ces emails sont envoyés depuis noreply@vaybe.tech au nom de votre entreprise.
         </p>
+      </div>
+
+      <div className="rounded-2xl border border-[#E5E5E5] bg-white p-5 sm:p-7">
+        <h2 className="text-lg font-bold text-[#0E0E10]">Messages personnalisés — statut candidature</h2>
+        <p className="mt-1 text-sm text-[#6B7280]">
+          Personnalisez le texte envoyé au candidat lors de chaque changement de statut. Laissez vide pour utiliser le message par défaut.
+        </p>
+
+        <div className="mt-5 space-y-5">
+          {[
+            { key: 'reviewing', label: 'En examen' },
+            { key: 'interview', label: 'Entretien planifié' },
+            { key: 'accepted', label: 'Candidature acceptée' },
+            { key: 'rejected', label: 'Candidature refusée' },
+          ].map(({ key, label }) => (
+            <div key={key}>
+              <label className="mb-1.5 block text-sm font-medium text-[#374151]">{label}</label>
+              <textarea
+                rows={3}
+                value={emailTemplates[key]}
+                onChange={(e) => setEmailTemplates((prev) => ({ ...prev, [key]: e.target.value }))}
+                placeholder={emailDefaults[key] || ''}
+                maxLength={1000}
+                className="w-full resize-y rounded-lg border border-[#E5E5E5] px-3 py-2.5 text-sm text-[#0E0E10] outline-none placeholder:text-[#9CA3AF] focus:border-[#F2600C] focus:ring-2 focus:ring-[#F2600C]/20"
+              />
+              {emailTemplates[key] && (
+                <button
+                  type="button"
+                  onClick={() => setEmailTemplates((prev) => ({ ...prev, [key]: '' }))}
+                  className="mt-1 text-xs text-[#9CA3AF] hover:text-red-500"
+                >
+                  Réinitialiser au message par défaut
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+
+        <button
+          type="button"
+          onClick={() => void handleSaveTemplates()}
+          disabled={isSavingTemplates}
+          className="mt-5 inline-flex items-center justify-center rounded-lg bg-[#F2600C] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#D44F08] disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {isSavingTemplates ? 'Sauvegarde...' : 'Sauvegarder les messages'}
+        </button>
       </div>
 
       <div className="rounded-2xl border border-[#E5E5E5] bg-white p-5 sm:p-7">

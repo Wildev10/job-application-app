@@ -38,6 +38,8 @@ Route::middleware('company.auth')->group(function (): void {
 	Route::get('/company/onboarding-status', [CompanyController::class, 'onboardingStatus']);
 	Route::get('/company/plan-status', [CompanyController::class, 'planStatus']);
 	Route::patch('/company/profile', [CompanyController::class, 'updateProfile']);
+	Route::get('/company/email-templates', [CompanyController::class, 'getEmailTemplates']);
+	Route::put('/company/email-templates', [CompanyController::class, 'updateEmailTemplates']);
 	Route::post('/company/logo', [CompanyController::class, 'updateLogo']);
 	Route::delete('/company/logo', [CompanyController::class, 'deleteLogo']);
 	Route::get('/jobs', [JobController::class, 'index']);

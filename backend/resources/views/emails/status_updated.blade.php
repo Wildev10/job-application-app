@@ -17,7 +17,7 @@
     ];
     $badgeColor = $statusColorMap[$application->status_color] ?? '#6b7280';
 
-    $statusMessages = [
+    $defaultMessages = [
         'reviewing' => 'Bonne nouvelle ! Votre candidature est en cours d\'examen par notre équipe.',
         'interview' => 'Félicitations ! Vous êtes sélectionné(e) pour un entretien.',
         'accepted' => "🎉 Félicitations ! Votre candidature a été acceptée. Bienvenue dans l'équipe {$company->name} !",
@@ -25,7 +25,8 @@
         'pending' => 'Votre candidature est en attente d\'examen.',
     ];
 
-    $message = $statusMessages[$application->status] ?? $statusMessages['pending'];
+    $customMessages = is_array($company->email_templates) ? $company->email_templates : [];
+    $message = $customMessages[$application->status] ?? $defaultMessages[$application->status] ?? $defaultMessages['pending'];
     $siteUrl = rtrim((string) ($frontendUrl ?: config('app.frontend_url', 'http://localhost:3000')), '/');
 @endphp
 <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;">

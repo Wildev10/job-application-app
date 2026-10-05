@@ -28,6 +28,7 @@ class Company extends Model
         'logo',
         'color',
         'tagline',
+        'email_templates',
         'api_token',
         'is_suspended',
         'plan',
@@ -62,6 +63,7 @@ class Company extends Model
             'plan_expires_at' => 'datetime',
             'plan_renewal_reminded_at' => 'datetime',
             'impersonate_expires_at' => 'datetime',
+            'email_templates' => 'array',
         ];
     }
 
