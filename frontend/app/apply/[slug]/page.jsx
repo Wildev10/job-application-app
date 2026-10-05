@@ -49,7 +49,7 @@ export default function ApplyBySlugPage() {
     }
   }, [slug]);
 
-  const primaryColor = useMemo(() => company?.color || '#0f766e', [company]);
+  const primaryColor = useMemo(() => company?.color || '#F2600C', [company]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;

@@ -39,7 +39,7 @@ export default function WelcomeToast({ shouldShow, onConsumed }) {
       confirmButtonText: 'Créer mon premier poste',
       showCancelButton: true,
       cancelButtonText: 'Explorer d\'abord',
-      confirmButtonColor: '#0d9488',
+      confirmButtonColor: '#F2600C',
     }).then((result) => {
       localStorage.setItem(storageKey, 'true');
 

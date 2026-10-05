@@ -113,7 +113,7 @@ export default function ExportModal({ isOpen, onClose, onExport }: ExportModalPr
               <select
                 value={status}
                 onChange={(event) => setStatus(event.target.value)}
-                className="w-full rounded-lg border border-[#d6d3d1] bg-white px-3 py-2.5 outline-none focus:border-[#15803d]"
+                className="w-full rounded-lg border border-[#d6d3d1] bg-white px-3 py-2.5 outline-none focus:border-[#F2600C]"
               >
                 {STATUS_OPTIONS.map((option) => (
                   <option key={option.value || 'all-statuses'} value={option.value}>
@@ -131,7 +131,7 @@ export default function ExportModal({ isOpen, onClose, onExport }: ExportModalPr
                 onChange={(event) => setRole(event.target.value)}
                 placeholder="Tous (laisser vide)"
                 maxLength={100}
-                className="w-full rounded-lg border border-[#d6d3d1] bg-white px-3 py-2.5 outline-none focus:border-[#15803d]"
+                className="w-full rounded-lg border border-[#d6d3d1] bg-white px-3 py-2.5 outline-none focus:border-[#F2600C]"
               />
             </label>
           </div>
@@ -143,7 +143,7 @@ export default function ExportModal({ isOpen, onClose, onExport }: ExportModalPr
                 type="date"
                 value={dateFrom}
                 onChange={(event) => setDateFrom(event.target.value)}
-                className="w-full rounded-lg border border-[#d6d3d1] px-3 py-2.5 outline-none focus:border-[#15803d]"
+                className="w-full rounded-lg border border-[#d6d3d1] px-3 py-2.5 outline-none focus:border-[#F2600C]"
               />
             </label>
 
@@ -153,12 +153,12 @@ export default function ExportModal({ isOpen, onClose, onExport }: ExportModalPr
                 type="date"
                 value={dateTo}
                 onChange={(event) => setDateTo(event.target.value)}
-                className="w-full rounded-lg border border-[#d6d3d1] px-3 py-2.5 outline-none focus:border-[#15803d]"
+                className="w-full rounded-lg border border-[#d6d3d1] px-3 py-2.5 outline-none focus:border-[#F2600C]"
               />
             </label>
           </div>
 
-          <div className="rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm leading-6 text-emerald-900">
+          <div className="rounded-xl border border-[#FFD5C2] bg-[#FFF4EE] px-4 py-3 text-sm leading-6 text-[#0E0E10]">
             {summary}
           </div>
         </div>
@@ -180,7 +180,7 @@ export default function ExportModal({ isOpen, onClose, onExport }: ExportModalPr
               date_from: dateFrom,
               date_to: dateTo,
             })}
-            className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#15803d] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#166534]"
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#F2600C] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#D44F08]"
           >
             <span aria-hidden="true">↓</span>
             <span>Exporter en CSV</span>

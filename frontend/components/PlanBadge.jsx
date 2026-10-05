@@ -12,10 +12,10 @@ export default function PlanBadge({ plan = 'starter', size = 'md' }) {
   if (isPro) {
     return (
       <>
-        <span className={`relative inline-flex items-center gap-1.5 overflow-hidden rounded-full bg-gradient-to-r from-teal-500 to-emerald-500 font-medium text-white shadow-sm ${sizeClasses}`}>
+        <span className={`relative inline-flex items-center gap-1.5 overflow-hidden rounded-full bg-[#F2600C] font-medium text-white shadow-sm ${sizeClasses}`}>
           <span
             aria-hidden="true"
-            className="pointer-events-none absolute inset-0 opacity-35"
+            className="pointer-events-none absolute inset-0 opacity-30"
             style={{
               background: 'linear-gradient(120deg, rgba(255,255,255,0) 25%, rgba(255,255,255,0.5) 50%, rgba(255,255,255,0) 75%)',
               backgroundSize: '220% 100%',
@@ -40,7 +40,7 @@ export default function PlanBadge({ plan = 'starter', size = 'md' }) {
   }
 
   return (
-    <span className={`inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-100 font-medium text-slate-600 ${sizeClasses}`}>
+    <span className={`inline-flex items-center gap-1.5 rounded-full border border-[#E5E5E5] bg-[#F5F5F5] font-medium text-[#6B7280] ${sizeClasses}`}>
       <Zap size={size === 'sm' ? 12 : 14} />
       <span>Starter</span>
     </span>

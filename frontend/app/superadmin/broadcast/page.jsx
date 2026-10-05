@@ -92,7 +92,7 @@ export default function SuperAdminBroadcastPage() {
         icon: 'success',
         title: 'Broadcast envoyé',
         text: response.message,
-        confirmButtonColor: '#10B981',
+        confirmButtonColor: '#F2600C',
       });
     } catch (error) {
       await Swal.fire({
@@ -132,7 +132,7 @@ export default function SuperAdminBroadcastPage() {
               <div key={item.id} className="rounded-lg border border-gray-700 bg-gray-800/40 p-3">
                 <p className="text-sm font-semibold text-white">{item.subject}</p>
                 <p className="text-xs text-gray-400">{item.date}</p>
-                <p className="mt-1 text-xs text-emerald-400">{item.sent_to} entreprises • cible {item.target}</p>
+                <p className="mt-1 text-xs text-[#F2600C]">{item.sent_to} entreprises • cible {item.target}</p>
               </div>
             ))}
           </div>

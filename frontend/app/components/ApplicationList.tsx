@@ -119,7 +119,7 @@ export default function ApplicationList({
         </div>
       `,
       confirmButtonText: 'Compris',
-      confirmButtonColor: '#4338ca',
+      confirmButtonColor: '#F2600C',
       background: '#FAFAF9',
       color: '#0F0F0F',
     });
@@ -225,7 +225,7 @@ export default function ApplicationList({
         title: 'Export réussi !',
         text: 'Votre fichier CSV a été téléchargé.',
         icon: 'success',
-        confirmButtonColor: '#15803d',
+        confirmButtonColor: '#F2600C',
       });
     } catch (error) {
       const apiError = error as ApiError;
@@ -254,7 +254,7 @@ export default function ApplicationList({
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <h1 className="text-[22px] font-semibold tracking-[-0.02em] text-[#111827]">Candidatures</h1>
-              <span className="rounded-full bg-[#ECFDF5] px-2.5 py-0.5 text-[13px] font-semibold text-[#065F46]">
+              <span className="rounded-full bg-[#FFF4EE] px-2.5 py-0.5 text-[13px] font-semibold text-[#F2600C]">
                 {total}
               </span>
             </div>
@@ -281,7 +281,7 @@ export default function ApplicationList({
                 }}
                 disabled={isExporting}
                 title={isStarter && !canExportCSV ? 'Fonctionnalité Pro' : undefined}
-                className="inline-flex items-center gap-2 rounded-[8px] bg-[#1EB88A] px-3.5 py-2 text-sm font-medium text-white transition hover:bg-[#0F6E56] disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex items-center gap-2 rounded-[8px] bg-[#F2600C] px-3.5 py-2 text-sm font-medium text-white transition hover:bg-[#D44F08] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isExporting ? (
                   <>
@@ -300,14 +300,14 @@ export default function ApplicationList({
 
           {/* Email banner */}
           {showEmailBanner && (
-            <div className="rounded-r-[8px] border-l-4 border-l-[#1EB88A] bg-[#F0FDF4] px-4 py-3">
+            <div className="rounded-r-[8px] border-l-4 border-l-[#F2600C] bg-[#FFF4EE] px-4 py-3">
               <div className="flex items-start justify-between gap-4">
                 <p className="text-[13px] leading-relaxed text-[#1A1A2E]">
                   Les candidats reçoivent automatiquement un email de confirmation, puis une notification à chaque changement de statut.
                   <button
                     type="button"
                     onClick={() => void openEmailDetails()}
-                    className="ml-2 font-medium text-[#1EB88A] transition hover:text-[#0F6E56]"
+                    className="ml-2 font-medium text-[#F2600C] transition hover:text-[#D44F08]"
                   >
                     En savoir plus
                   </button>
@@ -363,7 +363,7 @@ export default function ApplicationList({
                     onClick={() => setRole(item.value)}
                     className={`rounded-full px-3 py-1 text-[13px] font-medium transition ${
                       role === item.value
-                        ? 'bg-[#1EB88A] text-white'
+                        ? 'bg-[#F2600C] text-white'
                         : 'border border-[#E5E7EB] text-[#6B7280] hover:border-[#D1D5DB]'
                     }`}
                   >
@@ -438,7 +438,7 @@ export default function ApplicationList({
       {/* Empty state */}
       {!isLoading && !errorMessage && filteredApplications.length === 0 && (
         <div className="rounded-[12px] border border-dashed border-[#D1D5DB] bg-white px-6 py-14 text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#ECFDF5] text-2xl">📭</div>
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#FFF4EE] text-2xl">📭</div>
           <p className="text-base font-semibold text-[#111827]">Aucune candidature à afficher.</p>
           <p className="mt-2 text-sm text-[#6B7280]">Affinez les filtres ou revenez plus tard.</p>
         </div>

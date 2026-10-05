@@ -42,7 +42,7 @@ function statusPresentation(company) {
   }
 
   return {
-    className: 'bg-emerald-500/10 text-emerald-400',
+    className: 'bg-[#F2600C]/10 text-[#F2600C]',
     label: 'Active',
   };
 }
@@ -67,7 +67,7 @@ function activityClass(lastActivityAt) {
 
   const diffDays = Math.floor((Date.now() - new Date(lastActivityAt).getTime()) / (1000 * 60 * 60 * 24));
   if (diffDays < 7) {
-    return 'text-emerald-400';
+    return 'text-[#F2600C]';
   }
   if (diffDays <= 30) {
     return 'text-amber-400';
@@ -151,7 +151,7 @@ export default function CompanyTable({ rows, onView, onSuspend, onActivate, onIm
                       <Eye size={16} />
                     </button>
                     {company.is_suspended ? (
-                      <button type="button" onClick={() => onActivate(company)} className="hover:text-emerald-400" title="Activer">
+                      <button type="button" onClick={() => onActivate(company)} className="hover:text-[#F2600C]" title="Activer">
                         <CheckCircle size={16} />
                       </button>
                     ) : (

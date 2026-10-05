@@ -30,7 +30,7 @@ export default function BroadcastForm({ counts, onSubmit }) {
       cancelButtonText: 'Annuler',
       background: '#111827',
       color: '#F9FAFB',
-      confirmButtonColor: '#10B981',
+      confirmButtonColor: '#F2600C',
       cancelButtonColor: '#374151',
     });
 
@@ -58,7 +58,7 @@ export default function BroadcastForm({ counts, onSubmit }) {
           <select
             value={target}
             onChange={(event) => setTarget(event.target.value)}
-            className="mt-2 w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-2.5 text-white outline-none focus:border-emerald-500"
+            className="mt-2 w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-2.5 text-white outline-none focus:border-[#F2600C]"
           >
             <option value="all">Toutes les entreprises</option>
             <option value="pro">Entreprises Pro</option>
@@ -66,7 +66,7 @@ export default function BroadcastForm({ counts, onSubmit }) {
           </select>
         </div>
 
-        <p className="text-sm font-semibold text-emerald-400">
+        <p className="text-sm font-semibold text-[#F2600C]">
           Ce message sera envoyé à {recipientCount} entreprises
         </p>
 
@@ -75,7 +75,7 @@ export default function BroadcastForm({ counts, onSubmit }) {
           <input
             value={subject}
             onChange={(event) => setSubject(event.target.value)}
-            className="mt-2 w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-2.5 text-white placeholder:text-gray-500 outline-none focus:border-emerald-500"
+            className="mt-2 w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-2.5 text-white placeholder:text-gray-500 outline-none focus:border-[#F2600C]"
             placeholder="Maintenance planifiée de la plateforme"
           />
         </div>
@@ -86,7 +86,7 @@ export default function BroadcastForm({ counts, onSubmit }) {
             value={message}
             onChange={(event) => setMessage(event.target.value)}
             rows={8}
-            className="mt-2 w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-3 text-white placeholder:text-gray-500 outline-none focus:border-emerald-500"
+            className="mt-2 w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-3 text-white placeholder:text-gray-500 outline-none focus:border-[#F2600C]"
             placeholder="Décrivez le message adressé aux entreprises..."
           />
         </div>
@@ -101,7 +101,7 @@ export default function BroadcastForm({ counts, onSubmit }) {
         <button
           type="submit"
           disabled={!canSubmit || sending}
-          className="rounded-lg bg-emerald-500 px-6 py-3 font-bold text-gray-900 transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-60"
+          className="rounded-lg bg-[#F2600C] px-6 py-3 font-bold text-white transition hover:bg-[#D44F08] disabled:cursor-not-allowed disabled:opacity-60"
         >
           {sending ? 'Envoi en cours...' : `Envoyer à ${recipientCount} entreprises`}
         </button>

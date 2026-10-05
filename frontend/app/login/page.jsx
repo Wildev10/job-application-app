@@ -7,7 +7,6 @@ import { Eye, EyeOff, ShieldCheck, Sparkles } from 'lucide-react';
 import { Alert } from '@/lib/sweetalert';
 import { useAuth } from '@/hooks/useAuth';
 import { apiFetch } from '@/lib/api';
-// FIX-CONTRAST: lisibilite corrigee
 
 /**
  * Render company login form.
@@ -33,7 +32,7 @@ export default function LoginPage() {
         icon: 'error',
         title: 'Champs obligatoires',
         text: 'Veuillez renseigner l\'email et le mot de passe.',
-        confirmButtonColor: '#0d9488',
+        confirmButtonColor: '#F2600C',
       });
       return;
     }
@@ -43,7 +42,7 @@ export default function LoginPage() {
         icon: 'error',
         title: 'Email invalide',
         text: 'Veuillez entrer une adresse email valide.',
-        confirmButtonColor: '#0d9488',
+        confirmButtonColor: '#F2600C',
       });
       return;
     }
@@ -66,7 +65,7 @@ export default function LoginPage() {
       await Alert.fire({
         icon: 'success',
         title: 'Connexion réussie !',
-        confirmButtonColor: '#0d9488',
+        confirmButtonColor: '#F2600C',
         customClass: { popup: 'swal-custom-popup' },
       });
 
@@ -83,74 +82,80 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="relative grid min-h-[calc(100vh-3.5rem)] overflow-hidden bg-slate-50 lg:grid-cols-2">
-      <section className="hidden border-r border-teal-100 bg-teal-50 lg:block">
-        <div className="flex h-full flex-col justify-between p-12">
-          <div className="inline-flex w-fit items-center gap-2 rounded-full border border-teal-200 bg-teal-100 px-4 py-1 text-xs font-bold uppercase tracking-[0.08em] text-teal-800">
-            <Sparkles size={14} />
-            Espace entreprise
-          </div>
+    <main className="grid min-h-screen lg:grid-cols-2">
+      {/* Left panel — dark ink */}
+      <section className="hidden flex-col justify-between bg-[#0E0E10] p-12 lg:flex">
+        <div className="inline-flex w-fit items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1 text-xs font-bold uppercase tracking-[0.08em] text-white/70">
+          <Sparkles size={14} />
+          Espace entreprise
+        </div>
 
-          <div>
-            <h1 className="text-5xl font-black tracking-[-0.03em] text-slate-900">Pilotez votre recrutement avec clarté.</h1>
-            <p className="mt-4 max-w-md text-base text-slate-600">
-              Centralisez vos candidatures, suivez chaque statut et gagnez du temps sur les tâches répétitives.
-            </p>
-          </div>
+        <div>
+          <h1 className="text-5xl font-black tracking-[-0.03em] text-white">
+            Pilotez votre recrutement{' '}
+            <span className="text-[#F2600C]">avec clarté.</span>
+          </h1>
+          <p className="mt-4 max-w-md text-base text-[#9CA3AF]">
+            Centralisez vos candidatures, suivez chaque statut et gagnez du temps sur les tâches répétitives.
+          </p>
+        </div>
 
-          <div className="rounded-2xl border border-teal-200 bg-teal-100 p-4 text-sm text-teal-900">
-            <p className="flex items-center gap-2 font-semibold text-teal-900"><ShieldCheck size={16} /> Connexion sécurisée</p>
-            <p className="mt-2 text-teal-800">Vos accès entreprise sont protégés et vos données restent confidentielles.</p>
-          </div>
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm">
+          <p className="flex items-center gap-2 font-semibold text-white">
+            <ShieldCheck size={16} className="text-[#F2600C]" />
+            Connexion sécurisée
+          </p>
+          <p className="mt-2 text-[#9CA3AF]">Vos accès entreprise sont protégés et vos données restent confidentielles.</p>
         </div>
       </section>
 
-      <section className="flex items-center justify-center px-4 py-10 sm:px-8">
-        <div className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-6 shadow-xl shadow-slate-200/70 sm:p-8">
-          <h2 className="text-2xl font-extrabold text-slate-900">Connexion entreprise</h2>
-          <p className="mt-2 text-sm text-slate-600">Accédez à votre espace de gestion des candidatures.</p>
+      {/* Right panel — form */}
+      <section className="flex items-center justify-center bg-[#FAFAFA] px-4 py-10 sm:px-8">
+        <div className="w-full max-w-md rounded-2xl border border-[#E5E5E5] bg-white p-6 shadow-lg sm:p-8">
+          <h2 className="text-2xl font-extrabold text-[#0E0E10]">Connexion entreprise</h2>
+          <p className="mt-2 text-sm text-[#6B7280]">Accédez à votre espace de gestion des candidatures.</p>
 
           {emailJustVerified ? (
-            <p className="mt-4 rounded-xl bg-teal-50 p-3 text-sm font-medium text-teal-800">
+            <p className="mt-4 rounded-xl bg-[#FFF4EE] p-3 text-sm font-medium text-[#F2600C]">
               ✅ Votre email est confirmé. Vous pouvez vous connecter.
             </p>
           ) : null}
 
           <form onSubmit={handleSubmit} className="mt-6 space-y-5" noValidate>
             <div>
-              <label htmlFor="email" className="mb-1 block text-sm font-medium text-slate-700">Email</label>
+              <label htmlFor="email" className="mb-1 block text-sm font-medium text-[#374151]">Email</label>
               <input
                 id="email"
                 type="email"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
-                className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/30"
+                className="w-full rounded-lg border border-[#E5E5E5] bg-white px-3 py-2.5 text-sm text-[#0E0E10] outline-none focus:border-[#F2600C] focus:ring-2 focus:ring-[#F2600C]/20"
                 placeholder="company@example.com"
               />
             </div>
 
             <div>
-              <label htmlFor="password" className="mb-1 block text-sm font-medium text-slate-700">Mot de passe</label>
+              <label htmlFor="password" className="mb-1 block text-sm font-medium text-[#374151]">Mot de passe</label>
               <div className="relative">
                 <input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
-                  className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 pr-11 text-sm text-slate-900 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/30"
+                  className="w-full rounded-lg border border-[#E5E5E5] bg-white px-3 py-2.5 pr-11 text-sm text-[#0E0E10] outline-none focus:border-[#F2600C] focus:ring-2 focus:ring-[#F2600C]/20"
                   placeholder="••••••••"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword((prev) => !prev)}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-slate-500 hover:text-teal-600"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-[#9CA3AF] hover:text-[#F2600C]"
                   aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
               <div className="mt-2 text-right">
-                <Link href="/forgot-password" className="text-sm font-medium text-teal-600 hover:text-teal-700">
+                <Link href="/forgot-password" className="text-sm font-medium text-[#F2600C] hover:text-[#D44F08]">
                   Mot de passe oublié ?
                 </Link>
               </div>
@@ -159,15 +164,15 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="inline-flex w-full items-center justify-center rounded-xl bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-teal-700 disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex w-full items-center justify-center rounded-lg bg-[#F2600C] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#D44F08] disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isSubmitting ? 'Connexion...' : 'Se connecter'}
             </button>
           </form>
 
-          <p className="mt-5 text-sm text-slate-600">
+          <p className="mt-5 text-sm text-[#6B7280]">
             Pas encore de compte ?{' '}
-            <Link href="/register" className="font-semibold text-teal-600 hover:text-teal-700">
+            <Link href="/register" className="font-semibold text-[#F2600C] hover:text-[#D44F08]">
               Créer un compte
             </Link>
           </p>

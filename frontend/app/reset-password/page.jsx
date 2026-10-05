@@ -22,12 +22,12 @@ function ResetPasswordForm() {
     event.preventDefault();
 
     if (password.length < 8) {
-      await Alert.fire({ icon: 'error', title: 'Mot de passe trop court', text: 'Minimum 8 caractères.', confirmButtonColor: '#0d9488' });
+      await Alert.fire({ icon: 'error', title: 'Mot de passe trop court', text: 'Minimum 8 caractères.', confirmButtonColor: '#F2600C' });
       return;
     }
 
     if (password !== confirmation) {
-      await Alert.fire({ icon: 'error', title: 'Confirmation différente', text: 'Les deux mots de passe ne correspondent pas.', confirmButtonColor: '#0d9488' });
+      await Alert.fire({ icon: 'error', title: 'Confirmation différente', text: 'Les deux mots de passe ne correspondent pas.', confirmButtonColor: '#F2600C' });
       return;
     }
 
@@ -43,7 +43,7 @@ function ResetPasswordForm() {
         icon: 'success',
         title: 'Mot de passe mis à jour',
         text: 'Vous pouvez maintenant vous connecter.',
-        confirmButtonColor: '#0d9488',
+        confirmButtonColor: '#F2600C',
       });
       router.push('/login');
     } catch (error) {
@@ -66,22 +66,22 @@ function ResetPasswordForm() {
     );
   }
 
-  const inputClass = 'w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/30';
+  const inputClass = 'w-full rounded-lg border border-[#E5E5E5] bg-white px-3 py-2.5 text-sm text-[#0E0E10] outline-none focus:border-[#F2600C] focus:ring-2 focus:ring-[#F2600C]/20';
 
   return (
     <form onSubmit={handleSubmit} className="mt-6 space-y-5" noValidate>
       <div>
-        <label htmlFor="password" className="mb-1 block text-sm font-medium text-slate-700">Nouveau mot de passe</label>
+        <label htmlFor="password" className="mb-1 block text-sm font-medium text-[#374151]">Nouveau mot de passe</label>
         <input id="password" type="password" value={password} onChange={(event) => setPassword(event.target.value)} className={inputClass} autoComplete="new-password" />
       </div>
       <div>
-        <label htmlFor="confirmation" className="mb-1 block text-sm font-medium text-slate-700">Confirmer le mot de passe</label>
+        <label htmlFor="confirmation" className="mb-1 block text-sm font-medium text-[#374151]">Confirmer le mot de passe</label>
         <input id="confirmation" type="password" value={confirmation} onChange={(event) => setConfirmation(event.target.value)} className={inputClass} autoComplete="new-password" />
       </div>
       <button
         type="submit"
         disabled={isSubmitting}
-        className="inline-flex w-full items-center justify-center rounded-xl bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-teal-700 disabled:cursor-not-allowed disabled:opacity-60"
+        className="inline-flex w-full items-center justify-center rounded-lg bg-[#F2600C] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#D44F08] disabled:cursor-not-allowed disabled:opacity-60"
       >
         {isSubmitting ? 'Enregistrement...' : 'Enregistrer'}
       </button>
@@ -91,14 +91,14 @@ function ResetPasswordForm() {
 
 export default function ResetPasswordPage() {
   return (
-    <main className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center bg-slate-50 px-4 py-10">
-      <div className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-6 shadow-xl shadow-slate-200/70 sm:p-8">
-        <h1 className="text-2xl font-extrabold text-slate-900">Nouveau mot de passe</h1>
+    <main className="flex min-h-screen items-center justify-center bg-[#FAFAFA] px-4 py-10">
+      <div className="w-full max-w-md rounded-2xl border border-[#E5E5E5] bg-white p-6 shadow-lg sm:p-8">
+        <h1 className="text-2xl font-extrabold text-[#0E0E10]">Nouveau mot de passe</h1>
         <Suspense fallback={null}>
           <ResetPasswordForm />
         </Suspense>
-        <p className="mt-5 text-sm text-slate-600">
-          <Link href="/login" className="font-semibold text-teal-600 hover:text-teal-700">← Retour à la connexion</Link>
+        <p className="mt-5 text-sm text-[#6B7280]">
+          <Link href="/login" className="font-semibold text-[#F2600C] hover:text-[#D44F08]">← Retour à la connexion</Link>
         </p>
       </div>
     </main>

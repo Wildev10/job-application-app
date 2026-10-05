@@ -11,7 +11,6 @@ import { useJobs } from '@/hooks/useJobs';
 import { Plus } from 'lucide-react';
 import { usePlanStatus } from '@/hooks/usePlanStatus';
 import { getCompany } from '@/lib/auth';
-// FIX-CONTRAST: lisibilite corrigee
 
 const FILTERS = [
   { value: 'all', label: 'Tous' },
@@ -96,7 +95,7 @@ export default function AdminPostesPage() {
         icon: 'success',
         title: 'Poste mis à jour',
         text: 'Les informations du poste ont été sauvegardées.',
-        confirmButtonColor: '#0d9488',
+        confirmButtonColor: '#F2600C',
       });
 
       return;
@@ -127,7 +126,7 @@ export default function AdminPostesPage() {
       icon: 'success',
       title: 'Poste créé !',
       html: `<p>Partagez ce lien :</p><p style="margin-top:8px;word-break:break-all;font-weight:600;">${publicLink}</p>`,
-      confirmButtonColor: '#0d9488',
+      confirmButtonColor: '#F2600C',
     });
   };
 
@@ -163,18 +162,18 @@ export default function AdminPostesPage() {
       icon: 'success',
       title: 'Poste clôturé',
       text: 'Le poste a été clôturé avec succès.',
-      confirmButtonColor: '#0d9488',
+      confirmButtonColor: '#F2600C',
     });
   };
 
   return (
-    <section className="space-y-5" style={{ fontFamily: 'Inter, -apple-system, sans-serif' }}>
+    <section className="space-y-5">
       <header className="flex items-center justify-between gap-4">
-        <h1 className="text-[24px] font-semibold tracking-[-0.02em] text-[#1A1A2E]">Postes ouverts</h1>
+        <h1 className="text-2xl font-bold tracking-[-0.02em] text-[#0E0E10]">Postes ouverts</h1>
         <button
           type="button"
           onClick={openCreateModal}
-          className="inline-flex items-center gap-2 rounded-[8px] bg-[#1EB88A] px-5 py-2.5 text-[14px] font-semibold text-white shadow-sm transition hover:bg-[#0F6E56] hover:shadow-md"
+          className="inline-flex items-center gap-2 rounded-lg bg-[#F2600C] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#D44F08] hover:shadow-md"
         >
           <Plus size={17} strokeWidth={2.5} />
           Nouveau poste
@@ -182,7 +181,7 @@ export default function AdminPostesPage() {
       </header>
 
       {!planLoading && isStarter && (
-        <div className="rounded-[12px] border border-[#E5E7EB] bg-white px-[20px] py-[16px] shadow-[0_1px_3px_rgba(0,0,0,0.06)]">
+        <div className="rounded-xl border border-[#E5E5E5] bg-white px-5 py-4 shadow-sm">
           <PlanLimitBar label="Postes actifs" current={planLimits?.jobs?.current || 0} limit={planLimits?.jobs?.limit || 2} />
         </div>
       )}
@@ -199,8 +198,8 @@ export default function AdminPostesPage() {
               onClick={() => setFilter(item.value)}
               className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[13px] font-medium transition ${
                 filter === item.value
-                  ? 'bg-[#111827] text-white shadow-sm'
-                  : 'bg-[#F3F4F6] text-[#6B7280] hover:bg-[#E5E7EB]'
+                  ? 'bg-[#0E0E10] text-white shadow-sm'
+                  : 'bg-[#F5F5F5] text-[#6B7280] hover:bg-[#EBEBEB]'
               }`}
             >
               {item.label}
@@ -215,32 +214,31 @@ export default function AdminPostesPage() {
       </div>
 
       {loading && (
-        <div className="grid grid-cols-1 gap-[20px] lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
           {Array.from({ length: 6 }).map((_, index) => (
-            <div key={index} className="rounded-[14px] border border-[#E5E7EB] bg-white p-5 shadow-[0_2px_8px_rgba(0,0,0,0.05)]">
-              <div className="h-5 w-24 animate-pulse rounded-full bg-[#E5E7EB]" />
-              <div className="mt-4 h-7 w-3/4 animate-pulse rounded-full bg-[#E5E7EB]" />
-              <div className="mt-4 h-4 w-2/3 animate-pulse rounded-full bg-[#E5E7EB]" />
-              <div className="mt-2 h-4 w-1/2 animate-pulse rounded-full bg-[#E5E7EB]" />
-              <div className="mt-2 h-4 w-1/3 animate-pulse rounded-full bg-[#E5E7EB]" />
-              <div className="mt-6 h-9 w-full animate-pulse rounded-full bg-[#E5E7EB]" />
+            <div key={index} className="rounded-xl border border-[#E5E5E5] bg-white p-5 shadow-sm">
+              <div className="h-5 w-24 animate-pulse rounded-full bg-[#F0F0F0]" />
+              <div className="mt-4 h-7 w-3/4 animate-pulse rounded-full bg-[#F0F0F0]" />
+              <div className="mt-4 h-4 w-2/3 animate-pulse rounded-full bg-[#F0F0F0]" />
+              <div className="mt-2 h-4 w-1/2 animate-pulse rounded-full bg-[#F0F0F0]" />
+              <div className="mt-6 h-9 w-full animate-pulse rounded-full bg-[#F0F0F0]" />
             </div>
           ))}
         </div>
       )}
 
-      {!loading && error && <div className="rounded-[12px] border border-[#FECACA] bg-[#FEF2F2] p-4 text-sm text-[#991B1B]">{error}</div>}
+      {!loading && error && <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">{error}</div>}
 
       {!loading && !error && visibleJobs.length === 0 && (
-        <div className="rounded-[14px] border border-dashed border-[#D1D5DB] bg-white p-10 text-center">
-          <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-[#ECFDF5] text-2xl">💼</div>
-          <p className="text-base font-semibold text-[#1A1A2E]">Aucun poste créé.</p>
+        <div className="rounded-xl border border-dashed border-[#E5E5E5] bg-white p-10 text-center">
+          <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-[#FFF4EE] text-2xl">💼</div>
+          <p className="text-base font-semibold text-[#0E0E10]">Aucun poste créé.</p>
           <p className="mt-2 text-sm text-[#6B7280]">Créez votre premier poste pour commencer à recevoir des candidatures.</p>
         </div>
       )}
 
       {!loading && !error && visibleJobs.length > 0 && (
-        <div className="grid grid-cols-1 gap-[20px] lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
           {visibleJobs.map((job) => (
             <JobCard
               key={job.id}

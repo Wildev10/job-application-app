@@ -1,21 +1,24 @@
 @import "tailwindcss";
 
 :root {
-  --color-primary: #0d9488;
-  --color-primary-dark: #0f766e;
-  --color-primary-light: #ccfbf1;
-  --color-secondary: #1e293b;
-  --color-accent: #f59e0b;
-  --color-accent-dark: #d97706;
-  --background: #f8fafc;
-  --foreground: #0f172a;
-  --surface: #ffffff;
-  --border: #e2e8f0;
-  --text-secondary: #64748b;
-  --success: #10b981;
-  --error: #ef4444;
-  --warning: #f59e0b;
-  --info: #3b82f6;
+  --color-primary: #F2600C;
+  --color-primary-dark: #D44F08;
+  --color-primary-light: #FFF4EE;
+  --color-primary-border: #FFD5C2;
+  --color-secondary: #0E0E10;
+  --color-accent: #FFD43B;
+  --color-accent-dark: #E6BE2A;
+  --background: #FAFAFA;
+  --foreground: #0E0E10;
+  --surface: #FFFFFF;
+  --border: #E5E5E5;
+  --text-secondary: #6B7280;
+  --success: #22A559;
+  --error: #EF4444;
+  --warning: #F59E0B;
+  --info: #3B82F6;
+  --ink: #0E0E10;
+  --ink-light: #1A1A1C;
 }
 
 @theme inline {
@@ -23,6 +26,7 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-inter);
   --font-mono: var(--font-inter);
+  --font-display: var(--font-sora);
 }
 
 html {
@@ -65,6 +69,11 @@ select {
 
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
+}
+
+/* Sora for display headings */
+h1, h2 {
+  font-family: var(--font-sora), var(--font-inter), "Segoe UI", sans-serif;
 }
 
 .fade-in {

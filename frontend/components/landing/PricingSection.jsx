@@ -76,22 +76,22 @@ export default function PricingSection() {
       <div className="mx-auto w-full max-w-7xl">
         {/* Header */}
         <div className="mx-auto max-w-2xl text-center">
-          <h2 className="text-[40px] font-bold tracking-[-0.02em] text-[#0F172A] sm:text-[48px]">
+          <h2 className="text-[40px] font-bold tracking-[-0.02em] text-[#0E0E10] sm:text-[48px]">
             Des tarifs simples et transparents
           </h2>
-          <p className="mt-4 text-[17px] text-[#64748B]">
+          <p className="mt-4 text-[17px] text-[#6B7280]">
             Sans engagement. Annulez quand vous voulez.
           </p>
 
           {/* Toggle */}
-          <div className="mx-auto mt-8 inline-flex rounded-full bg-[#1E293B] p-1">
+          <div className="mx-auto mt-8 inline-flex rounded-full bg-[#0E0E10] p-1">
             {['monthly', 'yearly'].map((cycle) => (
               <button
                 key={cycle}
                 type="button"
                 onClick={() => setBillingCycle(cycle)}
                 className={`rounded-full px-5 py-2 text-[13px] font-semibold transition duration-200 ${
-                  billingCycle === cycle ? 'bg-white text-[#0F172A] shadow-sm' : 'text-[#94A3B8] hover:text-white'
+                  billingCycle === cycle ? 'bg-white text-[#0E0E10] shadow-sm' : 'text-[#9CA3AF] hover:text-white'
                 }`}
               >
                 {cycle === 'monthly' ? 'Mensuel' : 'Annuel (-20%)'}
@@ -112,36 +112,36 @@ export default function PricingSection() {
                 key={plan.name}
                 className={`relative rounded-[16px] border p-8 transition duration-200 hover:shadow-lg ${
                   isPopular
-                    ? 'border-[#0F766E] bg-[#0F766E] shadow-xl lg:scale-[1.03]'
-                    : 'border-[#E2E8F0] bg-white'
+                    ? 'border-[#F2600C] bg-[#F2600C] shadow-xl lg:scale-[1.03]'
+                    : 'border-[#E5E5E5] bg-white'
                 }`}
               >
                 {/* Popular badge */}
                 {isPopular && (
-                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-[#FCD34D] px-4 py-1 text-[12px] font-bold text-[#92400E] whitespace-nowrap">
+                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-[#FFD43B] px-4 py-1 text-[12px] font-bold text-[#0E0E10]">
                     Le plus populaire
                   </span>
                 )}
 
-                <h3 className={`text-[18px] font-bold ${isPopular ? 'text-white' : 'text-[#0F172A]'}`}>
+                <h3 className={`text-[18px] font-bold ${isPopular ? 'text-white' : 'text-[#0E0E10]'}`}>
                   {plan.name}
                 </h3>
 
                 <div className="mt-3 flex items-baseline gap-1">
-                  <span className={`text-[40px] font-bold leading-none tracking-[-0.02em] ${isPopular ? 'text-white' : 'text-[#0F172A]'}`}>
+                  <span className={`text-[40px] font-bold leading-none tracking-[-0.02em] ${isPopular ? 'text-white' : 'text-[#0E0E10]'}`}>
                     {priceValue}
                   </span>
                   {priceSub && (
-                    <span className={`text-[14px] ${isPopular ? 'text-[#99F6E4]' : 'text-[#64748B]'}`}>{priceSub}</span>
+                    <span className={`text-[14px] ${isPopular ? 'text-white/70' : 'text-[#6B7280]'}`}>{priceSub}</span>
                   )}
                 </div>
 
                 <ul className="mt-7 space-y-3">
                   {plan.features.map((feature) => (
-                    <li key={feature} className={`flex items-start gap-2.5 text-[14px] ${isPopular ? 'text-[#CCFBF1]' : 'text-[#475569]'}`}>
+                    <li key={feature} className={`flex items-start gap-2.5 text-[14px] ${isPopular ? 'text-white/90' : 'text-[#525252]'}`}>
                       <Check
                         size={15}
-                        className={`mt-0.5 shrink-0 ${isPopular ? 'text-[#5EEAD4]' : 'text-[#0D9488]'}`}
+                        className={`mt-0.5 shrink-0 ${isPopular ? 'text-white' : 'text-[#F2600C]'}`}
                         strokeWidth={2.5}
                       />
                       {feature}
@@ -153,10 +153,10 @@ export default function PricingSection() {
                   type="button"
                   className={`mt-8 w-full rounded-[10px] px-4 py-3 text-[14px] font-bold transition duration-200 ${
                     isPopular
-                      ? 'bg-white text-[#0F766E] hover:bg-[#F0FDF4]'
+                      ? 'bg-white text-[#F2600C] hover:bg-[#FFF4EE]'
                       : plan.key === 'starter'
-                        ? 'border border-[#0D9488] text-[#0D9488] hover:bg-[#F0FDF9]'
-                        : 'border border-[#CBD5E1] text-[#475569] hover:bg-[#F8FAFC]'
+                        ? 'border border-[#F2600C] text-[#F2600C] hover:bg-[#FFF4EE]'
+                        : 'border border-[#E5E5E5] text-[#525252] hover:bg-[#FAFAFA]'
                   }`}
                 >
                   {plan.cta}

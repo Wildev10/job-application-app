@@ -14,7 +14,6 @@ export default function EmailVerificationBanner() {
   const [isSending, setIsSending] = useState(false);
 
   useEffect(() => {
-    // Skip while a super admin impersonates a company: the banner is not theirs to act on.
     if (localStorage.getItem('impersonate_token')) {
       return;
     }
@@ -24,7 +23,6 @@ export default function EmailVerificationBanner() {
       setIsUnverified(true);
     }
 
-    // Refresh from the API: the cached profile is stale after clicking the email link.
     apiFetch('/auth/me', { method: 'GET' })
       .then((payload) => {
         if (payload?.company) {
@@ -44,7 +42,7 @@ export default function EmailVerificationBanner() {
         icon: 'success',
         title: 'Email envoyé',
         text: payload?.message || 'Vérifiez votre boîte de réception (et vos spams).',
-        confirmButtonColor: '#0d9488',
+        confirmButtonColor: '#F2600C',
       });
     } catch (error) {
       await Alert.fire({
@@ -72,7 +70,7 @@ export default function EmailVerificationBanner() {
         disabled={isSending}
         className="rounded-md border border-amber-300 px-3 py-1 text-xs font-semibold text-amber-800 hover:bg-amber-100 disabled:opacity-60"
       >
-        {isSending ? 'Envoi...' : 'Renvoyer l\'email'}
+        {isSending ? 'Envoi...' : "Renvoyer l'email"}
       </button>
     </div>
   );

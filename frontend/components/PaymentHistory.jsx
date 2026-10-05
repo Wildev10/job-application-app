@@ -4,17 +4,17 @@ import { useEffect, useMemo, useState } from 'react';
 import { apiFetch } from '@/lib/api';
 
 const STATUS_BADGES = {
-  approved: 'bg-emerald-100 text-emerald-700',
-  pending: 'bg-amber-100 text-amber-700',
-  canceled: 'bg-slate-100 text-slate-600',
-  declined: 'bg-red-100 text-red-700',
+  approved: 'bg-[#F0FDF4] text-[#22A559]',
+  pending: 'bg-amber-50 text-amber-700',
+  canceled: 'bg-[#F5F5F5] text-[#6B7280]',
+  declined: 'bg-red-50 text-red-600',
 };
 
 const STATUS_LABELS = {
-  approved: 'Confirme ✓',
+  approved: 'Confirmé ✓',
   pending: 'En attente...',
-  canceled: 'Annule',
-  declined: 'Refuse',
+  canceled: 'Annulé',
+  declined: 'Refusé',
 };
 
 /**
@@ -44,26 +44,26 @@ export default function PaymentHistory() {
   const rows = useMemo(() => payments, [payments]);
 
   return (
-    <div className="rounded-2xl border border-[#e5e5e5] bg-white p-5 sm:p-7">
-      <h3 className="text-lg font-bold text-[#0f0f0f]">Historique des paiements</h3>
+    <div className="rounded-2xl border border-[#E5E5E5] bg-white p-5 sm:p-7">
+      <h3 className="text-lg font-bold text-[#0E0E10]">Historique des paiements</h3>
 
       {loading ? (
-        <div className="mt-4 h-24 animate-pulse rounded-lg bg-[#eef0f3]" />
+        <div className="mt-4 h-24 animate-pulse rounded-lg bg-[#F0F0F0]" />
       ) : rows.length === 0 ? (
-        <p className="py-8 text-center text-sm text-slate-400">Aucun paiement enregistre</p>
+        <p className="py-8 text-center text-sm text-[#9CA3AF]">Aucun paiement enregistré</p>
       ) : (
         <div className="mt-4 overflow-x-auto">
-          <table className="min-w-full divide-y divide-slate-200 text-sm">
-            <thead className="bg-slate-50">
+          <table className="min-w-full divide-y divide-[#F0F0F0] text-sm">
+            <thead className="bg-[#FAFAFA]">
               <tr>
-                <th className="px-3 py-2 text-left font-semibold text-slate-600">Date</th>
-                <th className="px-3 py-2 text-left font-semibold text-slate-600">Montant</th>
-                <th className="px-3 py-2 text-left font-semibold text-slate-600">Methode</th>
-                <th className="px-3 py-2 text-left font-semibold text-slate-600">Periode</th>
-                <th className="px-3 py-2 text-left font-semibold text-slate-600">Statut</th>
+                <th className="px-3 py-2 text-left font-semibold text-[#6B7280]">Date</th>
+                <th className="px-3 py-2 text-left font-semibold text-[#6B7280]">Montant</th>
+                <th className="px-3 py-2 text-left font-semibold text-[#6B7280]">Méthode</th>
+                <th className="px-3 py-2 text-left font-semibold text-[#6B7280]">Période</th>
+                <th className="px-3 py-2 text-left font-semibold text-[#6B7280]">Statut</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 bg-white">
+            <tbody className="divide-y divide-[#F5F5F5] bg-white">
               {rows.map((payment) => {
                 const status = payment?.status || 'pending';
                 const badgeClass = STATUS_BADGES[status] || STATUS_BADGES.pending;
@@ -86,10 +86,10 @@ export default function PaymentHistory() {
 
                 return (
                   <tr key={payment.id}>
-                    <td className="px-3 py-2 text-slate-700">{displayDate}</td>
-                    <td className="px-3 py-2 font-semibold text-slate-800">{payment.amount_formatted || '-'}</td>
-                    <td className="px-3 py-2 text-slate-600">{payment.payment_method || 'Mobile Money'}</td>
-                    <td className="px-3 py-2 text-slate-600">{start && end ? `${start} - ${end}` : '-'}</td>
+                    <td className="px-3 py-2 text-[#374151]">{displayDate}</td>
+                    <td className="px-3 py-2 font-semibold text-[#0E0E10]">{payment.amount_formatted || '-'}</td>
+                    <td className="px-3 py-2 text-[#6B7280]">{payment.payment_method || 'Mobile Money'}</td>
+                    <td className="px-3 py-2 text-[#6B7280]">{start && end ? `${start} - ${end}` : '-'}</td>
                     <td className="px-3 py-2">
                       <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${badgeClass}`}>
                         {label}

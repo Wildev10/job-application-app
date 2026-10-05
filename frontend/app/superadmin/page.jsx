@@ -31,7 +31,7 @@ export default function SuperAdminDashboardPage() {
     }
 
     return [
-      { name: 'Pro', value: stats.pro_count || 0, color: '#6EE7B7' },
+      { name: 'Pro', value: stats.pro_count || 0, color: '#F2600C' },
       { name: 'Starter', value: stats.starter_count || 0, color: '#4B5563' },
     ];
   }, [stats]);
@@ -138,7 +138,7 @@ export default function SuperAdminDashboardPage() {
             <p className="text-2xl font-bold text-white">{totalCompanies}</p>
           </div>
           <div className="mt-4 flex items-center justify-center gap-5 text-sm text-gray-400">
-            <span className="inline-flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-[#6EE7B7]" />Pro</span>
+            <span className="inline-flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-[#F2600C]" />Pro</span>
             <span className="inline-flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-[#4B5563]" />Starter</span>
           </div>
         </article>
@@ -153,9 +153,9 @@ export default function SuperAdminDashboardPage() {
           <p className="text-xs uppercase tracking-widest text-amber-300">Jamais utilisé</p>
           <p className="mt-2 text-2xl font-bold text-amber-400">{stats?.companies_with_zero_activity ?? 0}</p>
         </article>
-        <article className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-4">
-          <p className="text-xs uppercase tracking-widest text-emerald-300">Actives ce mois</p>
-          <p className="mt-2 text-2xl font-bold text-emerald-400">{stats?.active_companies_this_month ?? 0}</p>
+        <article className="rounded-xl border border-[#F2600C]/20 bg-[#F2600C]/10 p-4">
+          <p className="text-xs uppercase tracking-widest text-[#F2600C]">Actives ce mois</p>
+          <p className="mt-2 text-2xl font-bold text-[#F2600C]">{stats?.active_companies_this_month ?? 0}</p>
         </article>
       </div>
     </section>

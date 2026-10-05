@@ -61,7 +61,7 @@ export default function Sidebar() {
   return (
     <aside className="fixed left-0 top-0 z-30 hidden h-screen w-64 flex-col border-r border-gray-800 bg-[#0D1326] px-4 py-5 lg:flex">
       <div className="flex items-center gap-3">
-        <div className="rounded-lg bg-emerald-500/20 p-2 text-emerald-400">
+        <div className="rounded-lg bg-[#F2600C]/20 p-2 text-[#F2600C]">
           <Shield size={20} />
         </div>
         <div>
@@ -70,7 +70,7 @@ export default function Sidebar() {
         </div>
       </div>
 
-      <div className="mt-6 inline-flex w-fit items-center rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-400">
+      <div className="mt-6 inline-flex w-fit items-center rounded-full border border-[#F2600C]/20 bg-[#F2600C]/10 px-3 py-1 text-xs font-semibold text-[#F2600C]">
         ● CONNECTÉ
       </div>
 
@@ -90,7 +90,7 @@ export default function Sidebar() {
                     className={[
                       'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-all',
                       isActive
-                        ? 'border border-emerald-500/20 bg-emerald-500/10 text-emerald-400'
+                        ? 'border border-[#F2600C]/20 bg-[#F2600C]/10 text-[#F2600C]'
                         : 'text-gray-400 hover:bg-white/5 hover:text-white',
                     ].join(' ')}
                   >

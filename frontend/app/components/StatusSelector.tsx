@@ -46,7 +46,7 @@ export default function StatusSelector({ applicationId, currentStatus, onStatusU
       showCancelButton: true,
       confirmButtonText: 'Oui, modifier',
       cancelButtonText: 'Annuler',
-      confirmButtonColor: '#16a34a',
+      confirmButtonColor: '#F2600C',
       cancelButtonColor: '#6b7280',
       reverseButtons: true,
     });
@@ -71,7 +71,7 @@ export default function StatusSelector({ applicationId, currentStatus, onStatusU
         title: 'Succès',
         text: 'Statut mis à jour avec succès',
         confirmButtonText: 'OK',
-        confirmButtonColor: '#16a34a',
+        confirmButtonColor: '#F2600C',
       });
     } catch (error) {
       const apiError = error as ApiError;
@@ -95,7 +95,7 @@ export default function StatusSelector({ applicationId, currentStatus, onStatusU
         value={selectedStatus}
         onChange={(event) => void handleStatusChange(event.target.value as ApplicationStatus)}
         disabled={isUpdating}
-        className="min-w-40 rounded-full border border-[#E5E7EB] bg-white px-4 py-2 text-xs font-semibold text-[#1A1A2E] outline-none transition focus:border-[#1EB88A] focus:ring-2 focus:ring-[#1EB88A]/15 disabled:cursor-not-allowed disabled:opacity-60"
+        className="min-w-40 rounded-full border border-[#E5E5E5] bg-white px-4 py-2 text-xs font-semibold text-[#0E0E10] outline-none transition focus:border-[#F2600C] focus:ring-2 focus:ring-[#F2600C]/15 disabled:cursor-not-allowed disabled:opacity-60"
       >
         {STATUS_OPTIONS.map((option) => (
           <option key={option.value} value={option.value}>
@@ -104,7 +104,7 @@ export default function StatusSelector({ applicationId, currentStatus, onStatusU
         ))}
       </select>
 
-      {isUpdating && <span className="text-xs text-slate-500">Mise à jour...</span>}
+      {isUpdating && <span className="text-xs text-[#9CA3AF]">Mise à jour...</span>}
     </div>
   );
 }

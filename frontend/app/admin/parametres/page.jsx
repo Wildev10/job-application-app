@@ -17,7 +17,7 @@ export default function AdminParametresPage() {
   const { planLimits, isPro, isStarter } = usePlanStatus();
   const [company, setCompany] = useState(initialCompany);
   const [name, setName] = useState(initialCompany?.name || '');
-  const [color, setColor] = useState(initialCompany?.color || '#0f766e');
+  const [color, setColor] = useState(initialCompany?.color || '#F2600C');
   const [isSaving, setIsSaving] = useState(false);
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const logoInputRef = useRef(null);
@@ -70,8 +70,8 @@ export default function AdminParametresPage() {
       await Alert.fire({
         icon: 'warning',
         title: 'Nom requis',
-        text: 'Veuillez renseigner un nom d entreprise.',
-        confirmButtonColor: '#0F0F0F',
+        text: 'Veuillez renseigner un nom d\'entreprise.',
+        confirmButtonColor: '#F2600C',
       });
 
       return;
@@ -80,7 +80,6 @@ export default function AdminParametresPage() {
     setIsSaving(true);
 
     try {
-      // Update company profile from settings using authenticated API.
       const payload = await apiFetch('/company/profile', {
         method: 'PATCH',
         body: JSON.stringify({
@@ -100,16 +99,16 @@ export default function AdminParametresPage() {
 
       await Alert.fire({
         icon: 'success',
-        title: 'Informations mises a jour',
-        text: 'Vos changements ont ete sauvegardes.',
-        confirmButtonColor: '#0F0F0F',
+        title: 'Informations mises à jour',
+        text: 'Vos changements ont été sauvegardés.',
+        confirmButtonColor: '#F2600C',
       });
     } catch (error) {
       await Alert.fire({
         icon: 'error',
-        title: 'Echec de la sauvegarde',
+        title: 'Échec de la sauvegarde',
         text: error instanceof Error ? error.message : 'Une erreur est survenue.',
-        confirmButtonColor: '#DC2626',
+        confirmButtonColor: '#dc2626',
       });
     } finally {
       setIsSaving(false);
@@ -135,7 +134,7 @@ export default function AdminParametresPage() {
         icon: 'warning',
         title: 'Logo trop lourd',
         text: 'Le logo ne doit pas dépasser 1 Mo.',
-        confirmButtonColor: '#0F0F0F',
+        confirmButtonColor: '#F2600C',
       });
 
       return;
@@ -153,7 +152,7 @@ export default function AdminParametresPage() {
         icon: 'error',
         title: 'Échec de l\'envoi du logo',
         text: error instanceof Error ? error.message : 'Une erreur est survenue.',
-        confirmButtonColor: '#DC2626',
+        confirmButtonColor: '#dc2626',
       });
     } finally {
       setIsUploadingLogo(false);
@@ -171,7 +170,7 @@ export default function AdminParametresPage() {
         icon: 'error',
         title: 'Suppression impossible',
         text: error instanceof Error ? error.message : 'Une erreur est survenue.',
-        confirmButtonColor: '#DC2626',
+        confirmButtonColor: '#dc2626',
       });
     } finally {
       setIsUploadingLogo(false);
@@ -188,7 +187,7 @@ export default function AdminParametresPage() {
 
       await Alert.fire({
         icon: 'success',
-        title: 'Lien copie !',
+        title: 'Lien copié !',
         timer: 1400,
         showConfirmButton: false,
       });
@@ -197,7 +196,7 @@ export default function AdminParametresPage() {
         icon: 'error',
         title: 'Impossible de copier',
         text: 'Veuillez copier le lien manuellement.',
-        confirmButtonColor: '#DC2626',
+        confirmButtonColor: '#dc2626',
       });
     }
   };
@@ -212,34 +211,34 @@ export default function AdminParametresPage() {
 
   return (
     <section className="space-y-6">
-      <div className="rounded-2xl border border-[#e5e5e5] bg-white p-5 sm:p-7">
-        <h1 className="text-2xl font-extrabold tracking-[-0.02em] text-[#0f0f0f] sm:text-3xl">Parametres</h1>
-        <p className="mt-2 text-sm text-[#525252]">
+      <div className="rounded-2xl border border-[#E5E5E5] bg-white p-5 sm:p-7">
+        <h1 className="text-2xl font-extrabold tracking-[-0.02em] text-[#0E0E10] sm:text-3xl">Paramètres</h1>
+        <p className="mt-2 text-sm text-[#6B7280]">
           Ajustez les informations visibles de votre entreprise et partagez votre lien de candidature.
         </p>
       </div>
 
-      <div className="rounded-2xl border border-[#e5e5e5] bg-white p-5 sm:p-7">
-        <h2 className="text-lg font-bold text-[#0f0f0f]">Informations de l entreprise</h2>
+      <div className="rounded-2xl border border-[#E5E5E5] bg-white p-5 sm:p-7">
+        <h2 className="text-lg font-bold text-[#0E0E10]">Informations de l&apos;entreprise</h2>
 
-        <div className="mt-4 flex flex-wrap items-center gap-4 rounded-lg bg-[#f5f5f4] p-4">
+        <div className="mt-4 flex flex-wrap items-center gap-4 rounded-xl bg-[#FAFAFA] p-4">
           {company?.logo ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={company.logo} alt="Logo de l entreprise" className="h-16 w-16 rounded-md bg-white object-contain" />
+            <img src={company.logo} alt="Logo de l'entreprise" className="h-16 w-16 rounded-lg bg-white object-contain" />
           ) : (
-            <div className="flex h-16 w-16 items-center justify-center rounded-md bg-white text-xl font-semibold text-[#78716c]">
+            <div className="flex h-16 w-16 items-center justify-center rounded-lg bg-white text-xl font-bold text-[#F2600C] shadow-sm">
               {(company?.name || '?').slice(0, 1).toUpperCase()}
             </div>
           )}
           <div className="space-y-2">
-            <p className="text-sm font-medium text-[#44403c]">Logo (png, jpg ou webp, 1 Mo max)</p>
+            <p className="text-sm font-medium text-[#374151]">Logo (png, jpg ou webp, 1 Mo max)</p>
             <input ref={logoInputRef} type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => void handleLogoChange(event)} className="hidden" />
             <div className="flex gap-2">
               <button
                 type="button"
                 onClick={() => logoInputRef.current?.click()}
                 disabled={isUploadingLogo}
-                className="rounded-lg border border-[#d6d3d1] px-3 py-1.5 text-sm font-semibold text-[#292524] hover:bg-white disabled:opacity-60"
+                className="rounded-lg border border-[#E5E5E5] px-3 py-1.5 text-sm font-semibold text-[#0E0E10] hover:bg-white disabled:opacity-60"
               >
                 {isUploadingLogo ? 'Envoi...' : company?.logo ? 'Changer' : 'Ajouter un logo'}
               </button>
@@ -258,27 +257,27 @@ export default function AdminParametresPage() {
         </div>
 
         <div className="mt-4 grid gap-4 md:grid-cols-2">
-          <label className="space-y-2 text-sm text-[#44403c]">
-            <span className="font-medium">Nom de l entreprise</span>
+          <label className="space-y-2 text-sm text-[#374151]">
+            <span className="font-medium">Nom de l&apos;entreprise</span>
             <input
               type="text"
               value={name}
               onChange={(event) => setName(event.target.value)}
-              className="w-full rounded-lg border border-[#d6d3d1] px-3 py-2.5 outline-none focus:border-[#0f0f0f]"
+              className="w-full rounded-lg border border-[#E5E5E5] px-3 py-2.5 text-sm text-[#0E0E10] outline-none focus:border-[#F2600C] focus:ring-2 focus:ring-[#F2600C]/20"
               placeholder="Nom de votre entreprise"
             />
           </label>
 
-          <label className="space-y-2 text-sm text-[#44403c]">
+          <label className="space-y-2 text-sm text-[#374151]">
             <span className="font-medium">Couleur principale</span>
-            <div className="flex items-center gap-3 rounded-lg border border-[#d6d3d1] px-3 py-2">
+            <div className="flex items-center gap-3 rounded-lg border border-[#E5E5E5] px-3 py-2">
               <input
                 type="color"
                 value={color}
                 onChange={(event) => setColor(event.target.value)}
                 className="h-8 w-10 cursor-pointer border-0 bg-transparent"
               />
-              <span className="font-mono text-sm text-[#57534e]">{color}</span>
+              <span className="font-mono text-sm text-[#6B7280]">{color}</span>
             </div>
           </label>
         </div>
@@ -287,34 +286,43 @@ export default function AdminParametresPage() {
           type="button"
           onClick={() => void handleSave()}
           disabled={isSaving}
-          className="mt-5 inline-flex items-center justify-center rounded-lg bg-[#0f0f0f] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#262626] disabled:cursor-not-allowed disabled:opacity-60"
+          className="mt-5 inline-flex items-center justify-center rounded-lg bg-[#F2600C] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#D44F08] disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isSaving ? 'Sauvegarde...' : 'Sauvegarder'}
         </button>
       </div>
 
-      <div className="rounded-2xl border border-[#e5e5e5] bg-white p-5 sm:p-7">
-        <h2 className="text-lg font-bold text-[#0f0f0f]">Emails envoyes automatiquement</h2>
+      <div className="rounded-2xl border border-[#E5E5E5] bg-white p-5 sm:p-7">
+        <h2 className="text-lg font-bold text-[#0E0E10]">Emails envoyés automatiquement</h2>
 
-        <ul className="mt-4 space-y-3 text-sm text-[#44403c]">
-          <li>✅ Confirmation au candidat - A chaque nouvelle candidature</li>
-          <li>✅ Alerte au recruteur - A chaque nouvelle candidature</li>
-          <li>✅ Mise a jour de statut - A chaque changement de statut</li>
+        <ul className="mt-4 space-y-3 text-sm text-[#6B7280]">
+          <li className="flex items-center gap-2">
+            <span className="text-[#22A559]">✓</span>
+            Confirmation au candidat — À chaque nouvelle candidature
+          </li>
+          <li className="flex items-center gap-2">
+            <span className="text-[#22A559]">✓</span>
+            Alerte au recruteur — À chaque nouvelle candidature
+          </li>
+          <li className="flex items-center gap-2">
+            <span className="text-[#22A559]">✓</span>
+            Mise à jour de statut — À chaque changement de statut
+          </li>
         </ul>
 
-        <p className="mt-4 text-sm text-[#57534e]">
-          Ces emails sont envoyes depuis noreply@vaybe.tech au nom de votre entreprise.
+        <p className="mt-4 text-sm text-[#9CA3AF]">
+          Ces emails sont envoyés depuis noreply@vaybe.tech au nom de votre entreprise.
         </p>
       </div>
 
-      <div className="rounded-2xl border border-[#e5e5e5] bg-white p-5 sm:p-7">
-        <h2 className="text-lg font-bold text-[#0f0f0f]">Abonnement & Paiements</h2>
+      <div className="rounded-2xl border border-[#E5E5E5] bg-white p-5 sm:p-7">
+        <h2 className="text-lg font-bold text-[#0E0E10]">Abonnement &amp; Paiements</h2>
 
         <div className="mt-4 flex flex-wrap items-center gap-3">
           <PlanBadge plan={planLimits?.plan || 'starter'} />
 
           {isPro && planExpirationDate && (
-            <p className="text-sm text-slate-600">
+            <p className="text-sm text-[#6B7280]">
               Valide jusqu&apos;au {planExpirationDate.toLocaleDateString('fr-FR')}
             </p>
           )}
@@ -330,7 +338,7 @@ export default function AdminParametresPage() {
           {isPro ? (
             <Link
               href="/admin/upgrade"
-              className="inline-flex rounded-lg border border-teal-600 px-4 py-2 text-sm font-semibold text-teal-700 transition hover:bg-teal-50"
+              className="inline-flex rounded-lg border border-[#F2600C] px-4 py-2 text-sm font-semibold text-[#F2600C] transition hover:bg-[#FFF4EE]"
             >
               Renouveler
             </Link>
@@ -339,25 +347,25 @@ export default function AdminParametresPage() {
           {isStarter ? (
             <Link
               href="/admin/upgrade"
-              className="inline-flex rounded-lg bg-teal-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-teal-700"
+              className="inline-flex rounded-lg bg-[#F2600C] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#D44F08]"
             >
               Passer au Pro
             </Link>
           ) : null}
         </div>
 
-        <p className="mt-4 text-sm text-teal-600">Besoin d&apos;une facture ? Contactez-nous</p>
+        <p className="mt-4 text-sm text-[#F2600C]">Besoin d&apos;une facture ? Contactez-nous</p>
       </div>
 
       <PaymentHistory />
 
-      <div className="rounded-2xl border border-[#e5e5e5] bg-white p-5 sm:p-7">
-        <h2 className="text-lg font-bold text-[#0f0f0f]">Lien de candidature public</h2>
+      <div className="rounded-2xl border border-[#E5E5E5] bg-white p-5 sm:p-7">
+        <h2 className="text-lg font-bold text-[#0E0E10]">Lien de candidature public</h2>
 
-        <div className="mt-4 rounded-lg bg-[#f5f5f4] p-4">
-          <p className="text-xs uppercase tracking-[0.12em] text-[#78716c]">URL du formulaire</p>
-          <p className="mt-1 break-all text-sm font-bold text-[#0f0f0f]">
-            {publicApplyUrl || 'URL indisponible: slug entreprise manquant.'}
+        <div className="mt-4 rounded-xl bg-[#FAFAFA] p-4">
+          <p className="text-xs uppercase tracking-[0.12em] text-[#9CA3AF]">URL du formulaire</p>
+          <p className="mt-1 break-all text-sm font-bold text-[#0E0E10]">
+            {publicApplyUrl || 'URL indisponible : slug entreprise manquant.'}
           </p>
         </div>
 
@@ -366,7 +374,7 @@ export default function AdminParametresPage() {
             type="button"
             onClick={() => void handleCopyLink()}
             disabled={!publicApplyUrl}
-            className="rounded-lg border border-[#d6d3d1] px-4 py-2 text-sm font-semibold text-[#292524] hover:bg-[#f5f5f4] disabled:cursor-not-allowed disabled:opacity-60"
+            className="rounded-lg border border-[#E5E5E5] px-4 py-2 text-sm font-semibold text-[#0E0E10] hover:bg-[#FAFAFA] disabled:cursor-not-allowed disabled:opacity-60"
           >
             Copier le lien
           </button>
@@ -375,7 +383,7 @@ export default function AdminParametresPage() {
             type="button"
             onClick={handleTestForm}
             disabled={!publicApplyUrl}
-            className="rounded-lg border border-[#0f0f0f] px-4 py-2 text-sm font-semibold text-[#0f0f0f] hover:bg-[#0f0f0f] hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+            className="rounded-lg bg-[#0E0E10] px-4 py-2 text-sm font-semibold text-white hover:bg-[#1A1A1C] disabled:cursor-not-allowed disabled:opacity-60"
           >
             Tester le formulaire
           </button>

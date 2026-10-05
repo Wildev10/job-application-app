@@ -140,7 +140,7 @@ export default function SuperAdminCompaniesPage() {
         icon: 'success',
         title: 'Impersonation activée',
         text: `Un nouvel onglet d'administration a été ouvert pour ${company.name}.`,
-        confirmButtonColor: '#10B981',
+        confirmButtonColor: '#F2600C',
       });
     } catch (error) {
       await Swal.fire({
@@ -182,7 +182,7 @@ export default function SuperAdminCompaniesPage() {
         icon: 'success',
         title: 'Plan mis à jour',
         text: 'Le plan de l\'entreprise a été modifié avec succès.',
-        confirmButtonColor: '#10B981',
+        confirmButtonColor: '#F2600C',
       });
     } catch (error) {
       await Swal.fire({
@@ -214,7 +214,7 @@ export default function SuperAdminCompaniesPage() {
               setSearch(event.target.value);
             }}
             placeholder="Rechercher"
-            className="w-full rounded-lg border border-gray-700 bg-gray-800 py-2.5 pl-9 pr-3 text-white placeholder:text-gray-500 outline-none focus:border-emerald-500"
+            className="w-full rounded-lg border border-gray-700 bg-gray-800 py-2.5 pl-9 pr-3 text-white placeholder:text-gray-500 outline-none focus:border-[#F2600C]"
           />
         </div>
       </header>

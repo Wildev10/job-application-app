@@ -53,7 +53,7 @@ export default function SuperAdminLoginPage() {
     <main className="flex min-h-screen items-center justify-center bg-[#0A0F1E] px-4">
       <section className="w-full max-w-md rounded-2xl border border-gray-700 bg-gray-900 p-8 shadow-2xl shadow-black/50">
         <div className="flex items-center gap-3">
-          <div className="rounded-lg bg-emerald-500/20 p-2 text-emerald-400">
+          <div className="rounded-lg bg-[#F2600C]/20 p-2 text-[#F2600C]">
             <Shield size={20} />
           </div>
           <div>
@@ -74,7 +74,7 @@ export default function SuperAdminLoginPage() {
               value={email}
               onChange={(event) => setEmail(event.target.value)}
               required
-              className="mt-2 w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-3 text-white placeholder:text-gray-600 outline-none focus:border-transparent focus:ring-2 focus:ring-emerald-500"
+              className="mt-2 w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-3 text-white placeholder:text-gray-600 outline-none focus:border-transparent focus:ring-2 focus:ring-[#F2600C]"
               placeholder="admin@vaybe.tech"
             />
           </div>
@@ -87,7 +87,7 @@ export default function SuperAdminLoginPage() {
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
                 required
-                className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-3 pr-11 text-white placeholder:text-gray-600 outline-none focus:border-transparent focus:ring-2 focus:ring-emerald-500"
+                className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-3 pr-11 text-white placeholder:text-gray-600 outline-none focus:border-transparent focus:ring-2 focus:ring-[#F2600C]"
                 placeholder="Votre mot de passe"
               />
               <button
@@ -103,7 +103,7 @@ export default function SuperAdminLoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-500 py-3 font-bold text-gray-900 transition-all hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-70"
+            className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#F2600C] py-3 font-bold text-white transition-all hover:bg-[#D44F08] disabled:cursor-not-allowed disabled:opacity-70"
           >
             {loading ? <LoaderCircle size={18} className="animate-spin" /> : null}
             <span>{loading ? 'Connexion...' : 'Accéder au panneau →'}</span>

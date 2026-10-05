@@ -21,7 +21,7 @@ const PRO_FEATURES = [
   {
     icon: Infinity,
     title: 'Postes illimités',
-    description: 'Publiez autant d\'offres que nécessaire sans plafond.',
+    description: "Publiez autant d'offres que nécessaire sans plafond.",
   },
   {
     icon: Infinity,
@@ -46,7 +46,7 @@ const PRO_FEATURES = [
   {
     icon: Target,
     title: 'Support prioritaire',
-    description: 'Bénéficiez d\'une prise en charge accélérée.',
+    description: "Bénéficiez d'une prise en charge accélérée.",
   },
 ];
 
@@ -64,8 +64,6 @@ export default function AdminUpgradePage() {
     startPolling,
   } = usePayment({ refreshPlanStatus: refreshPlanLimits });
   const [countdown, setCountdown] = useState(3);
-  // Read the return parameters after mount: the server cannot know the URL query,
-  // so reading it during render makes the server HTML differ from the client one.
   const [paymentParam, setPaymentParam] = useState(null);
 
   useEffect(() => {
@@ -73,16 +71,12 @@ export default function AdminUpgradePage() {
     const raw = params.get('payment');
     let nextParam = raw;
 
-    // FedaPay appends its own "id" and "status" parameters to the callback URL,
-    // sometimes after a second "?": stay tolerant, the real status is polled anyway.
     if (raw?.startsWith('cancel')) {
       nextParam = 'cancelled';
     } else if (raw?.startsWith('success') || params.has('status')) {
       nextParam = 'success';
     }
 
-    // One-time read of the URL after mount (not available during server render).
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setPaymentParam(nextParam);
   }, []);
 
@@ -97,7 +91,7 @@ export default function AdminUpgradePage() {
         icon: 'info',
         title: 'Paiement annulé',
         text: 'Vous pouvez relancer le paiement à tout moment.',
-        confirmButtonColor: '#0D9488',
+        confirmButtonColor: '#F2600C',
       });
 
       return;
@@ -123,11 +117,11 @@ export default function AdminUpgradePage() {
     void Alert.fire({
       icon: 'error',
       title: 'Paiement non abouti',
-      text: 'Votre paiement n\'a pas été finalisé. Vous pouvez réessayer.',
+      text: "Votre paiement n'a pas été finalisé. Vous pouvez réessayer.",
       showCancelButton: true,
       confirmButtonText: 'Réessayer',
       cancelButtonText: 'Annuler',
-      confirmButtonColor: '#0D9488',
+      confirmButtonColor: '#F2600C',
       cancelButtonColor: '#94A3B8',
     });
   }, [paymentStatus]);
@@ -144,7 +138,6 @@ export default function AdminUpgradePage() {
     return () => window.clearInterval(intervalId);
   }, [paymentStatus]);
 
-  // Redirect from an effect: navigating inside a state updater breaks React's render rules.
   useEffect(() => {
     if (paymentStatus === 'approved' && countdown === 0) {
       router.push('/admin');
@@ -155,50 +148,50 @@ export default function AdminUpgradePage() {
 
   if (paymentStatus === 'approved') {
     return (
-      <section className="min-h-full rounded-2xl bg-gradient-to-br from-teal-50 to-emerald-50 p-6 sm:p-10">
+      <section className="min-h-full rounded-2xl bg-[#FFF4EE] p-6 sm:p-10">
         <div className="mx-auto flex max-w-3xl flex-col items-center justify-center py-16 text-center">
-          <div className="mb-6 inline-flex h-20 w-20 items-center justify-center rounded-full bg-teal-100 text-4xl text-teal-700">
+          <div className="mb-6 inline-flex h-20 w-20 items-center justify-center rounded-full bg-[#F2600C] text-4xl text-white">
             ✓
           </div>
-          <h1 className="text-3xl font-bold text-slate-900">🎉 Bienvenue dans le plan Pro !</h1>
-          <p className="mt-4 max-w-xl text-slate-500">
+          <h1 className="text-3xl font-bold text-[#0E0E10]">🎉 Bienvenue dans le plan Pro !</h1>
+          <p className="mt-4 max-w-xl text-[#6B7280]">
             Votre paiement a été confirmé. Toutes vos fonctionnalités Pro sont maintenant actives.
           </p>
           <button
             type="button"
             onClick={() => router.push('/admin')}
-            className="mt-8 rounded-xl bg-teal-600 px-8 py-4 text-white transition hover:bg-teal-700"
+            className="mt-8 rounded-xl bg-[#F2600C] px-8 py-4 text-white transition hover:bg-[#D44F08]"
           >
             Accéder à mon espace Pro →
           </button>
-          <p className="mt-3 text-sm text-slate-500">Redirection automatique dans {countdown}s</p>
+          <p className="mt-3 text-sm text-[#9CA3AF]">Redirection automatique dans {countdown}s</p>
         </div>
       </section>
     );
   }
 
   return (
-    <section className="relative min-h-full overflow-hidden rounded-2xl bg-gradient-to-br from-slate-50 via-teal-50 to-emerald-50 p-4 sm:p-8">
-      <div className="pointer-events-none absolute -top-20 -right-20 h-64 w-64 rounded-full bg-teal-300/25 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-20 -left-20 h-64 w-64 rounded-full bg-emerald-300/25 blur-3xl" />
+    <section className="relative min-h-full overflow-hidden rounded-2xl bg-[#FAFAFA] p-4 sm:p-8">
+      <div className="pointer-events-none absolute -top-20 -right-20 h-64 w-64 rounded-full bg-[#F2600C]/10 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-20 -left-20 h-64 w-64 rounded-full bg-[#F2600C]/5 blur-3xl" />
 
       <div className="relative space-y-8">
-        <Link href="/admin" className="inline-flex items-center gap-2 text-sm font-medium text-slate-500 transition hover:text-slate-700">
+        <Link href="/admin" className="inline-flex items-center gap-2 text-sm font-medium text-[#6B7280] transition hover:text-[#0E0E10]">
           <ArrowLeft size={16} />
           <span>Retour</span>
         </Link>
 
         <header
-          className="space-y-5 rounded-2xl border border-white/60 bg-white/80 p-6 shadow-sm backdrop-blur sm:p-8"
+          className="space-y-5 rounded-2xl border border-[#E5E5E5] bg-white p-6 shadow-sm sm:p-8"
           style={{ animation: 'upgradeReveal 280ms ease-out both' }}
         >
-          <span className="inline-flex rounded-full bg-gradient-to-r from-teal-500 to-emerald-500 px-3 py-1 text-xs font-semibold tracking-wide text-white shadow-sm">
+          <span className="inline-flex rounded-full bg-[#F2600C] px-3 py-1 text-xs font-semibold tracking-wide text-white shadow-sm">
             ✦ Plan Pro
           </span>
-          <h1 className="max-w-3xl text-3xl font-black leading-tight text-slate-900 sm:text-5xl">
+          <h1 className="max-w-3xl text-3xl font-black leading-tight text-[#0E0E10] sm:text-5xl">
             Débloquez tout le potentiel de Vaybe Recrutement
           </h1>
-          <p className="max-w-2xl text-sm leading-6 text-slate-500 sm:text-base">
+          <p className="max-w-2xl text-sm leading-6 text-[#6B7280] sm:text-base">
             Rejoignez les entreprises qui recrutent mieux et plus vite.
           </p>
         </header>
@@ -223,12 +216,12 @@ export default function AdminUpgradePage() {
         )}
 
         {isVerifyingAfterReturn && (
-          <div className="rounded-xl border border-teal-200 bg-teal-50 p-6">
+          <div className="rounded-xl border border-[#FFD5C2] bg-[#FFF4EE] p-6">
             <div className="flex items-center gap-3">
-              <span className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-teal-300 border-t-teal-700" />
-              <p className="font-semibold text-teal-700">Vérification du paiement...</p>
+              <span className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-[#F2600C]/30 border-t-[#F2600C]" />
+              <p className="font-semibold text-[#F2600C]">Vérification du paiement...</p>
             </div>
-            <p className="mt-2 text-sm text-teal-700">Nous vérifions votre paiement, merci de patienter...</p>
+            <p className="mt-2 text-sm text-[#F2600C]/80">Nous vérifions votre paiement, merci de patienter...</p>
           </div>
         )}
 
@@ -242,14 +235,14 @@ export default function AdminUpgradePage() {
             return (
               <article
                 key={feature.title}
-                className="group flex items-start gap-3 rounded-xl border border-teal-100 bg-white/90 p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-teal-200 hover:shadow-md"
+                className="group flex items-start gap-3 rounded-xl border border-[#E5E5E5] bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-[#F2600C]/30 hover:shadow-md"
               >
-                <div className="rounded-lg bg-teal-50 p-2 text-teal-600 transition group-hover:bg-teal-100">
+                <div className="rounded-lg bg-[#FFF4EE] p-2 text-[#F2600C] transition group-hover:bg-[#FFD5C2]">
                   <Icon size={18} />
                 </div>
                 <div>
-                  <h3 className="text-sm font-semibold text-slate-900">{feature.title}</h3>
-                  <p className="mt-1 text-sm leading-6 text-slate-500">{feature.description}</p>
+                  <h3 className="text-sm font-semibold text-[#0E0E10]">{feature.title}</h3>
+                  <p className="mt-1 text-sm leading-6 text-[#6B7280]">{feature.description}</p>
                 </div>
               </article>
             );
@@ -257,21 +250,21 @@ export default function AdminUpgradePage() {
         </div>
 
         <div
-          className="relative overflow-hidden rounded-3xl border border-teal-200 bg-white p-8 shadow-xl shadow-teal-500/10 sm:max-w-md sm:mx-auto"
+          className="relative overflow-hidden rounded-3xl border border-[#FFD5C2] bg-white p-8 shadow-xl sm:max-w-md sm:mx-auto"
           style={{ animation: 'upgradeReveal 500ms ease-out both' }}
         >
-          <div className="pointer-events-none absolute -top-24 right-0 h-40 w-40 rounded-full bg-teal-100 blur-2xl" />
+          <div className="pointer-events-none absolute -top-24 right-0 h-40 w-40 rounded-full bg-[#FFF4EE] blur-2xl" />
           <div className="relative text-center">
-            <p className="text-xl font-bold text-slate-900">Plan Pro</p>
-            <p className="mt-2 text-4xl font-black text-teal-600">
-              {proPriceLabel} <span className="text-lg font-medium text-slate-400">/ mois</span>
+            <p className="text-xl font-bold text-[#0E0E10]">Plan Pro</p>
+            <p className="mt-2 text-4xl font-black text-[#F2600C]">
+              {proPriceLabel} <span className="text-lg font-medium text-[#9CA3AF]">/ mois</span>
             </p>
-            <p className="mt-1 text-sm text-slate-400">Soit {Math.round(proPrice / 30)} FCFA par jour</p>
+            <p className="mt-1 text-sm text-[#9CA3AF]">Soit {Math.round(proPrice / 30)} FCFA par jour</p>
           </div>
 
-          <div className="my-5 h-px bg-slate-200" />
+          <div className="my-5 h-px bg-[#E5E5E5]" />
 
-          <ul className="space-y-2 text-sm text-slate-700">
+          <ul className="space-y-2 text-sm text-[#374151]">
             <li>✓ Postes illimités</li>
             <li>✓ Candidatures illimitées</li>
             <li>✓ Export CSV</li>
@@ -284,7 +277,7 @@ export default function AdminUpgradePage() {
             type="button"
             onClick={() => void initiatePayment()}
             disabled={initiating}
-            className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-teal-600 py-4 text-lg font-bold text-white shadow-lg shadow-teal-500/20 transition hover:bg-teal-700 disabled:cursor-not-allowed disabled:opacity-70"
+            className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-[#F2600C] py-4 text-lg font-bold text-white shadow-lg transition hover:bg-[#D44F08] disabled:cursor-not-allowed disabled:opacity-70"
           >
             {initiating ? (
               <>
@@ -300,12 +293,12 @@ export default function AdminUpgradePage() {
           </button>
 
           <div className="mt-3 flex items-center justify-center gap-2 text-xs">
-            <span className="rounded-full bg-slate-100 px-2.5 py-1 font-semibold text-slate-600">MTN Mobile Money</span>
-            <span className="rounded-full bg-slate-100 px-2.5 py-1 font-semibold text-slate-600">Moov Money</span>
+            <span className="rounded-full bg-[#F5F5F5] px-2.5 py-1 font-semibold text-[#6B7280]">MTN Mobile Money</span>
+            <span className="rounded-full bg-[#F5F5F5] px-2.5 py-1 font-semibold text-[#6B7280]">Moov Money</span>
           </div>
 
-          <p className="mt-2 text-center text-xs text-slate-400">🔒 Paiement sécurisé FedaPay</p>
-          <p className="mt-1 text-center text-xs text-slate-400">Annulation possible à tout moment</p>
+          <p className="mt-2 text-center text-xs text-[#9CA3AF]">🔒 Paiement sécurisé FedaPay</p>
+          <p className="mt-1 text-center text-xs text-[#9CA3AF]">Annulation possible à tout moment</p>
         </div>
 
         <style jsx>{`

@@ -38,14 +38,14 @@ const FEATURES = [
  */
 export default function FeaturesSection() {
   return (
-    <section id="fonctionnalites" className="bg-[#F8FAFC] px-4 py-24 sm:px-6 lg:px-8 lg:py-28">
+    <section id="fonctionnalites" className="bg-[#FAFAFA] px-4 py-24 sm:px-6 lg:px-8 lg:py-28">
       <div className="mx-auto w-full max-w-7xl">
         {/* Header */}
         <div className="mx-auto max-w-2xl text-center">
-          <h2 className="text-[40px] font-bold tracking-[-0.02em] text-[#0F172A] sm:text-[48px]">
+          <h2 className="text-[40px] font-bold tracking-[-0.02em] text-[#0E0E10] sm:text-[48px]">
             Tout ce dont vous avez besoin
           </h2>
-          <p className="mt-4 text-[17px] leading-relaxed text-[#64748B]">
+          <p className="mt-4 text-[17px] leading-relaxed text-[#6B7280]">
             Une plateforme complète pour gérer vos recrutements de A à Z
           </p>
         </div>
@@ -57,13 +57,13 @@ export default function FeaturesSection() {
             return (
               <article
                 key={feature.title}
-                className="group rounded-[16px] border border-[#E2E8F0] bg-white p-8 shadow-sm transition duration-200 hover:border-[#0D9488] hover:shadow-lg"
+                className="group rounded-[16px] border border-[#E5E5E5] bg-white p-8 shadow-sm transition duration-200 hover:border-[#F2600C] hover:shadow-lg"
               >
-                <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-[12px] bg-[#F0FDF9]">
-                  <Icon size={22} className="text-[#0D9488]" strokeWidth={1.75} />
+                <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-[12px] bg-[#FFF4EE]">
+                  <Icon size={22} className="text-[#F2600C]" strokeWidth={1.75} />
                 </div>
-                <h3 className="text-[17px] font-bold text-[#0F172A]">{feature.title}</h3>
-                <p className="mt-2.5 text-[14px] leading-relaxed text-[#64748B]">{feature.description}</p>
+                <h3 className="text-[17px] font-bold text-[#0E0E10]">{feature.title}</h3>
+                <p className="mt-2.5 text-[14px] leading-relaxed text-[#6B7280]">{feature.description}</p>
               </article>
             );
           })}

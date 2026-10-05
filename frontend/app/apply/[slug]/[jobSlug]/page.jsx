@@ -51,7 +51,7 @@ export default function ApplyByJobPage() {
     }
   }, [companySlug, jobSlug]);
 
-  const primaryColor = useMemo(() => job?.company?.color || '#0d9488', [job]);
+  const primaryColor = useMemo(() => job?.company?.color || '#F2600C', [job]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -189,9 +189,9 @@ export default function ApplyByJobPage() {
           </div>
 
           <div className="mt-4 flex flex-wrap gap-2">
-            <span className="rounded-full bg-teal-100 px-3 py-1 text-xs font-semibold text-teal-700">{job.type_label}</span>
-            <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">{job.location || 'Lieu non précisé'}</span>
-            <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">{job.role}</span>
+            <span className="rounded-full bg-[#FFF4EE] px-3 py-1 text-xs font-semibold text-[#F2600C]">{job.type_label}</span>
+            <span className="rounded-full bg-[#F5F5F5] px-3 py-1 text-xs font-semibold text-[#6B7280]">{job.location || 'Lieu non précisé'}</span>
+            <span className="rounded-full bg-[#F5F5F5] px-3 py-1 text-xs font-semibold text-[#374151]">{job.role}</span>
           </div>
 
           {job.description && (

@@ -21,7 +21,7 @@ export default function ForgotPasswordPage() {
         icon: 'error',
         title: 'Email invalide',
         text: 'Veuillez entrer une adresse email valide.',
-        confirmButtonColor: '#0d9488',
+        confirmButtonColor: '#F2600C',
       });
       return;
     }
@@ -47,36 +47,36 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <main className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center bg-slate-50 px-4 py-10">
-      <div className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-6 shadow-xl shadow-slate-200/70 sm:p-8">
-        <h1 className="text-2xl font-extrabold text-slate-900">Mot de passe oublié</h1>
+    <main className="flex min-h-screen items-center justify-center bg-[#FAFAFA] px-4 py-10">
+      <div className="w-full max-w-md rounded-2xl border border-[#E5E5E5] bg-white p-6 shadow-lg sm:p-8">
+        <h1 className="text-2xl font-extrabold text-[#0E0E10]">Mot de passe oublié</h1>
 
         {isSent ? (
-          <p className="mt-4 rounded-xl bg-teal-50 p-4 text-sm text-teal-900">
+          <p className="mt-4 rounded-xl bg-[#FFF4EE] p-4 text-sm text-[#F2600C]">
             Si un compte existe pour <strong>{email}</strong>, un lien de réinitialisation vient d&apos;être envoyé.
             Il est valable 60 minutes. Pensez à vérifier vos spams.
           </p>
         ) : (
           <>
-            <p className="mt-2 text-sm text-slate-600">
+            <p className="mt-2 text-sm text-[#6B7280]">
               Entrez l&apos;email de votre entreprise : nous vous enverrons un lien pour choisir un nouveau mot de passe.
             </p>
             <form onSubmit={handleSubmit} className="mt-6 space-y-5" noValidate>
               <div>
-                <label htmlFor="email" className="mb-1 block text-sm font-medium text-slate-700">Email</label>
+                <label htmlFor="email" className="mb-1 block text-sm font-medium text-[#374151]">Email</label>
                 <input
                   id="email"
                   type="email"
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
-                  className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/30"
+                  className="w-full rounded-lg border border-[#E5E5E5] bg-white px-3 py-2.5 text-sm text-[#0E0E10] outline-none focus:border-[#F2600C] focus:ring-2 focus:ring-[#F2600C]/20"
                   placeholder="company@example.com"
                 />
               </div>
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="inline-flex w-full items-center justify-center rounded-xl bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-teal-700 disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex w-full items-center justify-center rounded-lg bg-[#F2600C] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#D44F08] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isSubmitting ? 'Envoi...' : 'Envoyer le lien'}
               </button>
@@ -84,8 +84,8 @@ export default function ForgotPasswordPage() {
           </>
         )}
 
-        <p className="mt-5 text-sm text-slate-600">
-          <Link href="/login" className="font-semibold text-teal-600 hover:text-teal-700">← Retour à la connexion</Link>
+        <p className="mt-5 text-sm text-[#6B7280]">
+          <Link href="/login" className="font-semibold text-[#F2600C] hover:text-[#D44F08]">← Retour à la connexion</Link>
         </p>
       </div>
     </main>

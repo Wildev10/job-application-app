@@ -9,7 +9,7 @@ export default function PlanLimitBar({ current = 0, limit = 0, label = '', color
   const rawPercent = safeLimit > 0 ? (safeCurrent / safeLimit) * 100 : 0;
   const percentage = Math.min(100, Math.round(rawPercent));
 
-  let progressClass = color || 'bg-[#1EB88A]';
+  let progressClass = color || 'bg-[#F2600C]';
   if (!color) {
     if (percentage >= 100) {
       progressClass = 'bg-[#EF4444]';

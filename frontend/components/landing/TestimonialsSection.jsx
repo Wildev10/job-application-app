@@ -29,15 +29,15 @@ const TESTIMONIALS = [
  */
 export default function TestimonialsSection() {
   return (
-    <section id="temoignages" className="bg-[#F8FAFC] px-4 py-24 sm:px-6 lg:px-8 lg:py-28">
+    <section id="temoignages" className="bg-[#FAFAFA] px-4 py-24 sm:px-6 lg:px-8 lg:py-28">
       <div className="mx-auto w-full max-w-7xl">
         {/* Header */}
         <div className="mx-auto max-w-2xl text-center">
-          <h2 className="text-[40px] font-bold tracking-[-0.02em] text-[#0F172A] sm:text-[48px]">
+          <h2 className="text-[40px] font-bold tracking-[-0.02em] text-[#0E0E10] sm:text-[48px]">
             Ils nous font confiance
           </h2>
-          <p className="mt-4 text-[17px] text-[#64748B]">
-            Des équipes RH satisfaites à travers l'Afrique de l'Ouest.
+          <p className="mt-4 text-[17px] text-[#6B7280]">
+            Des équipes RH satisfaites à travers l&apos;Afrique de l&apos;Ouest.
           </p>
         </div>
 
@@ -46,31 +46,31 @@ export default function TestimonialsSection() {
           {TESTIMONIALS.map((testimonial) => (
             <article
               key={testimonial.author}
-              className="flex flex-col rounded-[16px] border border-[#E2E8F0] bg-white p-8 shadow-sm transition duration-200 hover:shadow-lg"
+              className="flex flex-col rounded-[16px] border border-[#E5E5E5] bg-white p-8 shadow-sm transition duration-200 hover:shadow-lg"
             >
               {/* Stars */}
-              <div className="flex items-center gap-0.5 mb-5">
+              <div className="mb-5 flex items-center gap-0.5">
                 {Array.from({ length: 5 }).map((_, i) => (
-                  <Star key={i} size={15} className="fill-[#F59E0B] text-[#F59E0B]" />
+                  <Star key={i} size={15} className="fill-[#FFD43B] text-[#FFD43B]" />
                 ))}
               </div>
 
               {/* Quote icon */}
-              <Quote size={24} className="mb-3 text-[#0D9488]" strokeWidth={1.5} />
+              <Quote size={24} className="mb-3 text-[#F2600C]" strokeWidth={1.5} />
 
               {/* Quote text */}
-              <p className="flex-1 text-[15px] leading-relaxed text-[#334155]">
+              <p className="flex-1 text-[15px] leading-relaxed text-[#374151]">
                 {testimonial.quote}
               </p>
 
               {/* Author */}
-              <div className="mt-6 flex items-center gap-3 border-t border-[#F1F5F9] pt-5">
-                <span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#0D9488] text-[14px] font-bold text-white">
+              <div className="mt-6 flex items-center gap-3 border-t border-[#F5F5F5] pt-5">
+                <span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#F2600C] text-[14px] font-bold text-white">
                   {testimonial.initials}
                 </span>
                 <div>
-                  <p className="text-[14px] font-bold text-[#0F172A]">{testimonial.author}</p>
-                  <p className="text-[13px] text-[#64748B]">{testimonial.role}</p>
+                  <p className="text-[14px] font-bold text-[#0E0E10]">{testimonial.author}</p>
+                  <p className="text-[13px] text-[#6B7280]">{testimonial.role}</p>
                 </div>
               </div>
             </article>

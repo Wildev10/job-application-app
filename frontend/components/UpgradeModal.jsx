@@ -6,7 +6,7 @@ import { X, Zap } from 'lucide-react';
 const REASON_MESSAGES = {
   limite_jobs: 'Vous avez atteint la limite de 2 postes actifs sur votre plan Starter.',
   limite_candidatures: 'Vous avez atteint la limite de 50 candidatures ce mois-ci sur votre plan Starter.',
-  export_csv: 'L\'export CSV est une fonctionnalité exclusive du plan Pro.',
+  export_csv: "L'export CSV est une fonctionnalité exclusive du plan Pro.",
 };
 
 /**
@@ -23,17 +23,15 @@ export default function UpgradeModal({ isOpen, onClose, reason = 'default' }) {
 
   return (
     <div
-      className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-[2px]"
+      className="fixed inset-0 z-[70] flex items-center justify-center bg-[#0E0E10]/80 p-4 backdrop-blur-[2px]"
       style={{ animation: 'upgradeOverlayFade 180ms ease-out' }}
     >
       <div
-        className="relative w-full max-w-2xl overflow-hidden rounded-3xl border border-teal-100 bg-white shadow-2xl"
+        className="relative w-full max-w-2xl overflow-hidden rounded-2xl border border-[#E5E5E5] bg-white shadow-2xl"
         style={{ animation: 'upgradePanelIn 240ms cubic-bezier(0.22, 1, 0.36, 1)' }}
       >
-        <div className="pointer-events-none absolute -top-16 -right-16 h-44 w-44 rounded-full bg-teal-200/50 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-24 -left-16 h-52 w-52 rounded-full bg-emerald-200/45 blur-3xl" />
-
-        <div className="relative bg-gradient-to-r from-teal-500 to-emerald-500 px-6 py-7">
+        {/* Header */}
+        <div className="relative bg-[#F2600C] px-6 py-7">
           <button
             type="button"
             onClick={onClose}
@@ -51,24 +49,24 @@ export default function UpgradeModal({ isOpen, onClose, reason = 'default' }) {
           </div>
         </div>
 
-        <div className="relative space-y-6 px-6 py-6">
-          <p className="text-sm leading-6 text-slate-600">{message}</p>
+        <div className="space-y-6 px-6 py-6">
+          <p className="text-sm leading-6 text-[#6B7280]">{message}</p>
 
-          <div className="grid gap-3 rounded-2xl border border-slate-200 bg-slate-50/70 p-4 sm:grid-cols-2">
+          <div className="grid gap-3 rounded-2xl border border-[#E5E5E5] bg-[#FAFAFA] p-4 sm:grid-cols-2">
             <div className="rounded-xl bg-white p-3">
-              <p className="text-sm font-semibold text-slate-500">Starter (actuel)</p>
-              <ul className="mt-3 space-y-2 text-sm text-slate-600">
+              <p className="text-sm font-semibold text-[#9CA3AF]">Starter (actuel)</p>
+              <ul className="mt-3 space-y-2 text-sm text-[#6B7280]">
                 <li>✓ 2 postes</li>
                 <li>✓ 50 cand./mois</li>
-                <li>✗ Export CSV</li>
-                <li>✗ Stats avancées</li>
-                <li>✗ Support prio.</li>
+                <li className="opacity-40">✗ Export CSV</li>
+                <li className="opacity-40">✗ Stats avancées</li>
+                <li className="opacity-40">✗ Support prio.</li>
               </ul>
             </div>
 
-            <div className="rounded-xl border border-teal-100 bg-white p-3 shadow-sm">
-              <p className="text-sm font-semibold text-teal-700">Pro ✦</p>
-              <ul className="mt-3 space-y-2 text-sm text-slate-700">
+            <div className="rounded-xl border border-[#FFD5C2] bg-[#FFF4EE] p-3">
+              <p className="text-sm font-semibold text-[#F2600C]">Pro ✦</p>
+              <ul className="mt-3 space-y-2 text-sm text-[#374151]">
                 <li>✓ Postes illimités</li>
                 <li>✓ Candidatures illimitées</li>
                 <li>✓ Export CSV</li>
@@ -79,19 +77,19 @@ export default function UpgradeModal({ isOpen, onClose, reason = 'default' }) {
           </div>
 
           <div className="text-center">
-            <p className="text-3xl font-black text-teal-600">15 000 FCFA / mois</p>
-            <p className="mt-1 text-sm text-slate-400">Sans engagement • Annulez quand vous voulez</p>
+            <p className="text-3xl font-black text-[#F2600C]">15 000 FCFA / mois</p>
+            <p className="mt-1 text-sm text-[#9CA3AF]">Sans engagement • Annulez quand vous voulez</p>
           </div>
         </div>
 
-        <div className="space-y-3 border-t border-slate-100 bg-white/80 px-6 py-5">
+        <div className="space-y-3 border-t border-[#E5E5E5] bg-white px-6 py-5">
           <button
             type="button"
             onClick={() => {
               onClose();
               router.push('/admin/upgrade');
             }}
-            className="w-full rounded-xl bg-teal-600 py-3.5 text-sm font-semibold text-white shadow-lg shadow-teal-500/20 transition hover:bg-teal-700"
+            className="w-full rounded-xl bg-[#F2600C] py-3.5 text-sm font-semibold text-white shadow-lg transition hover:bg-[#D44F08]"
           >
             Passer au Pro maintenant →
           </button>
@@ -99,7 +97,7 @@ export default function UpgradeModal({ isOpen, onClose, reason = 'default' }) {
           <button
             type="button"
             onClick={onClose}
-            className="w-full text-sm text-slate-400 transition hover:text-slate-600"
+            className="w-full text-sm text-[#9CA3AF] transition hover:text-[#6B7280]"
           >
             Pas maintenant
           </button>

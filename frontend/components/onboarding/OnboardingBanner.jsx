@@ -46,21 +46,21 @@ export default function OnboardingBanner({ status }) {
       icon: 'success',
       title: 'Lien copié !',
       text: 'Votre lien de candidature est prêt à être partagé.',
-      confirmButtonColor: '#0d9488',
+      confirmButtonColor: '#F2600C',
     });
   };
 
   return (
-    <section className="rounded-xl border-2 border-teal-200 bg-gradient-to-br from-teal-50 to-white p-6 shadow-sm sm:p-8">
+    <section className="rounded-xl border-2 border-[#FFD5C2] bg-gradient-to-br from-[#FFF4EE] to-white p-6 shadow-sm sm:p-8">
       <div className="mb-6 space-y-3">
         <div className="flex items-center justify-between gap-3">
-          <p className="text-sm font-semibold text-teal-700">Progression de l&apos;onboarding</p>
-          <p className="text-sm font-medium text-teal-800">Étape {completedSteps} sur 3 complétée</p>
+          <p className="text-sm font-semibold text-[#F2600C]">Progression de l&apos;onboarding</p>
+          <p className="text-sm font-medium text-[#D44F08]">Étape {completedSteps} sur 3 complétée</p>
         </div>
 
-        <div className="h-2 w-full overflow-hidden rounded-full bg-teal-100">
+        <div className="h-2 w-full overflow-hidden rounded-full bg-[#FFD5C2]">
           <div
-            className="h-full rounded-full bg-teal-600 transition-all duration-500"
+            className="h-full rounded-full bg-[#F2600C] transition-all duration-500"
             style={{ width: `${progress}%` }}
           />
         </div>
@@ -72,12 +72,12 @@ export default function OnboardingBanner({ status }) {
       </div>
 
       <div className="mt-6 space-y-4">
-        <div className="flex items-center justify-between gap-4 rounded-lg border border-emerald-200 bg-emerald-50 p-4">
+        <div className="flex items-center justify-between gap-4 rounded-lg border border-[#22A559]/30 bg-[#22A559]/10 p-4">
           <p className="text-sm text-gray-500 line-through">✅ Compte créé</p>
-          <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-700">Complété</span>
+          <span className="rounded-full bg-[#22A559]/20 px-2.5 py-1 text-xs font-semibold text-[#22A559]">Complété</span>
         </div>
 
-        <div className="flex flex-col gap-3 rounded-lg border border-teal-200 bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 rounded-lg border border-[#FFD5C2] bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
           {status?.has_jobs ? (
             <p className="text-sm text-gray-500 line-through">✅ Créer votre premier poste</p>
           ) : (
@@ -85,19 +85,19 @@ export default function OnboardingBanner({ status }) {
           )}
 
           {status?.has_jobs ? (
-            <span className="w-fit rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-700">Complété</span>
+            <span className="w-fit rounded-full bg-[#22A559]/20 px-2.5 py-1 text-xs font-semibold text-[#22A559]">Complété</span>
           ) : (
             <button
               type="button"
               onClick={() => router.push('/admin/postes')}
-              className="w-fit rounded-lg bg-teal-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-teal-700"
+              className="w-fit rounded-lg bg-[#F2600C] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#D44F08]"
             >
               Créer un poste →
             </button>
           )}
         </div>
 
-        <div className="flex flex-col gap-3 rounded-lg border border-teal-200 bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 rounded-lg border border-[#FFD5C2] bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
           {status?.has_applications ? (
             <p className="text-sm text-gray-500 line-through">✅ Partager votre lien de candidature</p>
           ) : (
@@ -107,12 +107,12 @@ export default function OnboardingBanner({ status }) {
           {!status?.has_jobs ? (
             <span className="text-sm text-[#9ca3af]">Disponible après création d&apos;un poste</span>
           ) : status?.has_applications ? (
-            <span className="w-fit rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-700">Complété</span>
+            <span className="w-fit rounded-full bg-[#22A559]/20 px-2.5 py-1 text-xs font-semibold text-[#22A559]">Complété</span>
           ) : (
             <button
               type="button"
               onClick={() => void copyApplyLink()}
-              className="w-fit rounded-lg border border-teal-300 bg-white px-4 py-2 text-sm font-semibold text-teal-700 transition hover:bg-teal-50"
+              className="w-fit rounded-lg border border-[#FFD5C2] bg-white px-4 py-2 text-sm font-semibold text-[#F2600C] transition hover:bg-[#FFF4EE]"
             >
               Copier mon lien
             </button>

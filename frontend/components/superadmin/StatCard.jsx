@@ -1,7 +1,7 @@
 import { ArrowDownRight, ArrowUpRight } from 'lucide-react';
 
 const ICON_COLORS = {
-  emerald: 'bg-emerald-500/10 text-emerald-400',
+  emerald: 'bg-[#F2600C]/10 text-[#F2600C]',
   blue: 'bg-blue-500/10 text-blue-400',
   amber: 'bg-amber-500/10 text-amber-400',
   red: 'bg-red-500/10 text-red-400',
@@ -32,7 +32,7 @@ export default function StatCard({ title, value, subtitle, icon: Icon, trend, co
           <span
             className={[
               'inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-semibold',
-              trend >= 0 ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400',
+              trend >= 0 ? 'bg-[#F2600C]/10 text-[#F2600C]' : 'bg-red-500/10 text-red-400',
             ].join(' ')}
           >
             {trend >= 0 ? <ArrowUpRight size={13} /> : <ArrowDownRight size={13} />}

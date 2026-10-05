@@ -134,7 +134,7 @@ export default function ApplicationForm() {
           icon: 'error',
           title: 'Format de CV invalide',
           text: 'Veuillez sélectionner un fichier PDF, DOC ou DOCX.',
-          confirmButtonColor: '#0d9488',
+          confirmButtonColor: '#F2600C',
         });
 
         return;

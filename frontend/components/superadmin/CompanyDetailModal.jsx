@@ -34,7 +34,7 @@ export default function CompanyDetailModal({
   }
 
   const statusBadgeClass = (status) => {
-    if (status === 'approved') return 'bg-emerald-500/20 text-emerald-300';
+    if (status === 'approved') return 'bg-[#F2600C]/20 text-[#F2600C]';
     if (status === 'pending') return 'bg-amber-500/20 text-amber-300';
     if (status === 'canceled') return 'bg-slate-700 text-slate-300';
     if (status === 'declined') return 'bg-red-500/20 text-red-300';
@@ -58,7 +58,7 @@ export default function CompanyDetailModal({
       showCancelButton: true,
       confirmButtonText: 'Confirmer',
       cancelButtonText: 'Annuler',
-      confirmButtonColor: '#0D9488',
+      confirmButtonColor: '#F2600C',
       cancelButtonColor: '#374151',
     });
 
@@ -112,7 +112,7 @@ export default function CompanyDetailModal({
             onClick={() => setActiveTab('overview')}
             className={`rounded-md px-3 py-1.5 text-sm font-semibold transition ${
               activeTab === 'overview'
-                ? 'bg-teal-600 text-white'
+                ? 'bg-[#F2600C] text-white'
                 : 'text-gray-400 hover:bg-gray-800 hover:text-gray-200'
             }`}
           >
@@ -123,7 +123,7 @@ export default function CompanyDetailModal({
             onClick={() => setActiveTab('payments')}
             className={`rounded-md px-3 py-1.5 text-sm font-semibold transition ${
               activeTab === 'payments'
-                ? 'bg-teal-600 text-white'
+                ? 'bg-[#F2600C] text-white'
                 : 'text-gray-400 hover:bg-gray-800 hover:text-gray-200'
             }`}
           >
@@ -209,7 +209,7 @@ export default function CompanyDetailModal({
             <button
               type="button"
               onClick={() => onActivate(company)}
-              className="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-gray-900 hover:bg-emerald-400"
+              className="rounded-lg bg-[#F2600C] px-4 py-2 text-sm font-semibold text-white hover:bg-[#D44F08]"
             >
               Activer
             </button>
@@ -245,15 +245,15 @@ export default function CompanyDetailModal({
                 return nextOpen;
               });
             }}
-            className="rounded-lg bg-teal-600 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-500"
+            className="rounded-lg bg-[#F2600C] px-4 py-2 text-sm font-semibold text-white hover:bg-[#D44F08]"
           >
             Changer le plan
           </button>
         </div>
 
         {showPlanForm && (
-          <div className="mt-4 space-y-3 rounded-lg border border-teal-500/30 bg-teal-500/10 p-4">
-            <p className="text-sm font-semibold text-teal-300">Mise à jour du plan</p>
+          <div className="mt-4 space-y-3 rounded-lg border border-[#F2600C]/30 bg-[#F2600C]/10 p-4">
+            <p className="text-sm font-semibold text-[#F2600C]">Mise à jour du plan</p>
 
             <select
               value={selectedPlan}
@@ -276,7 +276,7 @@ export default function CompanyDetailModal({
             <button
               type="button"
               onClick={() => void handleConfirmPlan()}
-              className="rounded-lg bg-teal-600 px-3 py-2 text-sm font-semibold text-white hover:bg-teal-500"
+              className="rounded-lg bg-[#F2600C] px-3 py-2 text-sm font-semibold text-white hover:bg-[#D44F08]"
             >
               Confirmer
             </button>

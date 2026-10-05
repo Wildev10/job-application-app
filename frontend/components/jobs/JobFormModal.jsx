@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-// FIX-CONTRAST: lisibilite corrigee
 
 const EMPTY_FORM = {
   title: '',
@@ -11,6 +10,8 @@ const EMPTY_FORM = {
   description: '',
   expires_at: '',
 };
+
+const inputClass = 'w-full rounded-lg border border-[#E5E5E5] px-3 py-2.5 text-sm text-[#0E0E10] outline-none focus:border-[#F2600C] focus:ring-2 focus:ring-[#F2600C]/20';
 
 /**
  * Modal form used to create or edit a job posting.
@@ -100,9 +101,9 @@ export default function JobFormModal({ isOpen, onClose, onSubmit, initialData })
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 px-4 py-6">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0E0E10]/60 px-4 py-6 backdrop-blur-[2px]">
       <div className="w-full max-w-2xl rounded-2xl bg-white p-6 shadow-2xl sm:p-7">
-        <h2 className="text-2xl font-extrabold tracking-[-0.02em] text-[#111827]">
+        <h2 className="text-2xl font-extrabold tracking-[-0.02em] text-[#0E0E10]">
           {initialData ? 'Modifier le poste' : 'Nouveau poste'}
         </h2>
 
@@ -115,7 +116,7 @@ export default function JobFormModal({ isOpen, onClose, onSubmit, initialData })
               required
               value={form.title}
               onChange={handleChange}
-              className="w-full rounded-lg border border-[#d1d5db] px-3 py-2.5 text-sm outline-none focus:border-teal-500"
+              className={inputClass}
               placeholder="Développeur Full Stack"
             />
             {errors.title && <p className="mt-1 text-sm text-red-600">{errors.title}</p>}
@@ -130,7 +131,7 @@ export default function JobFormModal({ isOpen, onClose, onSubmit, initialData })
                 required
                 value={form.role}
                 onChange={handleChange}
-                className="w-full rounded-lg border border-[#d1d5db] px-3 py-2.5 text-sm outline-none focus:border-teal-500"
+                className={inputClass}
               >
                 <option value="">Sélectionner</option>
                 <option value="dev">dev</option>
@@ -149,7 +150,7 @@ export default function JobFormModal({ isOpen, onClose, onSubmit, initialData })
                 required
                 value={form.type}
                 onChange={handleChange}
-                className="w-full rounded-lg border border-[#d1d5db] px-3 py-2.5 text-sm outline-none focus:border-teal-500"
+                className={inputClass}
               >
                 <option value="full_time">Temps plein</option>
                 <option value="part_time">Temps partiel</option>
@@ -166,7 +167,7 @@ export default function JobFormModal({ isOpen, onClose, onSubmit, initialData })
               name="location"
               value={form.location}
               onChange={handleChange}
-              className="w-full rounded-lg border border-[#d1d5db] px-3 py-2.5 text-sm outline-none focus:border-teal-500"
+              className={inputClass}
               placeholder="Ex: Cotonou ou Remote"
             />
           </div>
@@ -179,7 +180,7 @@ export default function JobFormModal({ isOpen, onClose, onSubmit, initialData })
               rows={4}
               value={form.description}
               onChange={handleChange}
-              className="w-full resize-none rounded-lg border border-[#d1d5db] px-3 py-2.5 text-sm outline-none focus:border-teal-500"
+              className={inputClass + ' resize-none'}
             />
           </div>
 
@@ -192,7 +193,7 @@ export default function JobFormModal({ isOpen, onClose, onSubmit, initialData })
               min={minDate}
               value={form.expires_at}
               onChange={handleChange}
-              className="w-full rounded-lg border border-[#d1d5db] px-3 py-2.5 text-sm outline-none focus:border-teal-500"
+              className={inputClass}
             />
           </div>
 
@@ -201,14 +202,14 @@ export default function JobFormModal({ isOpen, onClose, onSubmit, initialData })
               type="button"
               onClick={onClose}
               disabled={isSubmitting}
-              className="rounded-lg bg-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-300 disabled:opacity-60"
+              className="rounded-lg border border-[#E5E5E5] bg-white px-4 py-2 text-sm font-semibold text-[#6B7280] hover:bg-[#FAFAFA] disabled:opacity-60"
             >
               Annuler
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="inline-flex items-center justify-center gap-2 rounded-lg bg-teal-600 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-700 disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#F2600C] px-4 py-2 text-sm font-semibold text-white hover:bg-[#D44F08] disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isSubmitting && <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />}
               {initialData ? 'Sauvegarder' : 'Créer le poste'}
