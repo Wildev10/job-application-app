@@ -27,7 +27,8 @@ class DashboardController extends Controller
             }
 
             $planMaxDays = PlanService::getStatsMaxDays($company);
-            $daysCount = PlanService::isPro($company) ? 30 : PlanService::STARTER_STATS_DAYS;
+            $requestedDays = (int) $request->query('days', PlanService::isPro($company) ? 30 : PlanService::STARTER_STATS_DAYS);
+            $daysCount = min(max(1, $requestedDays), $planMaxDays);
             $windowStart = now()->subDays($daysCount - 1)->startOfDay();
 
             $baseQuery = Application::query()->where('company_id', $company->id);

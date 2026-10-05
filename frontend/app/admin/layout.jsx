@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { BriefcaseBusiness, ClipboardList, LayoutDashboard, Settings, X } from 'lucide-react';
+import { BarChart2, BriefcaseBusiness, ClipboardList, LayoutDashboard, Settings, X } from 'lucide-react';
 import EmailVerificationBanner from '@/components/EmailVerificationBanner';
 import PlanBadge from '@/components/PlanBadge';
 import { PlanStatusProvider, usePlanStatus } from '@/hooks/usePlanStatus';
@@ -13,6 +13,7 @@ const MAIN_LINKS = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/admin/candidatures', label: 'Candidatures', icon: ClipboardList },
   { href: '/admin/postes', label: 'Postes', icon: BriefcaseBusiness },
+  { href: '/admin/statistiques', label: 'Statistiques', icon: BarChart2 },
 ];
 
 /**
