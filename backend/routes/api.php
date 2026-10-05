@@ -1,7 +1,82 @@
 <?php
 
 use App\Http\Controllers\ApplicationController;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CompanyController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\JobController;
+use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\SuperAdmin\AuthController as SuperAdminAuthController;
+use App\Http\Controllers\SuperAdmin\BroadcastController as SuperAdminBroadcastController;
+use App\Http\Controllers\SuperAdmin\CompaniesController as SuperAdminCompaniesController;
+use App\Http\Controllers\SuperAdmin\DashboardController as SuperAdminDashboardController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/applications', [ApplicationController::class, 'index']);
-Route::post('/applications', [ApplicationController::class, 'store']);
+Route::middleware('throttle:10,1')->group(function (): void {
+	Route::post('/auth/register', [AuthController::class, 'register']);
+	Route::post('/auth/login', [AuthController::class, 'login']);
+	Route::post('/auth/forgot-password', [AuthController::class, 'forgotPassword']);
+	Route::post('/auth/reset-password', [AuthController::class, 'resetPassword']);
+});
+Route::get('/auth/verify-email/{id}/{hash}', [AuthController::class, 'verifyEmail'])
+	->middleware('signed')
+	->name('verification.verify');
+Route::get('/jobs/public/{companySlug}/{jobSlug}', [JobController::class, 'showPublic']);
+Route::middleware('throttle:10,1')->group(function (): void {
+	Route::post('/applications', [ApplicationController::class, 'store']);
+	Route::post('/applications/{companySlug}/{jobSlug}', [ApplicationController::class, 'store']);
+	Route::post('/applications/{slug}', [ApplicationController::class, 'store']);
+});
+Route::post('/payments/webhook', [PaymentController::class, 'webhook']);
+
+Route::middleware('company.auth')->group(function (): void {
+	Route::post('/auth/logout', [AuthController::class, 'logout']);
+	Route::get('/auth/me', [AuthController::class, 'me']);
+	Route::post('/auth/resend-verification', [AuthController::class, 'resendVerification'])->middleware('throttle:3,1');
+	// Return onboarding progress metrics for the authenticated company.
+	Route::get('/company/onboarding-status', [CompanyController::class, 'onboardingStatus']);
+	Route::get('/company/plan-status', [CompanyController::class, 'planStatus']);
+	Route::patch('/company/profile', [CompanyController::class, 'updateProfile']);
+	Route::post('/company/logo', [CompanyController::class, 'updateLogo']);
+	Route::delete('/company/logo', [CompanyController::class, 'deleteLogo']);
+	Route::get('/jobs', [JobController::class, 'index']);
+	Route::post('/jobs', [JobController::class, 'store']);
+	Route::get('/jobs/{id}', [JobController::class, 'show']);
+	Route::patch('/jobs/{id}', [JobController::class, 'update']);
+	Route::delete('/jobs/{id}', [JobController::class, 'destroy']);
+	Route::get('/applications/stats', [DashboardController::class, 'stats']);
+	Route::get('/applications/export', [ApplicationController::class, 'export']);
+	Route::get('/applications', [ApplicationController::class, 'index']);
+	Route::get('/applications/{id}', [ApplicationController::class, 'show'])->whereNumber('id');
+	Route::get('/applications/{id}/cv', [ApplicationController::class, 'downloadCv']);
+	Route::patch('/applications/{id}/status', [ApplicationController::class, 'updateStatus']);
+	Route::post('/payments/initiate', [PaymentController::class, 'initiate']);
+	Route::get('/payments/history', [PaymentController::class, 'history']);
+	Route::get('/payments/status/{paymentId}', [PaymentController::class, 'status']);
+});
+
+// Keep this route after /company/onboarding-status to avoid slug conflicts.
+Route::get('/company/{slug}', [CompanyController::class, 'show']);
+
+// Super admin public routes.
+Route::prefix('superadmin')->group(function (): void {
+	Route::post('/auth/login', [SuperAdminAuthController::class, 'login']);
+});
+
+// Super admin protected routes.
+Route::prefix('superadmin')
+	->middleware('super.admin.auth')
+	->group(function (): void {
+		Route::post('/auth/logout', [SuperAdminAuthController::class, 'logout']);
+		Route::get('/auth/me', [SuperAdminAuthController::class, 'me']);
+		Route::get('/stats', [SuperAdminDashboardController::class, 'stats']);
+		Route::get('/companies', [SuperAdminCompaniesController::class, 'index']);
+		Route::get('/companies/{id}', [SuperAdminCompaniesController::class, 'show']);
+		Route::get('/companies/{id}/payments', [SuperAdminCompaniesController::class, 'payments']);
+		Route::patch('/companies/{id}/plan', [SuperAdminCompaniesController::class, 'updatePlan']);
+		Route::patch('/companies/{id}/suspend', [SuperAdminCompaniesController::class, 'suspend']);
+		Route::patch('/companies/{id}/activate', [SuperAdminCompaniesController::class, 'activate']);
+		Route::delete('/companies/{id}', [SuperAdminCompaniesController::class, 'destroy']);
+		Route::post('/companies/{id}/impersonate', [SuperAdminCompaniesController::class, 'impersonate']);
+		Route::post('/broadcast', [SuperAdminBroadcastController::class, 'send']);
+	});

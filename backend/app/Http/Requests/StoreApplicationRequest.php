@@ -26,7 +26,8 @@ class StoreApplicationRequest extends FormRequest
         return [
             'nom' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email'],
-            'role' => ['required', 'in:dev,designer'],
+            // Optional when applying to a job: the job's role is used instead.
+            'role' => ['nullable', 'string', 'max:100'],
             'motivation' => ['required', 'string', 'min:20'],
             'portfolio' => ['nullable', 'url'],
             'cv' => ['nullable', 'file', 'mimes:pdf,doc,docx', 'max:2048'],
@@ -40,7 +41,7 @@ class StoreApplicationRequest extends FormRequest
     {
         throw new HttpResponseException(
             response()->json([
-                'message' => 'Validation failed.',
+                'message' => 'Les données envoyées sont invalides.',
                 'errors' => $validator->errors(),
             ], 422)->header('Content-Type', 'application/json')
         );

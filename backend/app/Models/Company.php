@@ -1,0 +1,124 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+
+class Company extends Model
+{
+    use HasFactory;
+    use SoftDeletes;
+
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var list<string>
+     */
+    protected $fillable = [
+        'name',
+        'email',
+        'password',
+        'slug',
+        'logo',
+        'color',
+        'api_token',
+        'is_suspended',
+        'plan',
+        'plan_expires_at',
+        'impersonate_token',
+        'impersonate_expires_at',
+    ];
+
+    /**
+     * The attributes that should be hidden for serialization.
+     *
+     * @var list<string>
+     */
+    protected $hidden = [
+        'password',
+        'api_token',
+        'impersonate_token',
+    ];
+
+    /**
+     * The attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'password' => 'hashed',
+            'email_verified_at' => 'datetime',
+            'is_suspended' => 'boolean',
+            'plan_expires_at' => 'datetime',
+            'impersonate_expires_at' => 'datetime',
+        ];
+    }
+
+    /**
+     * Expose the logo as an absolute URL (the raw column holds a storage path).
+     */
+    protected function logo(): Attribute
+    {
+        return Attribute::get(static function (?string $value): ?string {
+            if ($value === null || $value === '') {
+                return null;
+            }
+
+            return str_starts_with($value, 'http') ? $value : Storage::disk('public')->url($value);
+        });
+    }
+
+    /**
+     * Get all applications that belong to this company.
+     */
+    public function applications(): HasMany
+    {
+        return $this->hasMany(Application::class);
+    }
+
+    /**
+     * Get all jobs that belong to this company.
+     */
+    public function jobs(): HasMany
+    {
+        return $this->hasMany(Job::class);
+    }
+
+    /**
+     * Get all payments that belong to this company.
+     */
+    public function payments(): HasMany
+    {
+        return $this->hasMany(Payment::class);
+    }
+
+    /**
+     * Build a URL-friendly slug from a company name.
+     */
+    public static function generateSlug(string $name): string
+    {
+        return Str::slug($name);
+    }
+
+    /**
+     * Generate and persist a unique API token for this company.
+     */
+    public function generateToken(): string
+    {
+        do {
+            $token = Str::random(60);
+        } while (self::where('api_token', $token)->exists());
+
+        $this->forceFill(['api_token' => $token])->save();
+
+        return $token;
+    }
+}

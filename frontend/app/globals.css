@@ -1,24 +1,42 @@
 @import "tailwindcss";
 
 :root {
-  --background: #fafaf9;
-  --foreground: #0f0f0f;
-  --surface: #f5f5f0;
-  --border: #d4d4d4;
-  --accent: #ff4d00;
+  --color-primary: #F2600C;
+  --color-primary-dark: #D44F08;
+  --color-primary-light: #FFF4EE;
+  --color-primary-border: #FFD5C2;
+  --color-secondary: #0E0E10;
+  --color-accent: #FFD43B;
+  --color-accent-dark: #E6BE2A;
+  --background: #FAFAFA;
+  --foreground: #0E0E10;
+  --surface: #FFFFFF;
+  --border: #E5E5E5;
+  --text-secondary: #6B7280;
+  --success: #22A559;
+  --error: #EF4444;
+  --warning: #F59E0B;
+  --info: #3B82F6;
+  --ink: #0E0E10;
+  --ink-light: #1A1A1C;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-plus-jakarta);
-  --font-mono: var(--font-plus-jakarta);
+  --font-sans: var(--font-inter);
+  --font-mono: var(--font-inter);
+  --font-display: var(--font-sora);
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-plus-jakarta), "Segoe UI", sans-serif;
+  font-family: var(--font-inter), "Segoe UI", sans-serif;
   font-weight: 400;
   line-height: 1.6;
 }
@@ -33,4 +51,46 @@ input,
 textarea,
 select {
   transition: all 200ms ease;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Sora for display headings */
+h1, h2 {
+  font-family: var(--font-sora), var(--font-inter), "Segoe UI", sans-serif;
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.swal-custom-popup {
+  border-radius: 10px !important;
 }

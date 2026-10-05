@@ -22,8 +22,9 @@ class IndexApplicationsRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'role' => ['nullable', 'in:dev,designer'],
+            'role' => ['nullable', 'string', 'max:100'],
             'sort' => ['nullable', 'in:date,score'],
+            'job_id' => ['nullable', 'integer', 'min:1'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
             'page' => ['nullable', 'integer', 'min:1'],
         ];

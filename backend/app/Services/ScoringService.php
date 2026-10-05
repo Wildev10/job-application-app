@@ -6,6 +6,8 @@ use Illuminate\Support\Str;
 
 class ScoringService
 {
+    private const DETAILED_MOTIVATION_LENGTH = 200;
+
     /**
      * Compute the candidate score based on provided application data.
      */
@@ -13,7 +15,8 @@ class ScoringService
     {
         $score = 0;
 
-        if (! empty($data['portfolio'])) {
+        // Portfolio or a detailed motivation: not every job has a portfolio.
+        if (! empty($data['portfolio']) || mb_strlen(trim((string) ($data['motivation'] ?? ''))) >= self::DETAILED_MOTIVATION_LENGTH) {
             $score++;
         }
 

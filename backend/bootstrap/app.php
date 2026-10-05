@@ -20,12 +20,21 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->use([
             \Illuminate\Http\Middleware\HandleCors::class,
         ]);
+
+        $middleware->validateCsrfTokens(except: [
+            'api/payments/webhook',
+        ]);
+
+        $middleware->alias([
+            'company.auth' => \App\Http\Middleware\CompanyAuth::class,
+            'super.admin.auth' => \App\Http\Middleware\SuperAdminAuth::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->render(function (NotFoundHttpException $exception, Request $request) {
             if ($request->is('api/*')) {
                 return response()->json([
-                    'message' => 'Resource not found.',
+                    'message' => 'Ressource introuvable.',
                 ], 404)->header('Content-Type', 'application/json');
             }
 
@@ -43,7 +52,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
             if ($exception instanceof ValidationException) {
                 return response()->json([
-                    'message' => 'Validation failed.',
+                    'message' => 'Les données envoyées sont invalides.',
                     'errors' => $exception->errors(),
                 ], 422)->header('Content-Type', 'application/json');
             }
@@ -53,7 +62,7 @@ return Application::configure(basePath: dirname(__DIR__))
             }
 
             return response()->json([
-                'message' => 'An unexpected server error occurred.',
+                'message' => 'Une erreur serveur est survenue.',
             ], 500)->header('Content-Type', 'application/json');
         });
     })->create();
