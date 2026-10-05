@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { ArrowUpDown, Download, Inbox, Link2, X } from 'lucide-react';
+import { ArrowUpDown, Download, Inbox, Link2, Search, X } from 'lucide-react';
 import { Alert } from '@/lib/sweetalert';
 import ApplicationCard from '@/app/components/ApplicationCard';
 import ExportModal from '@/app/components/ExportModal';
@@ -67,6 +67,7 @@ export default function ApplicationList({
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [showEmailBanner, setShowEmailBanner] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const { canExportCSV, isStarter } = usePlanStatus();
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || (typeof window !== 'undefined' ? window.location.origin : '');
 
@@ -193,9 +194,18 @@ export default function ApplicationList({
   }), [applications]);
 
   const filteredApplications = useMemo(() => {
-    if (statusFilter === 'all') return applications;
-    return applications.filter((a) => a.status === statusFilter);
-  }, [applications, statusFilter]);
+    let result = statusFilter === 'all' ? applications : applications.filter((a) => a.status === statusFilter);
+    if (searchQuery.trim()) {
+      const q = searchQuery.trim().toLowerCase();
+      result = result.filter(
+        (a) =>
+          a.nom?.toLowerCase().includes(q) ||
+          a.email?.toLowerCase().includes(q) ||
+          a.role?.toLowerCase().includes(q),
+      );
+    }
+    return result;
+  }, [applications, statusFilter, searchQuery]);
 
   const handleStatusUpdated = (updatedApplication: Pick<Application, 'id' | 'status' | 'status_label' | 'status_color' | 'interview_date' | 'interview_location'>) => {
     setApplications((previous) =>
@@ -322,6 +332,29 @@ export default function ApplicationList({
             </button>
           </div>
         )}
+
+        {/* Search bar */}
+        <div className="mx-5 mb-3 sm:mx-6">
+          <div className="relative">
+            <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF]" />
+            <input
+              type="search"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Rechercher par nom, email ou poste…"
+              className="w-full rounded-xl border border-[#E5E5E5] bg-[#FAFAFA] py-2.5 pl-9 pr-4 text-sm text-[#0E0E10] outline-none transition focus:border-[#F2600C] focus:bg-white focus:ring-2 focus:ring-[#F2600C]/15 placeholder:text-[#9CA3AF]"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 rounded p-0.5 text-[#9CA3AF] hover:text-[#0E0E10]"
+              >
+                <X size={13} />
+              </button>
+            )}
+          </div>
+        </div>
 
         {/* Status filter tabs */}
         <div className="border-t border-[#F0F0F0] px-5 sm:px-6">
