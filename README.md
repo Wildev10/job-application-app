@@ -1,73 +1,37 @@
-# Job Application App
+# Vaybe Recrutement
 
-Mini application full stack de gestion de candidatures réalisée dans le cadre d’un test technique Full Stack.
-Elle permet de soumettre des candidatures et de les consulter côté administration avec un scoring automatique.
+Plateforme SaaS de recrutement pour les entreprises africaines. Fini les CV éparpillés entre WhatsApp, Facebook et les emails : chaque entreprise a son espace, son lien de candidature et un tableau de bord pour suivre chaque dossier.
 
 ![Laravel](https://img.shields.io/badge/Laravel-13-FF2D20?logo=laravel&logoColor=white)
 ![Next.js](https://img.shields.io/badge/Next.js-App%20Router-000000?logo=nextdotjs&logoColor=white)
 ![MySQL](https://img.shields.io/badge/MySQL-8+-4479A1?logo=mysql&logoColor=white)
-![TypeScript](https://img.shields.io/badge/TypeScript-5+-3178C6?logo=typescript&logoColor=white)
-![TailwindCSS](https://img.shields.io/badge/TailwindCSS-3+-06B6D4?logo=tailwindcss&logoColor=white)
 
-## Présentation du projet
+## Comment ça marche
 
-Ce projet correspond au dépôt **job-application-app**, développé pour un test technique Full Stack.
+1. Une entreprise s'inscrit, personnalise son espace (logo, couleur) et obtient un **lien unique** (`/apply/{slug}`), partageable partout : WhatsApp, Facebook, site web. Chaque poste a aussi son lien (`/apply/{slug}/{poste}`).
+2. Les candidats remplissent un formulaire (nom, email, poste visé, motivation, portfolio, CV). La candidature arrive dans le tableau de bord, avec un **score automatique sur 5**.
+3. Le RH fait avancer chaque dossier : *en attente → en examen → entretien prévu → accepté / refusé*. À chaque changement, le candidat reçoit **automatiquement un email**.
+4. Le **plan Pro** (15 000 FCFA / mois, MTN ou Moov Mobile Money via FedaPay) lève les limites du plan Starter.
+5. Le propriétaire de la plateforme dispose d'un **espace super admin** (`/superadmin`) : entreprises, statistiques, plans, suspension, impersonation, emails groupés.
 
-L’objectif est de proposer une application simple, robuste et lisible pour gérer des candidatures:
-- Soumettre une candidature via un formulaire web
-- Stocker et valider les données côté backend
-- Calculer automatiquement un score de qualité de candidature
-- Consulter la liste des candidatures côté admin
+### Plans
 
-## Fonctionnalités
+| | Starter | Pro |
+|---|---|---|
+| Postes actifs | 2 | illimités |
+| Candidatures / mois | 50 | illimitées |
+| Statistiques | 7 jours | 90 jours |
+| Export CSV | non | oui |
 
-- Formulaire de candidature avec les champs: nom, email, rôle, motivation, portfolio, CV
-- Validation côté client (frontend) et côté serveur (Laravel Form Request)
-- Upload de CV (formats autorisés: `pdf`, `doc`, `docx`)
-- Système de scoring automatique sur 5 points
-- Page admin avec liste des candidatures et score associé
-- Filtres par rôle (`dev`, `designer`)
-- Tri des candidatures par score ou date
-- Feedback utilisateur avec SweetAlert2 (succès, erreur, validation)
-- Interface responsive (mobile + desktop)
+### Score d'une candidature (sur 5)
 
-## Système de scoring
-
-Le score est calculé automatiquement au moment de la soumission.
-
-| Critère | Points |
-|---|---:|
-| Email valide | +1 |
-| Portfolio renseigné | +1 |
-| CV fourni | +1 |
-| Rôle renseigné | +1 |
-| Motivation contient des mots-clés | +1 |
-
-Score maximum: **5/5**
-
-Exemples de mots-clés détectés dans la motivation: `passion`, `motivation`, `experience`, `creatif`, `innovation`, `equipe`, `challenge`, `apprendre`.
+Email valide, poste renseigné, CV fourni, mots-clés de motivation, et portfolio **ou** motivation détaillée (200 caractères ou plus).
 
 ## Prérequis
 
-- PHP >= 8.2
-- Composer
-- Node.js >= 18
-- MySQL
-- npm ou yarn
+PHP >= 8.2, Composer, Node.js >= 18, MySQL 8.
 
-## Installation et lancement
-
-### Backend (Laravel)
-
-1. Cloner le dépôt
-2. Se placer dans le dossier backend
-3. Installer les dépendances avec Composer
-4. Copier `.env.example` en `.env`
-5. Configurer les variables d’environnement (`DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`)
-6. Générer la clé applicative
-7. Lancer les migrations
-8. Créer le lien symbolique de storage
-9. Lancer le serveur
+## Installation
 
 ```bash
 git clone https://github.com/Wildev10/job-application-app.git
@@ -75,200 +39,56 @@ cd job-application-app/backend
 composer install
 cp .env.example .env
 php artisan key:generate
-php artisan migrate
+# configurer la base de données et SUPER_ADMIN_* dans .env, puis :
+php artisan migrate --seed
 php artisan storage:link
 php artisan serve
-```
 
-### Frontend (Next.js)
-
-1. Se placer dans le dossier frontend
-2. Installer les dépendances
-3. Créer le fichier `.env.local`
-4. Lancer le serveur de développement
-
-```bash
 cd ../frontend
 npm install
 cp .env.example .env.local
 npm run dev
 ```
 
-## Variables d’environnement
+Le planificateur doit tourner en production (`* * * * * php artisan schedule:run`) : il expire les plans Pro échus et ferme les postes en trop des comptes Starter. Les emails groupés du super admin utilisent la file (`php artisan queue:work`).
 
-### Backend — `.env`
+## Variables d'environnement importantes (backend)
 
-```env
-DB_CONNECTION=mysql
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_DATABASE=job-application
-DB_USERNAME=root
-DB_PASSWORD=
-APP_URL=http://localhost:8000
-FILESYSTEM_DISK=public
+| Variable | Rôle |
+|---|---|
+| `APP_URL` | URL publique de l'API (liens de vérification, logos) |
+| `APP_FRONTEND_URL` | URL du site (liens dans les emails) |
+| `CORS_ALLOWED_ORIGINS` | Origines autorisées, séparées par des virgules |
+| `SUPER_ADMIN_NAME` / `_EMAIL` / `_PASSWORD` | Compte créé par `db:seed` (rien n'est créé s'ils sont vides) |
+| `FEDAPAY_SECRET_KEY` / `_PUBLIC_KEY` / `_ENVIRONMENT` | Accès FedaPay (`sandbox` ou `live`) |
+| `FEDAPAY_WEBHOOK_SECRET` | Secret du webhook (obligatoire : sans lui tous les webhooks sont refusés) |
+| `FEDAPAY_MOCK_MODE` | `true` en local uniquement : l'upgrade Pro devient gratuit |
+| `PRO_PLAN_PRICE` | Prix du plan Pro **en FCFA** (défaut `15000`) |
+| `MAIL_*` | SMTP pour les emails transactionnels |
+
+Webhook FedaPay à déclarer : `POST {APP_URL}/api/payments/webhook`. La signature `t=<horodatage>,s=<hmac>` est vérifiée avec une tolérance de 5 minutes.
+
+## Tests
+
+`phpunit.xml` force SQLite. Si votre PHP n'a pas ce driver, utilisez une base MySQL dédiée (ne jamais viser la base de développement : les tests la vident) :
+
+```bash
+mysql -uroot -p -e 'CREATE DATABASE `job-application_test`'
+cd backend
+DB_CONNECTION=mysql DB_DATABASE=job-application_test php artisan test
 ```
 
-### Frontend — `.env.local`
+## API (résumé)
 
-```env
-NEXT_PUBLIC_API_URL=http://localhost:8000/api
-```
+**Public** : `POST /api/auth/register|login|forgot-password|reset-password` · `GET /api/company/{slug}` · `GET /api/jobs/public/{companySlug}/{jobSlug}` · `POST /api/applications/{companySlug}[/{jobSlug}]` · `POST /api/payments/webhook`
 
-## Endpoints API
+**Entreprise** (`Authorization: Bearer <token>`) : `/api/auth/me|logout|resend-verification` · `/api/jobs` (CRUD) · `/api/applications` (liste, détail, `/{id}/status`, `/{id}/cv`, `/export`, `/stats`) · `/api/company/profile|logo|plan-status|onboarding-status` · `/api/payments/initiate|history|status/{id}`
 
-### POST /api/applications
+**Super admin** : `/api/superadmin/auth/login` puis `/api/superadmin/stats|companies|broadcast` (suspension, plan, impersonation, suppression).
 
-Crée une nouvelle candidature, applique les validations serveur, stocke le CV (si fourni) et calcule le score.
+## Sécurité
 
-**Champs acceptés**
-
-| Champ | Type | Requis | Description |
-|---|---|---|---|
-| `nom` | `string` | Oui | Nom du candidat |
-| `email` | `string` (email) | Oui | Email valide |
-| `role` | `string` | Oui | Valeurs autorisées: `dev`, `designer` |
-| `motivation` | `string` | Oui | Texte de motivation (min 20 caractères) |
-| `portfolio` | `string` (URL) | Non | Lien portfolio |
-| `cv` | `file` (`pdf`/`doc`/`docx`) | Non | CV (max 2 MB) |
-
-**Réponse succès (201)**
-
-```json
-{
-  "id": 1,
-  "nom": "Alice Martin",
-  "email": "alice@example.com",
-  "role": "dev",
-  "motivation": "Je suis passionnée par le développement web...",
-  "portfolio": "https://portfolio.example.com",
-  "cv": "cvs/xxxxxx.pdf",
-  "score": 5,
-  "created_at": "2026-03-31T10:00:00.000000Z",
-  "updated_at": "2026-03-31T10:00:00.000000Z"
-}
-```
-
-**Réponse erreur validation (422)**
-
-```json
-{
-  "message": "Validation failed.",
-  "errors": {
-    "email": [
-      "The email field must be a valid email address."
-    ],
-    "motivation": [
-      "The motivation field must be at least 20 characters."
-    ]
-  }
-}
-```
-
-### GET /api/applications
-
-Retourne la liste des candidatures avec filtres et tri optionnels.
-
-**Query params optionnels**
-
-| Paramètre | Type | Valeurs | Description |
-|---|---|---|---|
-| `role` | `string` | `dev`, `designer` | Filtre par rôle |
-| `sort` | `string` | `date`, `score` | Tri des résultats |
-
-**Format de réponse JSON (200)**
-
-```json
-{
-  "data": [
-    {
-      "id": 1,
-      "nom": "Alice Martin",
-      "email": "alice@example.com",
-      "role": "dev",
-      "score": 5,
-      "created_at": "2026-03-31T10:00:00.000000Z",
-      "updated_at": "2026-03-31T10:00:00.000000Z"
-    }
-  ],
-  "total": 1
-}
-```
-
-## Choix techniques
-
-Le test recommandait Node.js/Express et Vue.js/Nuxt.js.
-J'ai fait le choix délibéré d'utiliser un stack différent,
-que je maîtrise mieux, afin de livrer une solution propre,
-structurée et fonctionnelle dans les délais impartis.
-
-- **Laravel 13**: framework PHP que je maîtrise en profondeur.
-  Il offre une structure MVC claire, une validation native robuste,
-  un ORM puissant (Eloquent) et une gestion des fichiers intégrée.
-  Idéal pour construire une API REST propre rapidement.
-
-- **Next.js**: framework React moderne avec App Router et TypeScript.
-  Choisi pour sa flexibilité, ses performances et ma maîtrise du
-  paradigme React par rapport à Vue.js.
-
-- **MySQL**: base de données relationnelle parfaitement intégrée
-  à Laravel via Eloquent. Choix naturel pour des données structurées
-  comme des candidatures.
-
-Une solution simple, maîtrisée et fonctionnelle reste toujours
-préférable à une solution dans un stack imposé mais mal exécutée.
-
-## Structure du projet
-
-### Vue globale
-
-```text
-job-application-app/
-├── backend/     # Projet Laravel 13
-└── frontend/    # Projet Next.js
-```
-
-### Backend
-
-```text
-backend/
-├── app/
-│   ├── Http/
-│   │   ├── Controllers/ApplicationController.php
-│   │   └── Requests/StoreApplicationRequest.php
-│   ├── Models/Application.php
-│   └── Services/ScoringService.php
-├── database/migrations/
-└── routes/api.php
-```
-
-### Frontend
-
-```text
-frontend/
-├── app/
-│   ├── page.tsx
-│   ├── admin/page.tsx
-│   ├── components/
-│   │   ├── ApplicationForm.tsx
-│   │   ├── ApplicationList.tsx
-│   │   ├── ApplicationCard.tsx
-│   │   ├── ScoreBadge.tsx
-│   │   └── RoleBadge.tsx
-│   ├── lib/api.ts
-│   └── types/application.ts
-```
-
-## Améliorations possibles
-
-- Authentification et autorisation pour la page admin
-- Pagination de la liste des candidatures
-- Notifications email à la soumission
-- Export CSV des candidatures
-- Gestion d’un statut de candidature (`en attente`, `acceptée`, `refusée`)
-- Tableau de bord admin avec statistiques (volume, score moyen, répartition par rôle)
-
-## Dépôt GitHub
-
-- Nom du dépôt: **job-application-app**
-- URL: `https://github.com/Wildev10/job-application-app`
+- CV stockés sur le disque privé, téléchargeables uniquement par l'entreprise propriétaire.
+- Comptes suspendus refusés partout (connexion, API, formulaires).
+- Limitation de débit sur l'inscription, la connexion, la réinitialisation du mot de passe et le dépôt de candidature.
+- Isolation des données par entreprise vérifiée par les tests.

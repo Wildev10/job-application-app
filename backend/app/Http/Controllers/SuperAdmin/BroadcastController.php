@@ -26,7 +26,7 @@ class BroadcastController extends Controller
 
         if ($validator->fails()) {
             return response()->json([
-                'message' => 'Validation failed.',
+                'message' => 'Les données envoyées sont invalides.',
                 'errors' => $validator->errors(),
             ], 422)->header('Content-Type', 'application/json');
         }

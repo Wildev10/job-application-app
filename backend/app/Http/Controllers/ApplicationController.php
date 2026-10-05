@@ -277,7 +277,7 @@ class ApplicationController extends Controller
             $data['role'] = $job?->role ?: ($data['role'] ?? null);
             if (empty($data['role'])) {
                 return response()->json([
-                    'message' => 'Validation failed.',
+                    'message' => 'Les données envoyées sont invalides.',
                     'errors' => ['role' => ['Le poste visé est obligatoire.']],
                 ], 422)->header('Content-Type', 'application/json');
             }

@@ -162,6 +162,17 @@ class FedaPayService
             return;
         }
 
+        // Webhooks are retried and can arrive out of order: never touch a settled payment.
+        if ($payment->status !== 'pending') {
+            Log::info('Webhook FedaPay ignoré: paiement déjà traité.', [
+                'event' => $event,
+                'payment_id' => $payment->id,
+                'status' => $payment->status,
+            ]);
+
+            return;
+        }
+
         if ($event === 'transaction.canceled') {
             $payment->update(['status' => 'canceled']);
             MailService::sendPaymentFailed($payment);
@@ -186,6 +197,11 @@ class FedaPayService
 
     private function handleApprovedPayment(Payment $payment, array $data): void
     {
+        // Idempotent: a replayed approval must not extend the period or resend the email.
+        if ($payment->status === 'approved') {
+            return;
+        }
+
         $periodStart = now();
         $periodEnd = now()->addDays(30);
 
