@@ -1,12 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { BarChart2, BriefcaseBusiness, ClipboardList, LayoutDashboard, Settings, X } from 'lucide-react';
 import EmailVerificationBanner from '@/components/EmailVerificationBanner';
 import PlanBadge from '@/components/PlanBadge';
 import { PlanStatusProvider, usePlanStatus } from '@/hooks/usePlanStatus';
+import { apiFetch } from '@/lib/api';
 import { getCompany } from '@/lib/auth';
 
 const MAIN_LINKS = [
@@ -22,6 +23,8 @@ const MAIN_LINKS = [
 function AdminLayoutShell({ children }) {
   const pathname = usePathname();
   const { planLimits, isStarter } = usePlanStatus();
+  const [pendingCount, setPendingCount] = useState(0);
+  const pendingIntervalRef = useRef(null);
   const [companyName, setCompanyName] = useState('Entreprise');
   const [companyExpiryRaw, setCompanyExpiryRaw] = useState(null);
   const [impersonationCompanyName, setImpersonationCompanyName] = useState('');
@@ -47,6 +50,23 @@ function AdminLayoutShell({ children }) {
 
     return () => window.removeEventListener('storage', onStorage);
   }, []);
+
+  const fetchPendingCount = useCallback(async () => {
+    try {
+      const data = await apiFetch('/company/onboarding-status', { method: 'GET' });
+      setPendingCount(data?.pending_applications_count ?? 0);
+    } catch {
+      // ignore — badge simply doesn't update
+    }
+  }, []);
+
+  useEffect(() => {
+    void fetchPendingCount();
+    pendingIntervalRef.current = window.setInterval(() => void fetchPendingCount(), 30_000);
+    return () => {
+      if (pendingIntervalRef.current !== null) window.clearInterval(pendingIntervalRef.current);
+    };
+  }, [fetchPendingCount]);
 
   const stopImpersonation = () => {
     localStorage.removeItem('impersonate_token');
@@ -90,8 +110,9 @@ function AdminLayoutShell({ children }) {
 
           <nav className="mt-5 flex flex-col gap-1">
             {MAIN_LINKS.map((item) => {
-              const isActive = pathname === item.href;
+              const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
               const Icon = item.icon;
+              const showBadge = item.href === '/admin/candidatures' && pendingCount > 0;
 
               return (
                 <Link
@@ -104,7 +125,12 @@ function AdminLayoutShell({ children }) {
                   }`}
                 >
                   <Icon size={16} strokeWidth={2.25} />
-                  <span>{item.label}</span>
+                  <span className="flex-1">{item.label}</span>
+                  {showBadge && (
+                    <span className={`inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full px-1 text-[10px] font-bold ${isActive ? 'bg-white/25 text-white' : 'bg-[#F2600C] text-white'}`}>
+                      {pendingCount > 99 ? '99+' : pendingCount}
+                    </span>
+                  )}
                 </Link>
               );
             })}
