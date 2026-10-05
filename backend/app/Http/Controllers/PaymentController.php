@@ -87,7 +87,12 @@ class PaymentController extends Controller
                 $secret,
                 Webhook::DEFAULT_TOLERANCE
             );
-        } catch (Throwable) {
+        } catch (Throwable $exception) {
+            Log::warning('Webhook FedaPay refusé: signature invalide.', [
+                'reason' => $exception->getMessage(),
+                'has_header' => $request->hasHeader('X-FEDAPAY-SIGNATURE'),
+            ]);
+
             return response()->json([
                 'message' => 'Signature invalide.',
             ], 401)->header('Content-Type', 'application/json');
