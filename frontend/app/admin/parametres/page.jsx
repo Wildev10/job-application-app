@@ -18,6 +18,7 @@ export default function AdminParametresPage() {
   const [company, setCompany] = useState(initialCompany);
   const [name, setName] = useState(initialCompany?.name || '');
   const [color, setColor] = useState(initialCompany?.color || '#F2600C');
+  const [tagline, setTagline] = useState(initialCompany?.tagline || '');
   const [isSaving, setIsSaving] = useState(false);
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const logoInputRef = useRef(null);
@@ -85,6 +86,7 @@ export default function AdminParametresPage() {
         body: JSON.stringify({
           name: name.trim(),
           color,
+          tagline: tagline.trim() || null,
         }),
       });
 
@@ -281,6 +283,19 @@ export default function AdminParametresPage() {
             </div>
           </label>
         </div>
+
+        <label className="mt-4 block space-y-2 text-sm text-[#374151]">
+          <span className="font-medium">Accroche de la page de candidature</span>
+          <input
+            type="text"
+            value={tagline}
+            onChange={(event) => setTagline(event.target.value)}
+            maxLength={255}
+            placeholder="Ex : Rejoignez une équipe passionnée et ambitieuse !"
+            className="w-full rounded-lg border border-[#E5E5E5] px-3 py-2.5 text-sm text-[#0E0E10] outline-none focus:border-[#F2600C] focus:ring-2 focus:ring-[#F2600C]/20"
+          />
+          <p className="text-xs text-[#9CA3AF]">Texte affiché sous votre nom sur le formulaire public. Facultatif.</p>
+        </label>
 
         <button
           type="button"

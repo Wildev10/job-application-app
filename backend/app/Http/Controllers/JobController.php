@@ -204,7 +204,7 @@ class JobController extends Controller
             ->whereHas('company', function ($query) use ($companySlug): void {
                 $query->where('slug', $companySlug);
             })
-            ->with(['company:id,name,logo,color'])
+            ->with(['company:id,name,logo,color,tagline'])
             ->first();
 
         if ($job === null) {
@@ -224,6 +224,7 @@ class JobController extends Controller
                 'name' => $job->company?->name,
                 'logo' => $job->company?->logo,
                 'color' => $job->company?->color,
+                'tagline' => $job->company?->tagline,
             ],
         ], 200)->header('Content-Type', 'application/json');
     }

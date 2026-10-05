@@ -27,6 +27,7 @@ class Company extends Model
         'slug',
         'logo',
         'color',
+        'tagline',
         'api_token',
         'is_suspended',
         'plan',

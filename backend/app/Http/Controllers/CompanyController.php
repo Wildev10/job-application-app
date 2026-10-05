@@ -20,7 +20,7 @@ class CompanyController extends Controller
     public function show(string $slug): JsonResponse
     {
         $company = Company::query()
-            ->select(['id', 'name', 'slug', 'logo', 'color'])
+            ->select(['id', 'name', 'slug', 'logo', 'color', 'tagline'])
             ->where('slug', $slug)
             ->first();
 
@@ -70,6 +70,10 @@ class CompanyController extends Controller
 
             if (array_key_exists('color', $data)) {
                 $updates['color'] = $data['color'];
+            }
+
+            if (array_key_exists('tagline', $data)) {
+                $updates['tagline'] = $data['tagline'];
             }
 
             if ($updates !== []) {

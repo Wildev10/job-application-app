@@ -26,6 +26,7 @@ class UpdateCompanyProfileRequest extends FormRequest
         return [
             'name' => ['sometimes', 'string', 'max:255'],
             'color' => ['sometimes', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'tagline' => ['sometimes', 'nullable', 'string', 'max:255'],
         ];
     }
 
