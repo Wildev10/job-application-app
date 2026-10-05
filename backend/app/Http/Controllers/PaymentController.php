@@ -9,6 +9,8 @@ use App\Services\PlanService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use FedaPay\Webhook;
+use FedaPay\WebhookSignature;
 use Throwable;
 
 class PaymentController extends Controller
@@ -71,10 +73,21 @@ class PaymentController extends Controller
      */
     public function webhook(Request $request, FedaPayService $fedaPayService): JsonResponse
     {
-        $signature = (string) $request->header('X-FEDAPAY-SIGNATURE', '');
-        $computedSignature = hash_hmac('sha256', $request->getContent(), (string) config('fedapay.webhook_secret'));
+        // FedaPay signs "<timestamp>.<body>" and sends "t=<timestamp>,s=<signature>".
+        $secret = (string) config('fedapay.webhook_secret');
 
-        if (! hash_equals($computedSignature, $signature)) {
+        try {
+            if ($secret === '') {
+                throw new \RuntimeException('FEDAPAY_WEBHOOK_SECRET is not configured.');
+            }
+
+            WebhookSignature::verifyHeader(
+                $request->getContent(),
+                (string) $request->header('X-FEDAPAY-SIGNATURE', ''),
+                $secret,
+                Webhook::DEFAULT_TOLERANCE
+            );
+        } catch (Throwable) {
             return response()->json([
                 'message' => 'Signature invalide.',
             ], 401)->header('Content-Type', 'application/json');
@@ -86,6 +99,11 @@ class PaymentController extends Controller
             Log::error('Erreur lors du traitement du webhook FedaPay.', [
                 'message' => $exception->getMessage(),
             ]);
+
+            // A non-2xx answer makes FedaPay retry instead of losing the payment.
+            return response()->json([
+                'message' => 'Erreur de traitement.',
+            ], 500)->header('Content-Type', 'application/json');
         }
 
         return response()->json([
