@@ -64,26 +64,27 @@ export default function AdminUpgradePage() {
     startPolling,
   } = usePayment({ refreshPlanStatus: refreshPlanLimits });
   const [countdown, setCountdown] = useState(3);
-  const [paymentParam] = useState(() => {
-    if (typeof window === 'undefined') {
-      return null;
-    }
+  // Read the return parameters after mount: the server cannot know the URL query,
+  // so reading it during render makes the server HTML differ from the client one.
+  const [paymentParam, setPaymentParam] = useState(null);
 
+  useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const raw = params.get('payment');
+    let nextParam = raw;
 
     // FedaPay appends its own "id" and "status" parameters to the callback URL,
     // sometimes after a second "?": stay tolerant, the real status is polled anyway.
     if (raw?.startsWith('cancel')) {
-      return 'cancelled';
+      nextParam = 'cancelled';
+    } else if (raw?.startsWith('success') || params.has('status')) {
+      nextParam = 'success';
     }
 
-    if (raw?.startsWith('success') || params.has('status')) {
-      return 'success';
-    }
-
-    return raw;
-  });
+    // One-time read of the URL after mount (not available during server render).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setPaymentParam(nextParam);
+  }, []);
 
   const proPriceLabel = process.env.NEXT_PUBLIC_PLAN_PRO_PRICE_LABEL || '15 000 FCFA';
   const proPrice = Number(process.env.NEXT_PUBLIC_PLAN_PRO_PRICE || 15000);
