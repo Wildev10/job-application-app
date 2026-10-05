@@ -64,14 +64,27 @@ export default function AdminUpgradePage() {
     startPolling,
   } = usePayment({ refreshPlanStatus: refreshPlanLimits });
   const [countdown, setCountdown] = useState(3);
-  const [paymentParam] = useState(() => {
-    if (typeof window === 'undefined') {
-      return null;
+  // Read the return parameters after mount: the server cannot know the URL query,
+  // so reading it during render makes the server HTML differ from the client one.
+  const [paymentParam, setPaymentParam] = useState(null);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const raw = params.get('payment');
+    let nextParam = raw;
+
+    // FedaPay appends its own "id" and "status" parameters to the callback URL,
+    // sometimes after a second "?": stay tolerant, the real status is polled anyway.
+    if (raw?.startsWith('cancel')) {
+      nextParam = 'cancelled';
+    } else if (raw?.startsWith('success') || params.has('status')) {
+      nextParam = 'success';
     }
 
-    const params = new URLSearchParams(window.location.search);
-    return params.get('payment');
-  });
+    // One-time read of the URL after mount (not available during server render).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setPaymentParam(nextParam);
+  }, []);
 
   const proPriceLabel = process.env.NEXT_PUBLIC_PLAN_PRO_PRICE_LABEL || '15 000 FCFA';
   const proPrice = Number(process.env.NEXT_PUBLIC_PLAN_PRO_PRICE || 15000);
@@ -125,19 +138,18 @@ export default function AdminUpgradePage() {
     }
 
     const intervalId = window.setInterval(() => {
-      setCountdown((previous) => {
-        if (previous <= 1) {
-          window.clearInterval(intervalId);
-          router.push('/admin');
-          return 0;
-        }
-
-        return previous - 1;
-      });
+      setCountdown((previous) => Math.max(0, previous - 1));
     }, 1000);
 
     return () => window.clearInterval(intervalId);
-  }, [paymentStatus, router]);
+  }, [paymentStatus]);
+
+  // Redirect from an effect: navigating inside a state updater breaks React's render rules.
+  useEffect(() => {
+    if (paymentStatus === 'approved' && countdown === 0) {
+      router.push('/admin');
+    }
+  }, [paymentStatus, countdown, router]);
 
   const isVerifyingAfterReturn = useMemo(() => paymentParam === 'success' || polling, [paymentParam, polling]);
 
