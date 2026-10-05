@@ -95,7 +95,7 @@ export default function StatusSelector({ applicationId, currentStatus, onStatusU
         value={selectedStatus}
         onChange={(event) => void handleStatusChange(event.target.value as ApplicationStatus)}
         disabled={isUpdating}
-        className="rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-xs text-slate-700 outline-none transition focus:border-teal-500 disabled:cursor-not-allowed disabled:opacity-60"
+        className="min-w-40 rounded-full border border-[#E5E7EB] bg-white px-4 py-2 text-xs font-semibold text-[#1A1A2E] outline-none transition focus:border-[#1EB88A] focus:ring-2 focus:ring-[#1EB88A]/15 disabled:cursor-not-allowed disabled:opacity-60"
       >
         {STATUS_OPTIONS.map((option) => (
           <option key={option.value} value={option.value}>

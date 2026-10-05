@@ -9,33 +9,37 @@ export default function PlanLimitBar({ current = 0, limit = 0, label = '', color
   const rawPercent = safeLimit > 0 ? (safeCurrent / safeLimit) * 100 : 0;
   const percentage = Math.min(100, Math.round(rawPercent));
 
-  let progressClass = color || 'bg-teal-500';
+  let progressClass = color || 'bg-[#1EB88A]';
   if (!color) {
-    if (percentage >= 85) {
-      progressClass = 'bg-red-500';
-    } else if (percentage >= 60) {
-      progressClass = 'bg-amber-500';
+    if (percentage >= 100) {
+      progressClass = 'bg-[#EF4444]';
+    } else if (percentage >= 75) {
+      progressClass = 'bg-[#F59E0B]';
     }
   }
 
   return (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between gap-3 text-sm">
-        <p className="font-medium text-slate-700">{label}</p>
-        <p className="font-semibold text-slate-900">
-          {safeCurrent} / {safeLimit}
+    <div className="space-y-2.5">
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-[13px] font-semibold text-[#374151]">{label}</p>
+        <p className="text-[13px] font-bold text-[#111827]">
+          {safeCurrent}
+          <span className="font-normal text-[#9CA3AF]"> / {safeLimit}</span>
         </p>
       </div>
 
-      <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200">
-        <div className={`h-full rounded-full transition-all duration-300 ${progressClass}`} style={{ width: `${percentage}%` }} />
+      <div className="h-2 w-full overflow-hidden rounded-full bg-[#E5E7EB]">
+        <div
+          className={`h-full rounded-full transition-all duration-500 ${progressClass}`}
+          style={{ width: `${percentage}%` }}
+        />
       </div>
 
-      {percentage >= 100 ? (
-        <p className="text-xs text-red-600">🔒 Limite atteinte — Passez au Pro</p>
-      ) : percentage > 85 ? (
-        <p className="text-xs text-amber-600">⚠️ Limite presque atteinte</p>
-      ) : null}
+      {percentage >= 100 && (
+        <p className="text-[12px] font-medium text-[#EF4444]">
+          Limite atteinte — passez au plan Pro pour continuer.
+        </p>
+      )}
     </div>
   );
 }

@@ -1,8 +1,8 @@
 'use client';
 
-import Image from 'next/image';
 import { useEffect, useMemo, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
+import { Download, Link2 } from 'lucide-react';
 import { Alert } from '@/lib/sweetalert';
 import ApplicationCard from '@/app/components/ApplicationCard';
 import ExportModal from '@/app/components/ExportModal';
@@ -10,9 +10,7 @@ import UpgradeModal from '@/components/UpgradeModal';
 import type { ApiError, Application, ApplicationStatus } from '@/app/types/application';
 import { apiFetch, exportCSV } from '@/lib/api';
 import { getCompany } from '@/lib/auth';
-import { useAuth } from '@/hooks/useAuth';
 import { usePlanStatus } from '@/hooks/usePlanStatus';
-// FIX-CONTRAST: lisibilite corrigee
 
 type StatusFilter = 'all' | ApplicationStatus;
 type ExportFilters = {
@@ -32,10 +30,16 @@ type CompanyProfile = {
 const STATUS_FILTERS: Array<{ value: StatusFilter; label: string }> = [
   { value: 'all', label: 'Tous' },
   { value: 'pending', label: 'En attente' },
-  { value: 'reviewing', label: 'En cours d\'examen' },
-  { value: 'interview', label: 'Entretien prévu' },
+  { value: 'reviewing', label: 'En examen' },
+  { value: 'interview', label: 'Entretien' },
   { value: 'accepted', label: 'Accepté' },
   { value: 'rejected', label: 'Refusé' },
+];
+
+const ROLE_FILTERS = [
+  { value: '', label: 'Tous les rôles' },
+  { value: 'dev', label: 'Dev' },
+  { value: 'designer', label: 'Designer' },
 ];
 
 const EMAIL_BANNER_STORAGE_KEY = 'hide_email_banner';
@@ -52,7 +56,6 @@ export default function ApplicationList({
 }) {
   const router = useRouter();
   const pathname = usePathname();
-  const { logout } = useAuth();
   const [applications, setApplications] = useState<Application[]>([]);
   const [total, setTotal] = useState(0);
   const [role, setRole] = useState('');
@@ -72,8 +75,6 @@ export default function ApplicationList({
 
   useEffect(() => {
     setCompany(getCompany());
-
-    // Persist user choice to hide the informational email banner.
     const shouldHideBanner = localStorage.getItem(EMAIL_BANNER_STORAGE_KEY) === 'true';
     setShowEmailBanner(!shouldHideBanner);
   }, []);
@@ -83,7 +84,6 @@ export default function ApplicationList({
   }, [initialJobId]);
 
   useEffect(() => {
-    // Sync status filter from URL entry points such as dashboard CTA.
     if (STATUS_FILTERS.some((filter) => filter.value === initialStatusFilter)) {
       setStatusFilter(initialStatusFilter as StatusFilter);
     }
@@ -93,10 +93,8 @@ export default function ApplicationList({
     if (!company?.slug) {
       return;
     }
-
     const link = `${appUrl}/apply/${company.slug}`;
     await navigator.clipboard.writeText(link);
-
     await Alert.fire({
       toast: true,
       position: 'top-end',
@@ -119,7 +117,7 @@ export default function ApplicationList({
           </ul>
           <p style="margin:0;">Au changement de statut :</p>
           <ul style="margin:8px 0 0 18px;padding:0;">
-            <li>Email personnalise selon le statut</li>
+            <li>Email personnalisé selon le statut</li>
           </ul>
         </div>
       `,
@@ -142,20 +140,11 @@ export default function ApplicationList({
 
       try {
         const query = new URLSearchParams();
-        if (role) {
-          query.set('role', role);
-        }
-        if (sort) {
-          query.set('sort', sort);
-        }
-        if (selectedJobId) {
-          query.set('job_id', selectedJobId);
-        }
+        if (role) query.set('role', role);
+        if (sort) query.set('sort', sort);
+        if (selectedJobId) query.set('job_id', selectedJobId);
 
-        const response = await apiFetch(`/applications?${query.toString()}`, {
-          method: 'GET',
-        });
-
+        const response = await apiFetch(`/applications?${query.toString()}`, { method: 'GET' });
         setApplications(response.data);
         setTotal(response.total);
 
@@ -192,69 +181,30 @@ export default function ApplicationList({
     router.push(pathname);
   };
 
-  const statusCounts = useMemo(() => {
-    return {
-      all: applications.length,
-      pending: applications.filter((application) => application.status === 'pending').length,
-      reviewing: applications.filter((application) => application.status === 'reviewing').length,
-      interview: applications.filter((application) => application.status === 'interview').length,
-      accepted: applications.filter((application) => application.status === 'accepted').length,
-      rejected: applications.filter((application) => application.status === 'rejected').length,
-    };
-  }, [applications]);
+  const statusCounts = useMemo(() => ({
+    all: applications.length,
+    pending: applications.filter((a) => a.status === 'pending').length,
+    reviewing: applications.filter((a) => a.status === 'reviewing').length,
+    interview: applications.filter((a) => a.status === 'interview').length,
+    accepted: applications.filter((a) => a.status === 'accepted').length,
+    rejected: applications.filter((a) => a.status === 'rejected').length,
+  }), [applications]);
 
   const filteredApplications = useMemo(() => {
-    if (statusFilter === 'all') {
-      return applications;
-    }
-
-    return applications.filter((application) => application.status === statusFilter);
+    if (statusFilter === 'all') return applications;
+    return applications.filter((a) => a.status === statusFilter);
   }, [applications, statusFilter]);
 
-  /**
-   * Apply status update in local state to avoid refetching the whole list.
-   */
   const handleStatusUpdated = (updatedApplication: Pick<Application, 'id' | 'status' | 'status_label' | 'status_color'>) => {
     setApplications((previous) =>
       previous.map((application) =>
         application.id === updatedApplication.id
-          ? {
-              ...application,
-              status: updatedApplication.status,
-              status_label: updatedApplication.status_label,
-              status_color: updatedApplication.status_color,
-            }
+          ? { ...application, status: updatedApplication.status, status_label: updatedApplication.status_label, status_color: updatedApplication.status_color }
           : application,
       ),
     );
   };
 
-  /**
-   * Ask confirmation before ending the authenticated company session.
-   */
-  const handleLogout = async () => {
-    const confirmation = await Alert.fire({
-      title: 'Se déconnecter ? ',
-      text: 'Votre session admin sera fermée.',
-      icon: 'question',
-      showCancelButton: true,
-      confirmButtonText: 'Oui, me déconnecter',
-      cancelButtonText: 'Annuler',
-      confirmButtonColor: '#dc2626',
-      cancelButtonColor: '#6b7280',
-      reverseButtons: true,
-    });
-
-    if (!confirmation.isConfirmed) {
-      return;
-    }
-
-    await logout();
-  };
-
-  /**
-   * Export the CSV with the filters selected in the modal.
-   */
   const handleExport = async (filters: ExportFilters) => {
     setIsExportModalOpen(false);
     setIsExporting(true);
@@ -263,15 +213,12 @@ export default function ApplicationList({
       title: 'Export en cours...',
       allowOutsideClick: false,
       allowEscapeKey: false,
-      didOpen: () => {
-        Alert.showLoading();
-      },
+      didOpen: () => { Alert.showLoading(); },
     });
 
     try {
       await exportCSV(filters);
       Alert.close();
-
       await Alert.fire({
         title: 'Export réussi !',
         text: 'Votre fichier CSV a été téléchargé.',
@@ -281,11 +228,10 @@ export default function ApplicationList({
     } catch (error) {
       const apiError = error as ApiError;
       Alert.close();
-
       await Alert.fire({
         icon: 'error',
         title: 'Export impossible',
-        text: apiError.message || 'Une erreur est survenue pendant l export du fichier.',
+        text: apiError.message || "Une erreur est survenue pendant l'export du fichier.",
         confirmButtonColor: '#DC2626',
       });
     } finally {
@@ -294,246 +240,213 @@ export default function ApplicationList({
   };
 
   return (
-    <section className="mx-auto w-full max-w-7xl space-y-10">
-      <header className="space-y-8">
-        <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
-          <div className="space-y-4">
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                {company?.logo ? (
-                  <Image
-                    src={company.logo}
-                    alt={company.name || 'Company'}
-                    width={36}
-                    height={36}
-                    unoptimized
-                    className="h-9 w-9 rounded-md object-cover"
-                  />
-                ) : (
-                  <div className="flex h-9 w-9 items-center justify-center rounded-md bg-[#f3f4f6] text-xs font-bold text-[#525252]">
-                    {company?.name?.slice(0, 1)?.toUpperCase() || 'C'}
-                  </div>
-                )}
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#737373]">Tableau de suivi</p>
-                  <h1 className="text-3xl font-extrabold tracking-[-0.02em] text-[#0f0f0f] sm:text-4xl">
-                    {company?.name || 'Espace entreprise'}
-                  </h1>
-                </div>
-              </div>
+    <section
+      className="mx-auto w-full max-w-7xl space-y-4"
+      style={{ fontFamily: 'Inter, -apple-system, sans-serif' }}
+    >
+      {/* Header card */}
+      <div className="rounded-[12px] border border-[#E5E7EB] bg-white p-5 shadow-sm sm:p-6">
+        <div className="flex flex-col gap-5">
+
+          {/* Title + actions row */}
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <h1 className="text-[22px] font-semibold tracking-[-0.02em] text-[#111827]">Candidatures</h1>
+              <span className="rounded-full bg-[#ECFDF5] px-2.5 py-0.5 text-[13px] font-semibold text-[#065F46]">
+                {total}
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => void copyApplyLink()}
+                disabled={!company?.slug}
+                className="inline-flex items-center gap-2 rounded-[8px] border border-[#E5E7EB] bg-white px-3.5 py-2 text-sm font-medium text-[#374151] transition hover:border-[#D1D5DB] hover:bg-[#F9FAFB] disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <Link2 size={15} />
+                Copier mon lien
+              </button>
 
               <button
                 type="button"
-                onClick={() => void handleLogout()}
-                className="rounded-md border border-[#d4d4d4] px-3 py-1.5 text-sm font-medium text-[#44403c] hover:border-[#ef4444] hover:text-[#b91c1c]"
+                onClick={() => {
+                  if (isStarter && !canExportCSV) {
+                    setIsUpgradeModalOpen(true);
+                    return;
+                  }
+                  setIsExportModalOpen(true);
+                }}
+                disabled={isExporting}
+                title={isStarter && !canExportCSV ? 'Fonctionnalité Pro' : undefined}
+                className="inline-flex items-center gap-2 rounded-[8px] bg-[#1EB88A] px-3.5 py-2 text-sm font-medium text-white transition hover:bg-[#0F6E56] disabled:cursor-not-allowed disabled:opacity-60"
               >
-                Se déconnecter
+                {isExporting ? (
+                  <>
+                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/35 border-t-white" />
+                    Export en cours...
+                  </>
+                ) : (
+                  <>
+                    <Download size={15} />
+                    Exporter CSV
+                  </>
+                )}
               </button>
             </div>
+          </div>
 
-            <div className="flex flex-wrap items-center gap-3">
-              <h2 className="text-4xl font-extrabold tracking-[-0.02em] text-[#0f0f0f] sm:text-5xl">
-                {selectedJobId ? `Candidatures - ${selectedJobTitle}` : 'Candidatures'}
-              </h2>
-              {selectedJobId && (
+          {/* Email banner */}
+          {showEmailBanner && (
+            <div className="rounded-r-[8px] border-l-4 border-l-[#1EB88A] bg-[#F0FDF4] px-4 py-3">
+              <div className="flex items-start justify-between gap-4">
+                <p className="text-[13px] leading-relaxed text-[#1A1A2E]">
+                  Les candidats reçoivent automatiquement un email de confirmation, puis une notification à chaque changement de statut.
+                  <button
+                    type="button"
+                    onClick={() => void openEmailDetails()}
+                    className="ml-2 font-medium text-[#1EB88A] transition hover:text-[#0F6E56]"
+                  >
+                    En savoir plus
+                  </button>
+                </p>
                 <button
                   type="button"
-                  onClick={clearJobFilter}
-                  className="rounded-full border border-[#d1d5db] px-3 py-1 text-xs font-semibold text-[#374151] hover:bg-[#f3f4f6]"
+                  onClick={hideEmailBanner}
+                  className="shrink-0 text-[#6B7280] transition hover:text-[#1A1A2E]"
+                  aria-label="Masquer la bannière email"
                 >
-                  Voir tous
+                  ×
                 </button>
-              )}
+              </div>
+            </div>
+          )}
+
+          {/* Status filter pills */}
+          <div className="flex flex-nowrap gap-2 overflow-x-auto pb-1">
+            {STATUS_FILTERS.map((filter) => {
+              const count = statusCounts[filter.value];
+              const isActive = statusFilter === filter.value;
+              return (
+                <button
+                  key={filter.value}
+                  type="button"
+                  onClick={() => setStatusFilter(filter.value)}
+                  className={`inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 py-1.5 text-[13px] font-medium transition ${
+                    isActive
+                      ? 'bg-[#111827] text-white shadow-sm'
+                      : 'bg-[#F3F4F6] text-[#6B7280] hover:bg-[#E5E7EB]'
+                  }`}
+                >
+                  {filter.label}
+                  <span className={`rounded-full px-1.5 py-0.5 text-[11px] font-semibold leading-none ${
+                    isActive ? 'bg-white/20 text-white' : 'bg-white text-[#374151]'
+                  }`}>
+                    {count}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Role + sort filters */}
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+            <div className="flex items-center gap-2">
+              <span className="text-[12px] font-semibold uppercase tracking-wide text-[#9CA3AF]">Rôle</span>
+              <div className="flex items-center gap-1.5">
+                {ROLE_FILTERS.map((item) => (
+                  <button
+                    key={item.value}
+                    type="button"
+                    onClick={() => setRole(item.value)}
+                    className={`rounded-full px-3 py-1 text-[13px] font-medium transition ${
+                      role === item.value
+                        ? 'bg-[#1EB88A] text-white'
+                        : 'border border-[#E5E7EB] text-[#6B7280] hover:border-[#D1D5DB]'
+                    }`}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="ml-auto flex items-center gap-2">
+              <span className="text-[12px] font-semibold uppercase tracking-wide text-[#9CA3AF]">Tri</span>
+              {[{ value: 'date', label: 'Date' }, { value: 'score', label: 'Score' }].map((item) => (
+                <button
+                  key={item.value}
+                  type="button"
+                  onClick={() => setSort(item.value)}
+                  className={`text-[13px] font-medium transition ${
+                    sort === item.value
+                      ? 'font-semibold text-[#111827] underline underline-offset-4'
+                      : 'text-[#9CA3AF] hover:text-[#6B7280]'
+                  }`}
+                >
+                  {item.label}
+                </button>
+              ))}
             </div>
           </div>
 
-          <div className="flex flex-col items-stretch gap-3 sm:items-end">
-            <button
-              type="button"
-              onClick={() => void copyApplyLink()}
-              disabled={!company?.slug}
-              className="inline-flex items-center justify-center gap-2 rounded-lg border border-teal-300 bg-white px-4 py-2.5 text-sm font-semibold text-teal-700 transition hover:bg-teal-50 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              <span>📋</span>
-              <span>Copier mon lien de candidature</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => {
-                if (isStarter && !canExportCSV) {
-                  setIsUpgradeModalOpen(true);
-                  return;
-                }
-
-                setIsExportModalOpen(true);
-              }}
-              disabled={isExporting}
-              title={isStarter && !canExportCSV ? 'Fonctionnalité Pro' : undefined}
-              className={`inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold text-white transition disabled:cursor-not-allowed disabled:opacity-60 ${
-                isStarter && !canExportCSV
-                  ? 'cursor-pointer bg-[#166534] opacity-75 hover:bg-[#14532d]'
-                  : 'bg-[#15803d] hover:bg-[#166534]'
-              }`}
-            >
-              {isExporting ? (
-                <>
-                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/35 border-t-white" />
-                  <span>Export en cours...</span>
-                </>
-              ) : (
-                <>
-                  <span aria-hidden="true">{isStarter && !canExportCSV ? '🔒' : '↓'}</span>
-                  <span>Exporter CSV</span>
-                </>
-              )}
-            </button>
-
-            <p className="text-5xl font-extrabold leading-none tracking-[-0.03em] text-[#0f0f0f] sm:text-6xl">
-              {total}
-            </p>
-            <p className="pb-1 text-right text-sm text-[#737373]">profils</p>
-          </div>
-        </div>
-
-        <div className="flex flex-col gap-5 border-y border-[#e5e5e5] py-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex flex-wrap items-center gap-5 text-sm">
-            <p className="font-medium text-[#737373]">Rôle</p>
-            <button
-              type="button"
-              onClick={() => setRole('')}
-              className={`border-b pb-0.5 font-medium ${
-                role === '' ? 'border-[#0f0f0f] text-[#0f0f0f]' : 'border-transparent text-[#737373] hover:text-[#0f0f0f]'
-              }`}
-            >
-              Tous
-            </button>
-            <button
-              type="button"
-              onClick={() => setRole('dev')}
-              className={`border-b pb-0.5 font-medium ${
-                role === 'dev' ? 'border-[#0f0f0f] text-[#0f0f0f]' : 'border-transparent text-[#737373] hover:text-[#0f0f0f]'
-              }`}
-            >
-              Dev
-            </button>
-            <button
-              type="button"
-              onClick={() => setRole('designer')}
-              className={`border-b pb-0.5 font-medium ${
-                role === 'designer'
-                  ? 'border-[#0f0f0f] text-[#0f0f0f]'
-                  : 'border-transparent text-[#737373] hover:text-[#0f0f0f]'
-              }`}
-            >
-              Designer
-            </button>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-5 text-sm">
-            <p className="font-medium text-[#737373]">Tri</p>
-            <button
-              type="button"
-              onClick={() => setSort('date')}
-              className={`border-b pb-0.5 font-medium ${
-                sort === 'date' ? 'border-[#0f0f0f] text-[#0f0f0f]' : 'border-transparent text-[#737373] hover:text-[#0f0f0f]'
-              }`}
-            >
-              Date
-            </button>
-            <button
-              type="button"
-              onClick={() => setSort('score')}
-              className={`border-b pb-0.5 font-medium ${
-                sort === 'score' ? 'border-[#0f0f0f] text-[#0f0f0f]' : 'border-transparent text-[#737373] hover:text-[#0f0f0f]'
-              }`}
-            >
-              Score
-            </button>
-          </div>
-        </div>
-
-        {showEmailBanner && (
-          <div className="rounded-lg border border-teal-200 bg-teal-50 p-4">
-            <div className="flex items-start justify-between gap-4">
-              <p className="text-sm leading-6 text-teal-900">
-                <span className="mr-2">📧</span>
-                Les candidats reçoivent automatiquement un email de confirmation à chaque candidature,
-                et une notification lors de chaque changement de statut.
-              </p>
-
+          {/* Active job filter chip */}
+          {selectedJobId && (
+            <div className="flex items-center gap-2">
+              <span className="rounded-full bg-[#EFF6FF] px-3 py-1 text-[12px] font-medium text-[#2563EB]">
+                {selectedJobTitle}
+              </span>
               <button
                 type="button"
-                onClick={hideEmailBanner}
-                className="shrink-0 rounded px-2 py-1 text-xs font-semibold text-teal-700 hover:bg-teal-100"
-                aria-label="Masquer la bannière email"
+                onClick={clearJobFilter}
+                className="rounded-full border border-[#E5E7EB] px-3 py-1 text-[12px] font-medium text-[#374151] transition hover:border-[#D1D5DB]"
               >
-                x
+                × Voir tous
               </button>
             </div>
-
-            <button
-              type="button"
-              onClick={() => void openEmailDetails()}
-              className="mt-3 text-xs font-semibold text-teal-700 underline underline-offset-2 hover:text-teal-900"
-            >
-              En savoir plus
-            </button>
-          </div>
-        )}
-
-        <div className="flex flex-wrap items-center gap-2 border-b border-[#e5e5e5] pb-4">
-          {STATUS_FILTERS.map((filter) => {
-            const count = statusCounts[filter.value];
-            const isActive = statusFilter === filter.value;
-
-            return (
-              <button
-                key={filter.value}
-                type="button"
-                onClick={() => setStatusFilter(filter.value)}
-                className={`rounded-full px-3 py-1 text-xs font-medium transition ${
-                  isActive
-                    ? 'bg-[#0f0f0f] text-white'
-                    : 'bg-[#f5f5f4] text-[#44403c] hover:bg-[#e7e5e4]'
-                }`}
-              >
-                {filter.label} ({count})
-              </button>
-            );
-          })}
+          )}
         </div>
-      </header>
+      </div>
 
+      {/* Loading skeletons */}
       {isLoading && (
-        <div className="space-y-4">
+        <div className="space-y-3">
           {Array.from({ length: 4 }).map((_, index) => (
-            <div key={index} className="space-y-3 border-b border-[#e5e5e5] py-5">
-              <div className="h-4 w-44 animate-pulse bg-[#f0f0f0]" />
-              <div className="h-3 w-72 animate-pulse bg-[#f0f0f0]" />
+            <div key={index} className="rounded-[12px] border border-[#E5E7EB] bg-white p-6">
+              <div className="flex gap-4">
+                <div className="h-11 w-11 animate-pulse rounded-full bg-[#E5E7EB]" />
+                <div className="flex-1 space-y-3">
+                  <div className="h-4 w-40 animate-pulse rounded-full bg-[#E5E7EB]" />
+                  <div className="h-3 w-64 animate-pulse rounded-full bg-[#E5E7EB]" />
+                  <div className="h-3 w-48 animate-pulse rounded-full bg-[#E5E7EB]" />
+                </div>
+              </div>
             </div>
           ))}
         </div>
       )}
 
+      {/* Error */}
       {!isLoading && errorMessage && (
-        <div className="border-l-2 border-red-600 py-2 pl-3 text-sm text-red-700">{errorMessage}</div>
-      )}
-
-      {!isLoading && !errorMessage && filteredApplications.length === 0 && (
-        <div className="border-b border-[#e5e5e5] py-10 text-sm text-[#737373]">
-          Il n&apos;y a pas de donnée pour le moment.
+        <div className="rounded-[12px] border border-[#FECACA] bg-[#FEF2F2] px-4 py-3 text-sm text-[#991B1B]">
+          {errorMessage}
         </div>
       )}
 
+      {/* Empty state */}
+      {!isLoading && !errorMessage && filteredApplications.length === 0 && (
+        <div className="rounded-[12px] border border-dashed border-[#D1D5DB] bg-white px-6 py-14 text-center">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#ECFDF5] text-2xl">📭</div>
+          <p className="text-base font-semibold text-[#111827]">Aucune candidature à afficher.</p>
+          <p className="mt-2 text-sm text-[#6B7280]">Affinez les filtres ou revenez plus tard.</p>
+        </div>
+      )}
+
+      {/* Application cards */}
       {!isLoading && !errorMessage && filteredApplications.length > 0 && (
-        <div className="divide-y divide-[#e5e5e5]">
+        <div className="space-y-3">
           {filteredApplications.map((application) => (
-            <ApplicationCard
-              key={application.id}
-              application={application}
-              onStatusUpdated={handleStatusUpdated}
-            />
+            <ApplicationCard key={application.id} application={application} onStatusUpdated={handleStatusUpdated} />
           ))}
         </div>
       )}

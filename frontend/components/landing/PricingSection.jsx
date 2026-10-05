@@ -1,18 +1,24 @@
 'use client';
 
 import { useState } from 'react';
-// FIX-CONTRAST: lisibilite corrigee
+import { Check } from 'lucide-react';
 
 const PRICING = {
   monthly: {
     starter: 'Gratuit',
-    pro: '15 000 FCFA/mois',
+    starterSub: null,
+    pro: '15 000 FCFA',
+    proSub: '/mois',
     enterprise: 'Sur devis',
+    enterpriseSub: null,
   },
   yearly: {
     starter: 'Gratuit',
-    pro: '12 000 FCFA/mois',
+    starterSub: null,
+    pro: '12 000 FCFA',
+    proSub: '/mois',
     enterprise: 'Sur devis',
+    enterpriseSub: null,
   },
 };
 
@@ -40,7 +46,7 @@ const PLANS = [
       'Dashboard complet + statistiques',
       'Support prioritaire',
     ],
-    cta: 'Commencer l\'essai gratuit',
+    cta: "Commencer l'essai gratuit",
     popular: true,
   },
   {
@@ -63,79 +69,94 @@ const PLANS = [
  */
 export default function PricingSection() {
   const [billingCycle, setBillingCycle] = useState('monthly');
+  const pricing = PRICING[billingCycle];
 
   return (
-    <section id="tarifs" className="bg-slate-50 px-4 py-20 sm:px-6 lg:px-8">
+    <section id="tarifs" className="bg-white px-4 py-24 sm:px-6 lg:px-8 lg:py-28">
       <div className="mx-auto w-full max-w-7xl">
+        {/* Header */}
         <div className="mx-auto max-w-2xl text-center">
-          <h2 className="text-3xl font-black tracking-[-0.02em] text-slate-900 sm:text-4xl">
+          <h2 className="text-[40px] font-bold tracking-[-0.02em] text-[#0F172A] sm:text-[48px]">
             Des tarifs simples et transparents
           </h2>
-          <p className="mt-3 text-base text-slate-600 sm:text-lg">
+          <p className="mt-4 text-[17px] text-[#64748B]">
             Sans engagement. Annulez quand vous voulez.
           </p>
 
-          <div className="mx-auto mt-6 inline-flex rounded-full border border-slate-300 bg-white p-1">
-            <button
-              type="button"
-              onClick={() => setBillingCycle('monthly')}
-              className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-                billingCycle === 'monthly' ? 'bg-teal-600 text-white' : 'text-slate-600'
-              }`}
-            >
-              Mensuel
-            </button>
-            <button
-              type="button"
-              onClick={() => setBillingCycle('yearly')}
-              className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-                billingCycle === 'yearly' ? 'bg-teal-600 text-white' : 'text-slate-600'
-              }`}
-            >
-              Annuel (-20%)
-            </button>
+          {/* Toggle */}
+          <div className="mx-auto mt-8 inline-flex rounded-full bg-[#1E293B] p-1">
+            {['monthly', 'yearly'].map((cycle) => (
+              <button
+                key={cycle}
+                type="button"
+                onClick={() => setBillingCycle(cycle)}
+                className={`rounded-full px-5 py-2 text-[13px] font-semibold transition duration-200 ${
+                  billingCycle === cycle ? 'bg-white text-[#0F172A] shadow-sm' : 'text-[#94A3B8] hover:text-white'
+                }`}
+              >
+                {cycle === 'monthly' ? 'Mensuel' : 'Annuel (-20%)'}
+              </button>
+            ))}
           </div>
         </div>
 
-        <div className="mt-12 grid grid-cols-1 gap-5 lg:grid-cols-3">
+        {/* Cards */}
+        <div className="mt-12 grid grid-cols-1 gap-6 lg:grid-cols-3 lg:items-start">
           {PLANS.map((plan) => {
             const isPopular = !!plan.popular;
+            const priceValue = pricing[plan.key];
+            const priceSub = pricing[`${plan.key}Sub`];
 
             return (
               <article
                 key={plan.name}
-                className={`relative rounded-2xl border p-6 transition duration-300 hover:-translate-y-1 hover:shadow-xl ${
+                className={`relative rounded-[16px] border p-8 transition duration-200 hover:shadow-lg ${
                   isPopular
-                    ? 'border-teal-600 bg-teal-600 shadow-2xl shadow-teal-200 lg:scale-[1.03]'
-                    : 'border-slate-200 bg-white'
+                    ? 'border-[#0F766E] bg-[#0F766E] shadow-xl lg:scale-[1.03]'
+                    : 'border-[#E2E8F0] bg-white'
                 }`}
               >
+                {/* Popular badge */}
                 {isPopular && (
-                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-amber-400 px-3 py-1 text-xs font-bold text-amber-900">
+                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-[#FCD34D] px-4 py-1 text-[12px] font-bold text-[#92400E] whitespace-nowrap">
                     Le plus populaire
                   </span>
                 )}
 
-                <h3 className={`text-xl font-extrabold ${isPopular ? 'text-white' : 'text-slate-900'}`}>{plan.name}</h3>
-                <p className={`mt-2 text-3xl font-black tracking-[-0.02em] ${isPopular ? 'text-white' : 'text-slate-900'}`}>
-                  {PRICING[billingCycle][plan.key]}
-                </p>
+                <h3 className={`text-[18px] font-bold ${isPopular ? 'text-white' : 'text-[#0F172A]'}`}>
+                  {plan.name}
+                </h3>
 
-                <ul className={`mt-6 space-y-2 text-sm ${isPopular ? 'text-teal-100' : 'text-slate-600'}`}>
+                <div className="mt-3 flex items-baseline gap-1">
+                  <span className={`text-[40px] font-bold leading-none tracking-[-0.02em] ${isPopular ? 'text-white' : 'text-[#0F172A]'}`}>
+                    {priceValue}
+                  </span>
+                  {priceSub && (
+                    <span className={`text-[14px] ${isPopular ? 'text-[#99F6E4]' : 'text-[#64748B]'}`}>{priceSub}</span>
+                  )}
+                </div>
+
+                <ul className="mt-7 space-y-3">
                   {plan.features.map((feature) => (
-                    <li key={feature} className="flex items-start gap-2">
-                      <span className={`mt-0.5 ${isPopular ? 'text-teal-200' : 'text-emerald-600'}`}>✓</span>
-                      <span>{feature}</span>
+                    <li key={feature} className={`flex items-start gap-2.5 text-[14px] ${isPopular ? 'text-[#CCFBF1]' : 'text-[#475569]'}`}>
+                      <Check
+                        size={15}
+                        className={`mt-0.5 shrink-0 ${isPopular ? 'text-[#5EEAD4]' : 'text-[#0D9488]'}`}
+                        strokeWidth={2.5}
+                      />
+                      {feature}
                     </li>
                   ))}
                 </ul>
 
                 <button
                   type="button"
-                  className={`mt-8 w-full rounded-xl px-4 py-2.5 text-sm font-bold transition duration-300 ${
+                  className={`mt-8 w-full rounded-[10px] px-4 py-3 text-[14px] font-bold transition duration-200 ${
                     isPopular
-                      ? 'bg-white text-teal-700 hover:bg-teal-50'
-                      : 'border border-slate-300 text-slate-900 hover:bg-slate-100'
+                      ? 'bg-white text-[#0F766E] hover:bg-[#F0FDF4]'
+                      : plan.key === 'starter'
+                        ? 'border border-[#0D9488] text-[#0D9488] hover:bg-[#F0FDF9]'
+                        : 'border border-[#CBD5E1] text-[#475569] hover:bg-[#F8FAFC]'
                   }`}
                 >
                   {plan.cta}
