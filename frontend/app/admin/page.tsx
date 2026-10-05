@@ -24,7 +24,7 @@ export default function AdminPage() {
   const router = useRouter();
   const pathname = usePathname();
   const { status, loading } = useOnboarding();
-  const { planStatus, loading: planLoading } = usePlanStatus();
+  const { planStatus, loading: planLoading, isExpiringSoon, daysUntilExpiry, planExpiresAt } = usePlanStatus();
   const [showWelcomeToast, setShowWelcomeToast] = useState(() => {
     if (typeof window === 'undefined') return false;
     const params = new URLSearchParams(window.location.search);
@@ -231,6 +231,24 @@ export default function AdminPage() {
                 </article>
               );
             })}
+          </div>
+        )}
+
+        {isExpiringSoon && planExpiresAt && (
+          <div className="mt-4 flex flex-col gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-[13px] font-semibold text-amber-800">
+              ⏳ Votre plan Pro expire dans{' '}
+              <span className="text-amber-900">
+                {!daysUntilExpiry || daysUntilExpiry <= 0 ? "moins d'un jour" : `${daysUntilExpiry} jour${daysUntilExpiry > 1 ? 's' : ''}`}
+              </span>{' '}
+              ({new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: 'long' }).format(new Date(planExpiresAt))})
+            </p>
+            <Link
+              href="/admin/upgrade?renew=1"
+              className="inline-flex w-fit items-center gap-1.5 rounded-lg bg-amber-600 px-4 py-2 text-[12px] font-bold text-white transition hover:bg-amber-700"
+            >
+              Renouveler maintenant →
+            </Link>
           </div>
         )}
 

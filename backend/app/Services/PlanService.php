@@ -150,6 +150,7 @@ class PlanService
         return [
             'plan' => $isPro ? 'pro' : 'starter',
             'is_pro' => $isPro,
+            'plan_expires_at' => $company->plan_expires_at?->toIso8601String(),
             'jobs' => [
                 'limit' => $isPro ? null : self::STARTER_MAX_JOBS,
                 'current' => $openJobsCount,

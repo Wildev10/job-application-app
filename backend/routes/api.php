@@ -51,6 +51,7 @@ Route::middleware('company.auth')->group(function (): void {
 	Route::get('/applications/{id}/cv', [ApplicationController::class, 'downloadCv']);
 	Route::patch('/applications/{id}/status', [ApplicationController::class, 'updateStatus']);
 	Route::post('/payments/initiate', [PaymentController::class, 'initiate']);
+	Route::post('/payments/renew', [PaymentController::class, 'renew']);
 	Route::get('/payments/history', [PaymentController::class, 'history']);
 	Route::get('/payments/status/{paymentId}', [PaymentController::class, 'status']);
 });

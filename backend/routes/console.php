@@ -13,6 +13,10 @@ Schedule::command('starter:check-job-limits')
     ->daily()
     ->at('00:00');
 
+Schedule::command('plan:send-expiry-reminders')
+    ->daily()
+    ->at('09:00');
+
 Schedule::call(function (): void {
     app(FedaPayService::class)->checkExpiredPlans();
 })->daily()->at('01:00');

@@ -29,6 +29,7 @@ function normalizePlanLimits(payload) {
   return {
     plan: payload?.plan === 'pro' ? 'pro' : 'starter',
     is_pro: Boolean(payload?.is_pro),
+    plan_expires_at: payload?.plan_expires_at ?? null,
     jobs: {
       limit: payload?.jobs?.limit ?? null,
       current: Number(payload?.jobs?.current || 0),
@@ -77,11 +78,20 @@ function useStandalonePlanStatus(enabled = true) {
   const isPro = planLimits?.is_pro === true;
   const isStarter = !isPro;
 
+  const planExpiresAt = planLimits?.plan_expires_at ?? null;
+  const daysUntilExpiry = planExpiresAt
+    ? Math.ceil((new Date(planExpiresAt) - Date.now()) / (1000 * 60 * 60 * 24))
+    : null;
+  const isExpiringSoon = isPro && daysUntilExpiry !== null && daysUntilExpiry <= 15;
+
   return {
     planLimits,
     loading,
     isPro,
     isStarter,
+    planExpiresAt,
+    daysUntilExpiry,
+    isExpiringSoon,
     canExportCSV: Boolean(planLimits?.features?.export_csv),
     jobsRemaining: planLimits?.jobs?.remaining ?? null,
     applicationsRemaining: planLimits?.applications?.remaining ?? null,

@@ -7,6 +7,7 @@ use App\Mail\CandidatureReceivedApplicant;
 use App\Mail\PaymentConfirmationMail;
 use App\Mail\PaymentFailedMail;
 use App\Mail\PlanExpiredMail;
+use App\Mail\PlanExpiringMail;
 use App\Mail\ResetPasswordMail;
 use App\Mail\VerifyEmailMail;
 use App\Mail\StatusUpdated;
@@ -193,6 +194,19 @@ class MailService
         } catch (Throwable $exception) {
             Log::error('Failed to send payment failure email.', [
                 'payment_id' => $payment->id,
+                'message' => $exception->getMessage(),
+            ]);
+        }
+    }
+
+    public static function sendPlanExpiryReminder(Company $company, int $daysLeft): void
+    {
+        try {
+            Mail::to($company->email)->send(new PlanExpiringMail($company, $daysLeft));
+        } catch (Throwable $exception) {
+            Log::error('Failed to send plan expiry reminder.', [
+                'company_id' => $company->id,
+                'days_left' => $daysLeft,
                 'message' => $exception->getMessage(),
             ]);
         }

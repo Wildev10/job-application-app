@@ -33,6 +33,7 @@ class Company extends Model
         'plan_expires_at',
         'impersonate_token',
         'impersonate_expires_at',
+        'plan_renewal_reminded_at',
     ];
 
     /**
@@ -58,6 +59,7 @@ class Company extends Model
             'email_verified_at' => 'datetime',
             'is_suspended' => 'boolean',
             'plan_expires_at' => 'datetime',
+            'plan_renewal_reminded_at' => 'datetime',
             'impersonate_expires_at' => 'datetime',
         ];
     }

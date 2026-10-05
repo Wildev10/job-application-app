@@ -101,12 +101,14 @@ export function usePayment({ refreshPlanStatus } = {}) {
 
   /**
    * Initiate payment and redirect user to FedaPay checkout URL.
+   * Pass `renew: true` to use the renewal endpoint (works for Pro companies too).
    */
-  const initiatePayment = useCallback(async () => {
+  const initiatePayment = useCallback(async ({ renew = false } = {}) => {
     setInitiating(true);
 
     try {
-      const payload = await apiFetch('/payments/initiate', {
+      const endpoint = renew ? '/payments/renew' : '/payments/initiate';
+      const payload = await apiFetch(endpoint, {
         method: 'POST',
         body: JSON.stringify({}),
       });
