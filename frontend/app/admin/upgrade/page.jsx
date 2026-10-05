@@ -137,19 +137,18 @@ export default function AdminUpgradePage() {
     }
 
     const intervalId = window.setInterval(() => {
-      setCountdown((previous) => {
-        if (previous <= 1) {
-          window.clearInterval(intervalId);
-          router.push('/admin');
-          return 0;
-        }
-
-        return previous - 1;
-      });
+      setCountdown((previous) => Math.max(0, previous - 1));
     }, 1000);
 
     return () => window.clearInterval(intervalId);
-  }, [paymentStatus, router]);
+  }, [paymentStatus]);
+
+  // Redirect from an effect: navigating inside a state updater breaks React's render rules.
+  useEffect(() => {
+    if (paymentStatus === 'approved' && countdown === 0) {
+      router.push('/admin');
+    }
+  }, [paymentStatus, countdown, router]);
 
   const isVerifyingAfterReturn = useMemo(() => paymentParam === 'success' || polling, [paymentParam, polling]);
 
