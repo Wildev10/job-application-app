@@ -276,8 +276,11 @@ class AuthController extends Controller
             ], 401)->header('Content-Type', 'application/json');
         }
 
+        $member = $request->attributes->get('member');
+
         return response()->json([
             'company' => $company,
+            'member'  => $member ? ['id' => $member->id, 'name' => $member->name, 'email' => $member->email] : null,
         ], 200)->header('Content-Type', 'application/json');
     }
 

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { apiFetch } from '@/lib/api';
 import {
   getCompany,
+  getMember,
   isAuthenticated as authIsAuthenticated,
   logout as clearAuth,
   saveCompany,
@@ -66,16 +67,15 @@ export function useAuth() {
   };
 
   const logout = async () => {
+    const isMember = !!getMember();
     try {
-      await apiFetch('/auth/logout', {
-        method: 'POST',
-      });
+      await apiFetch(isMember ? '/member/logout' : '/auth/logout', { method: 'POST' });
     } catch {
       // Always clear local session even if API logout fails.
     } finally {
       clearAuth();
       setCompany(null);
-      router.push('/login');
+      router.push(isMember ? '/member/login' : '/login');
     }
   };
 

@@ -3,18 +3,19 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { BarChart2, BriefcaseBusiness, ClipboardList, LayoutDashboard, Settings, X } from 'lucide-react';
+import { BarChart2, BriefcaseBusiness, ClipboardList, LayoutDashboard, Settings, Users, X } from 'lucide-react';
 import EmailVerificationBanner from '@/components/EmailVerificationBanner';
 import PlanBadge from '@/components/PlanBadge';
 import { PlanStatusProvider, usePlanStatus } from '@/hooks/usePlanStatus';
 import { apiFetch } from '@/lib/api';
-import { getCompany } from '@/lib/auth';
+import { getCompany, getMember } from '@/lib/auth';
 
 const MAIN_LINKS = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/admin/candidatures', label: 'Candidatures', icon: ClipboardList },
   { href: '/admin/postes', label: 'Postes', icon: BriefcaseBusiness },
   { href: '/admin/statistiques', label: 'Statistiques', icon: BarChart2 },
+  { href: '/admin/equipe', label: 'Équipe', icon: Users },
 ];
 
 /**
@@ -26,6 +27,8 @@ function AdminLayoutShell({ children }) {
   const [pendingCount, setPendingCount] = useState(0);
   const pendingIntervalRef = useRef(null);
   const [companyName, setCompanyName] = useState('Entreprise');
+  const [memberName, setMemberName] = useState('');
+  const [isOwner, setIsOwner] = useState(true);
   const [companyExpiryRaw, setCompanyExpiryRaw] = useState(null);
   const [impersonationCompanyName, setImpersonationCompanyName] = useState('');
   const [isExpiryBannerDismissed, setIsExpiryBannerDismissed] = useState(false);
@@ -33,9 +36,12 @@ function AdminLayoutShell({ children }) {
   useEffect(() => {
     const syncFromStorage = () => {
       const company = getCompany();
+      const member = getMember();
       const token = localStorage.getItem('impersonate_token');
 
       setCompanyName(company?.name || 'Entreprise');
+      setMemberName(member?.name || '');
+      setIsOwner(!member);
       setCompanyExpiryRaw(company?.plan_expires_at || null);
       setImpersonationCompanyName(token ? (localStorage.getItem('impersonate_company_name') || '') : '');
       setIsExpiryBannerDismissed(window.sessionStorage.getItem('pro_expiry_banner_dismissed') === '1');
@@ -103,6 +109,12 @@ function AdminLayoutShell({ children }) {
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#525252]">Administration</p>
             <p className="mt-2 text-lg font-extrabold tracking-[-0.02em] text-white">Espace entreprise</p>
             <p className="mt-1 text-xs text-[#9CA3AF]">{companyName}</p>
+            {memberName && (
+              <p className="mt-1 inline-flex items-center gap-1 rounded-full bg-white/10 px-2 py-0.5 text-[11px] font-medium text-white/70">
+                <Users size={10} />
+                {memberName} — Recruteur
+              </p>
+            )}
             <div className="mt-3">
               <PlanBadge plan={planLimits?.plan || 'starter'} size="sm" />
             </div>
@@ -137,7 +149,7 @@ function AdminLayoutShell({ children }) {
           </nav>
 
           <div className="mt-6 border-t border-white/5 pt-4 lg:mt-auto">
-            {isStarter && (
+            {isOwner && isStarter && (
               <div className="mx-2 mb-4 rounded-xl border border-[#F2600C]/20 bg-[#F2600C]/10 p-3">
                 <p className="text-xs font-semibold text-[#F2600C]">✦ Passez au Pro</p>
                 <p className="mt-1 text-xs text-[#F2600C]/70">Postes illimités, stats avancées...</p>
@@ -150,17 +162,19 @@ function AdminLayoutShell({ children }) {
               </div>
             )}
 
-            <Link
-              href="/admin/parametres"
-              className={`flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium transition ${
-                pathname === '/admin/parametres'
-                  ? 'bg-[#F2600C] text-white'
-                  : 'text-[#9CA3AF] hover:bg-white/5 hover:text-white'
-              }`}
-            >
-              <Settings size={16} strokeWidth={2.25} />
-              <span>Paramètres</span>
-            </Link>
+            {isOwner && (
+              <Link
+                href="/admin/parametres"
+                className={`flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium transition ${
+                  pathname === '/admin/parametres'
+                    ? 'bg-[#F2600C] text-white'
+                    : 'text-[#9CA3AF] hover:bg-white/5 hover:text-white'
+                }`}
+              >
+                <Settings size={16} strokeWidth={2.25} />
+                <span>Paramètres</span>
+              </Link>
+            )}
           </div>
         </aside>
 
