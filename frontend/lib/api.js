@@ -19,9 +19,9 @@ async function requestJson(baseUrl, endpoint, options) {
   const normalizedHeaders = new Headers(headers);
 
   if (typeof window !== 'undefined') {
-    const token = localStorage.getItem('impersonate_token') || localStorage.getItem('company_token');
-    if (token) {
-      normalizedHeaders.set('Authorization', `Bearer ${token}`);
+    const impersonateToken = localStorage.getItem('impersonate_token');
+    if (impersonateToken) {
+      normalizedHeaders.set('Authorization', `Bearer ${impersonateToken}`);
     }
   }
 
@@ -38,6 +38,7 @@ async function requestJson(baseUrl, endpoint, options) {
     ...rest,
     headers: normalizedHeaders,
     body,
+    credentials: 'include',
   });
 
   let payload = null;
@@ -80,13 +81,13 @@ export async function apiFetch(endpoint, options = {}) {
  * Download an authenticated file endpoint and trigger a browser download.
  */
 async function downloadAuthenticated(endpoint, accept, fallbackFilename) {
-  const token = typeof window !== 'undefined'
-    ? localStorage.getItem('impersonate_token') || localStorage.getItem('company_token')
-    : null;
   const normalizedHeaders = new Headers();
 
-  if (token) {
-    normalizedHeaders.set('Authorization', `Bearer ${token}`);
+  if (typeof window !== 'undefined') {
+    const impersonateToken = localStorage.getItem('impersonate_token');
+    if (impersonateToken) {
+      normalizedHeaders.set('Authorization', `Bearer ${impersonateToken}`);
+    }
   }
 
   normalizedHeaders.set('Accept', accept);
@@ -97,12 +98,14 @@ async function downloadAuthenticated(endpoint, accept, fallbackFilename) {
     response = await fetch(buildUrl(PRIMARY_API_URL, endpoint), {
       method: 'GET',
       headers: normalizedHeaders,
+      credentials: 'include',
     });
   } catch (error) {
     if (shouldRetryWithProxy(error, PRIMARY_API_URL)) {
       response = await fetch(buildUrl(PROXY_API_URL, endpoint), {
         method: 'GET',
         headers: normalizedHeaders,
+        credentials: 'include',
       });
     } else if (isNetworkError(error)) {
       throw new Error('Connexion au serveur impossible. Verifiez que le backend Laravel est lance et accessible.');

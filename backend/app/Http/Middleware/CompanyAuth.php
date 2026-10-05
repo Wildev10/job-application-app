@@ -15,7 +15,7 @@ class CompanyAuth
      */
     public function handle(Request $request, Closure $next): Response|JsonResponse
     {
-        $token = $request->bearerToken();
+        $token = $request->bearerToken() ?? $request->cookie('company_token');
 
         if ($token === null || $token === '') {
             return response()->json([

@@ -11,6 +11,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Symfony\Component\HttpFoundation\Cookie;
 use Throwable;
 
 class AuthController extends Controller
@@ -56,9 +57,10 @@ class AuthController extends Controller
 
             return response()->json([
                 'company' => $company,
-                'api_token' => $token,
                 'message' => 'Inscription réussie.',
-            ], 201)->header('Content-Type', 'application/json');
+            ], 201)
+                ->header('Content-Type', 'application/json')
+                ->withCookie(self::makeAuthCookie($token));
         } catch (Throwable) {
             return response()->json([
                 'message' => 'Une erreur serveur est survenue.',
@@ -103,8 +105,9 @@ class AuthController extends Controller
 
             return response()->json([
                 'company' => $company,
-                'api_token' => $token,
-            ], 200)->header('Content-Type', 'application/json');
+            ], 200)
+                ->header('Content-Type', 'application/json')
+                ->withCookie(self::makeAuthCookie($token));
         } catch (Throwable) {
             return response()->json([
                 'message' => 'Une erreur serveur est survenue.',
@@ -231,7 +234,9 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'Mot de passe mis à jour. Vous pouvez vous connecter.',
-        ], 200)->header('Content-Type', 'application/json');
+        ], 200)
+            ->header('Content-Type', 'application/json')
+            ->withCookie(self::clearAuthCookie());
     }
 
     /**
@@ -252,7 +257,9 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'Déconnexion réussie.',
-        ], 200)->header('Content-Type', 'application/json');
+        ], 200)
+            ->header('Content-Type', 'application/json')
+            ->withCookie(self::clearAuthCookie());
     }
 
     /**
@@ -272,5 +279,25 @@ class AuthController extends Controller
         return response()->json([
             'company' => $company,
         ], 200)->header('Content-Type', 'application/json');
+    }
+
+    private static function makeAuthCookie(string $token): Cookie
+    {
+        return cookie(
+            'company_token',
+            $token,
+            60 * 24 * 7,   // 7 days in minutes
+            '/',
+            null,
+            app()->environment('production'),  // Secure only in prod
+            true,           // HttpOnly
+            false,
+            'lax',
+        );
+    }
+
+    private static function clearAuthCookie(): Cookie
+    {
+        return cookie('company_token', '', -1, '/', null, false, true, false, 'lax');
     }
 }
