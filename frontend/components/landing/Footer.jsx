@@ -50,8 +50,8 @@ export default function Footer() {
         <div>
           <h3 className="text-[11px] font-semibold uppercase tracking-widest text-[#525252]">Légal</h3>
           <ul className="mt-4 space-y-3">
-            <li><Link href="#" className="text-[14px] text-[#9CA3AF] transition duration-200 hover:text-white">CGU</Link></li>
-            <li><Link href="#" className="text-[14px] text-[#9CA3AF] transition duration-200 hover:text-white">Politique de confidentialité</Link></li>
+            <li><Link href="/cgu" className="text-[14px] text-[#9CA3AF] transition duration-200 hover:text-white">CGU</Link></li>
+            <li><Link href="/confidentialite" className="text-[14px] text-[#9CA3AF] transition duration-200 hover:text-white">Politique de confidentialité</Link></li>
           </ul>
         </div>
       </div>
