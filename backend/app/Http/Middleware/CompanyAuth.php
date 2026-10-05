@@ -26,6 +26,12 @@ class CompanyAuth
         $company = Company::where('api_token', $token)->first();
 
         if ($company !== null) {
+            if ($company->is_suspended) {
+                return response()->json([
+                    'message' => 'Ce compte est suspendu.',
+                ], 403)->header('Content-Type', 'application/json');
+            }
+
             $request->attributes->set('company', $company);
 
             return $next($request);

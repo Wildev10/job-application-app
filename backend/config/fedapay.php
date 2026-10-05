@@ -10,5 +10,5 @@ return [
     'callback_url' => env('FEDAPAY_CALLBACK_URL'),
     'return_url' => env('FEDAPAY_RETURN_URL'),
     'cancel_url' => env('FEDAPAY_CANCEL_URL'),
-    'pro_price' => (int) env('PRO_PLAN_PRICE', 1500000),
+    'pro_price' => (int) env('PRO_PLAN_PRICE', 15000),
 ];

@@ -88,6 +88,12 @@ class AuthController extends Controller
                 ], 401)->header('Content-Type', 'application/json');
             }
 
+            if ($company->is_suspended) {
+                return response()->json([
+                    'message' => 'Ce compte est suspendu.',
+                ], 403)->header('Content-Type', 'application/json');
+            }
+
             $token = $company->generateToken();
 
             return response()->json([

@@ -132,7 +132,7 @@ class PaymentController extends Controller
     /**
      * Return the status of a specific payment owned by the authenticated company.
      */
-    public function status(Request $request, int $paymentId): JsonResponse
+    public function status(Request $request, int $paymentId, FedaPayService $fedaPayService): JsonResponse
     {
         /** @var Company|null $company */
         $company = $request->attributes->get('company');
@@ -152,6 +152,30 @@ class PaymentController extends Controller
             return response()->json([
                 'message' => 'Paiement introuvable.',
             ], 404)->header('Content-Type', 'application/json');
+        }
+
+        // If still pending and not a mock, query FedaPay directly so the status
+        // resolves even when the webhook never arrives (localhost dev, ngrok absent).
+        if ($payment->status === 'pending' && ! str_starts_with($payment->fedapay_transaction_id, 'mock_')) {
+            try {
+                \FedaPay\FedaPay::setApiKey((string) config('fedapay.secret_key'));
+                \FedaPay\FedaPay::setEnvironment((string) config('fedapay.environment'));
+                $transaction = \FedaPay\Transaction::retrieve((int) $payment->fedapay_transaction_id);
+                $remoteStatus = strtolower((string) ($transaction->status ?? ''));
+
+                if ($remoteStatus === 'approved') {
+                    $fedaPayService->handleApprovedPaymentPublic($payment, (array) $transaction);
+                    $payment->refresh();
+                } elseif (in_array($remoteStatus, ['canceled', 'declined', 'refunded'], true)) {
+                    $payment->update(['status' => $remoteStatus]);
+                    $payment->refresh();
+                }
+            } catch (Throwable $exception) {
+                Log::warning('FedaPay status poll failed.', [
+                    'payment_id' => $payment->id,
+                    'message' => $exception->getMessage(),
+                ]);
+            }
         }
 
         return response()->json([

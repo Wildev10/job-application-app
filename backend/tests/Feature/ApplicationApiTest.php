@@ -48,7 +48,7 @@ class ApplicationApiTest extends TestCase
 
     public function test_store_creates_application_and_calculates_score_with_uploaded_cv(): void
     {
-        Storage::fake('public');
+        Storage::fake('local');
         $auth = $this->createAuthenticatedCompany();
 
         $payload = [
@@ -77,7 +77,7 @@ class ApplicationApiTest extends TestCase
 
         $storedCvPath = $response->json('cv');
         $this->assertNotNull($storedCvPath);
-        Storage::disk('public')->assertExists($storedCvPath);
+        Storage::disk('local')->assertExists($storedCvPath);
     }
 
     public function test_index_can_filter_by_role(): void

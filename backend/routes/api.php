@@ -12,12 +12,16 @@ use App\Http\Controllers\SuperAdmin\CompaniesController as SuperAdminCompaniesCo
 use App\Http\Controllers\SuperAdmin\DashboardController as SuperAdminDashboardController;
 use Illuminate\Support\Facades\Route;
 
-Route::post('/auth/register', [AuthController::class, 'register']);
-Route::post('/auth/login', [AuthController::class, 'login']);
+Route::middleware('throttle:10,1')->group(function (): void {
+	Route::post('/auth/register', [AuthController::class, 'register']);
+	Route::post('/auth/login', [AuthController::class, 'login']);
+});
 Route::get('/jobs/public/{companySlug}/{jobSlug}', [JobController::class, 'showPublic']);
-Route::post('/applications', [ApplicationController::class, 'store']);
-Route::post('/applications/{companySlug}/{jobSlug}', [ApplicationController::class, 'store']);
-Route::post('/applications/{slug}', [ApplicationController::class, 'store']);
+Route::middleware('throttle:10,1')->group(function (): void {
+	Route::post('/applications', [ApplicationController::class, 'store']);
+	Route::post('/applications/{companySlug}/{jobSlug}', [ApplicationController::class, 'store']);
+	Route::post('/applications/{slug}', [ApplicationController::class, 'store']);
+});
 Route::post('/payments/webhook', [PaymentController::class, 'webhook']);
 
 Route::middleware('company.auth')->group(function (): void {
@@ -35,6 +39,7 @@ Route::middleware('company.auth')->group(function (): void {
 	Route::get('/applications/stats', [DashboardController::class, 'stats']);
 	Route::get('/applications/export', [ApplicationController::class, 'export']);
 	Route::get('/applications', [ApplicationController::class, 'index']);
+	Route::get('/applications/{id}/cv', [ApplicationController::class, 'downloadCv']);
 	Route::patch('/applications/{id}/status', [ApplicationController::class, 'updateStatus']);
 	Route::post('/payments/initiate', [PaymentController::class, 'initiate']);
 	Route::get('/payments/history', [PaymentController::class, 'history']);
