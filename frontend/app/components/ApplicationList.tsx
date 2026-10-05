@@ -70,6 +70,7 @@ export default function ApplicationList({
   const [showEmailBanner, setShowEmailBanner] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState<'list' | 'kanban'>('list');
+  const [showArchived, setShowArchived] = useState(false);
   const { canExportCSV, isStarter } = usePlanStatus();
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || (typeof window !== 'undefined' ? window.location.origin : '');
 
@@ -140,9 +141,13 @@ export default function ApplicationList({
 
       try {
         const query = new URLSearchParams();
-        if (role) query.set('role', role);
-        if (sort) query.set('sort', sort);
-        if (selectedJobId) query.set('job_id', selectedJobId);
+        if (showArchived) {
+          query.set('archived', '1');
+        } else {
+          if (role) query.set('role', role);
+          if (sort) query.set('sort', sort);
+          if (selectedJobId) query.set('job_id', selectedJobId);
+        }
 
         const response = await apiFetch(`/applications?${query.toString()}`, { method: 'GET' });
         setApplications(response.data);
@@ -178,7 +183,7 @@ export default function ApplicationList({
     };
 
     void loadApplications();
-  }, [role, sort, selectedJobId]);
+  }, [role, sort, selectedJobId, showArchived]);
 
   const clearJobFilter = () => {
     setSelectedJobId(null);
@@ -278,8 +283,8 @@ export default function ApplicationList({
                 {total}
               </span>
             )}
-            {/* View toggle */}
-            <div className="flex items-center gap-0.5 rounded-lg border border-[#E5E5E5] bg-[#FAFAFA] p-0.5">
+            {/* View toggle — hidden in archived mode */}
+            {!showArchived && <div className="flex items-center gap-0.5 rounded-lg border border-[#E5E5E5] bg-[#FAFAFA] p-0.5">
               <button
                 type="button"
                 onClick={() => setViewMode('list')}
@@ -296,7 +301,7 @@ export default function ApplicationList({
               >
                 <KanbanSquare size={15} />
               </button>
-            </div>
+            </div>}
           </div>
 
           <div className="flex items-center gap-2">
@@ -385,8 +390,8 @@ export default function ApplicationList({
           </div>
         </div>
 
-        {/* Status filter tabs — list mode only */}
-        {viewMode === 'list' && <div className="border-t border-[#F0F0F0] px-5 sm:px-6">
+        {/* Status filter tabs — list mode only, not when showing archived */}
+        {viewMode === 'list' && !showArchived && <div className="border-t border-[#F0F0F0] px-5 sm:px-6">
           <div className="flex flex-nowrap gap-0 overflow-x-auto">
             {STATUS_FILTERS.map((filter) => {
               const count = statusCounts[filter.value];
@@ -419,8 +424,27 @@ export default function ApplicationList({
           </div>
         </div>}
 
-        {/* Role + sort filters — list mode only */}
-        {viewMode === 'list' &&
+        {/* Archived toggle */}
+        <div className="border-t border-[#F0F0F0] px-5 py-2 sm:px-6">
+          <button
+            type="button"
+            onClick={() => {
+              setShowArchived((prev) => !prev);
+              setSearchQuery('');
+              setStatusFilter('all');
+            }}
+            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[12px] font-medium transition ${
+              showArchived
+                ? 'bg-[#0E0E10] text-white'
+                : 'border border-[#E5E5E5] text-[#6B7280] hover:border-[#D1D5DB] hover:text-[#0E0E10]'
+            }`}
+          >
+            {showArchived ? '← Revenir' : 'Archivées'}
+          </button>
+        </div>
+
+        {/* Role + sort filters — list mode only, not when showing archived */}
+        {viewMode === 'list' && !showArchived &&
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[#F0F0F0] bg-[#FAFAFA] px-5 py-3 sm:px-6">
           <div className="flex flex-wrap items-center gap-1.5">
             <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#9CA3AF]">Rôle</span>

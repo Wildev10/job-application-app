@@ -38,6 +38,7 @@ class Application extends Model
         'status',
         'interview_date',
         'interview_location',
+        'archived_at',
     ];
 
     protected $casts = [

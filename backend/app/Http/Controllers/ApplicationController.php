@@ -44,7 +44,14 @@ class ApplicationController extends Controller
                 ], 401)->header('Content-Type', 'application/json');
             }
 
+            $showArchived = filter_var($request->query('archived'), FILTER_VALIDATE_BOOLEAN);
             $query = Application::query()->where('company_id', $company->id);
+
+            if ($showArchived) {
+                $query->whereNotNull('archived_at');
+            } else {
+                $query->whereNull('archived_at');
+            }
 
             $jobId = $request->query('job_id');
             if ($jobId !== null && $jobId !== '') {
@@ -416,7 +423,7 @@ class ApplicationController extends Controller
             $statusChanged = $application->status !== $nextStatus;
 
             if ($statusChanged) {
-                $updateData = ['status' => $nextStatus];
+                $updateData = ['status' => $nextStatus, 'archived_at' => null];
 
                 if ($nextStatus === 'interview') {
                     $updateData['interview_date'] = $request->validated('interview_date');

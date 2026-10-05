@@ -20,3 +20,7 @@ Schedule::command('plan:send-expiry-reminders')
 Schedule::call(function (): void {
     app(FedaPayService::class)->checkExpiredPlans();
 })->daily()->at('01:00');
+
+Schedule::command('applications:archive --days=30')
+    ->daily()
+    ->at('02:00');
