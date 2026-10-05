@@ -1,7 +1,8 @@
 'use client';
 
 import { useMemo } from 'react';
-import { Briefcase, Download, ExternalLink, Star } from 'lucide-react';
+import Link from 'next/link';
+import { Briefcase, Download, ExternalLink, Star, Eye } from 'lucide-react';
 import { Alert } from '@/lib/sweetalert';
 import type { Application } from '@/app/types/application';
 import StatusBadge from '@/app/components/StatusBadge';
@@ -153,6 +154,14 @@ export default function ApplicationCard({ application, onStatusUpdated }: Applic
 
           {/* Action icons */}
           <div className="flex items-center gap-1">
+            <Link
+              href={`/admin/candidatures/${application.id}`}
+              title="Voir le profil complet"
+              className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#E5E5E5] text-[#9CA3AF] transition hover:border-[#F2600C] hover:text-[#F2600C]"
+            >
+              <Eye size={14} />
+            </Link>
+
             {application.portfolio ? (
               <a
                 href={application.portfolio}
