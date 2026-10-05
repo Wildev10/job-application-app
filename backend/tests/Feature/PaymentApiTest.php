@@ -78,6 +78,34 @@ class PaymentApiTest extends TestCase
         ]);
     }
 
+    public function test_webhook_reads_the_real_fedapay_entity_payload(): void
+    {
+        Mail::fake();
+        config(['fedapay.webhook_secret' => 'whsec_test_secret']);
+        $auth = $this->createAuthenticatedCompany();
+        $payment = $this->pendingPayment($auth['company'], '518200');
+
+        // Structure observed on real FedaPay sandbox webhooks (transaction under "entity").
+        $this->postWebhook([
+            'name' => 'transaction.approved',
+            'object' => 'event',
+            'entity' => [
+                'klass' => 'v1/transaction',
+                'id' => 518200,
+                'status' => 'approved',
+                'mode' => 'momo_test',
+                'customer_id' => 12345,
+                'amount' => 15000,
+            ],
+        ])->assertOk();
+
+        $payment->refresh();
+        $this->assertSame('approved', $payment->status);
+        $this->assertSame('momo_test', $payment->payment_method);
+        $this->assertSame('pro', $auth['company']->fresh()->plan);
+        Mail::assertSent(PaymentConfirmationMail::class, 1);
+    }
+
     public function test_webhook_rejects_old_plain_hmac_signature_and_stale_timestamp(): void
     {
         config(['fedapay.webhook_secret' => 'whsec_test_secret']);

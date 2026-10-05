@@ -133,7 +133,8 @@ class FedaPayService
     public function handleWebhook(array $payload): void
     {
         $event = $payload['name'] ?? null;
-        $transactionData = $payload['data']['object'] ?? null;
+        // FedaPay sends the transaction under "entity"; "data.object" is kept as a fallback.
+        $transactionData = $payload['entity'] ?? $payload['data']['object'] ?? null;
 
         if (! is_array($transactionData) || empty($transactionData['id'])) {
             Log::warning('Webhook FedaPay ignoré: transaction absente.', [
