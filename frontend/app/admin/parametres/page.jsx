@@ -36,11 +36,13 @@ export default function AdminParametresPage() {
   }, []);
 
   const publicApplyUrl = useMemo(() => {
-    if (!company?.slug) {
-      return '';
-    }
-
+    if (!company?.slug) return '';
     return `${publicBaseUrl.replace(/\/$/, '')}/apply/${company.slug}`;
+  }, [company, publicBaseUrl]);
+
+  const publicCareersUrl = useMemo(() => {
+    if (!company?.slug) return '';
+    return `${publicBaseUrl.replace(/\/$/, '')}/careers/${company.slug}`;
   }, [company, publicBaseUrl]);
 
   const planExpirationDate = useMemo(() => {
@@ -375,33 +377,69 @@ export default function AdminParametresPage() {
       <PaymentHistory />
 
       <div className="rounded-2xl border border-[#E5E5E5] bg-white p-5 sm:p-7">
-        <h2 className="text-lg font-bold text-[#0E0E10]">Lien de candidature public</h2>
+        <h2 className="text-lg font-bold text-[#0E0E10]">Liens publics</h2>
 
-        <div className="mt-4 rounded-xl bg-[#FAFAFA] p-4">
-          <p className="text-xs uppercase tracking-[0.12em] text-[#9CA3AF]">URL du formulaire</p>
-          <p className="mt-1 break-all text-sm font-bold text-[#0E0E10]">
-            {publicApplyUrl || 'URL indisponible : slug entreprise manquant.'}
-          </p>
-        </div>
+        <div className="mt-4 space-y-4">
+          {/* Careers page */}
+          <div className="rounded-xl bg-[#FAFAFA] p-4">
+            <p className="text-xs uppercase tracking-[0.12em] text-[#9CA3AF]">Page vitrine des postes</p>
+            <p className="mt-1 break-all text-sm font-bold text-[#0E0E10]">
+              {publicCareersUrl || 'URL indisponible : slug entreprise manquant.'}
+            </p>
+            <p className="mt-1 text-xs text-[#9CA3AF]">Partagez cette URL sur LinkedIn, votre site ou vos réseaux.</p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={async () => {
+                  if (!publicCareersUrl) return;
+                  try {
+                    await navigator.clipboard.writeText(publicCareersUrl);
+                    await Alert.fire({ icon: 'success', title: 'Lien copié !', timer: 1400, showConfirmButton: false });
+                  } catch {
+                    await Alert.fire({ icon: 'error', title: 'Impossible de copier', text: 'Copiez le lien manuellement.', confirmButtonColor: '#dc2626' });
+                  }
+                }}
+                disabled={!publicCareersUrl}
+                className="rounded-lg border border-[#E5E5E5] px-3 py-1.5 text-sm font-semibold text-[#0E0E10] hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                Copier
+              </button>
+              <button
+                type="button"
+                onClick={() => publicCareersUrl && window.open(publicCareersUrl, '_blank', 'noopener,noreferrer')}
+                disabled={!publicCareersUrl}
+                className="rounded-lg bg-[#0E0E10] px-3 py-1.5 text-sm font-semibold text-white hover:bg-[#1A1A1C] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                Voir la page
+              </button>
+            </div>
+          </div>
 
-        <div className="mt-4 flex flex-wrap gap-3">
-          <button
-            type="button"
-            onClick={() => void handleCopyLink()}
-            disabled={!publicApplyUrl}
-            className="rounded-lg border border-[#E5E5E5] px-4 py-2 text-sm font-semibold text-[#0E0E10] hover:bg-[#FAFAFA] disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            Copier le lien
-          </button>
-
-          <button
-            type="button"
-            onClick={handleTestForm}
-            disabled={!publicApplyUrl}
-            className="rounded-lg bg-[#0E0E10] px-4 py-2 text-sm font-semibold text-white hover:bg-[#1A1A1C] disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            Tester le formulaire
-          </button>
+          {/* Apply form */}
+          <div className="rounded-xl bg-[#FAFAFA] p-4">
+            <p className="text-xs uppercase tracking-[0.12em] text-[#9CA3AF]">Formulaire de candidature libre</p>
+            <p className="mt-1 break-all text-sm font-bold text-[#0E0E10]">
+              {publicApplyUrl || 'URL indisponible : slug entreprise manquant.'}
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => void handleCopyLink()}
+                disabled={!publicApplyUrl}
+                className="rounded-lg border border-[#E5E5E5] px-3 py-1.5 text-sm font-semibold text-[#0E0E10] hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                Copier
+              </button>
+              <button
+                type="button"
+                onClick={handleTestForm}
+                disabled={!publicApplyUrl}
+                className="rounded-lg bg-[#0E0E10] px-3 py-1.5 text-sm font-semibold text-white hover:bg-[#1A1A1C] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                Tester
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </section>

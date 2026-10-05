@@ -21,6 +21,7 @@ Route::middleware('throttle:10,1')->group(function (): void {
 Route::get('/auth/verify-email/{id}/{hash}', [AuthController::class, 'verifyEmail'])
 	->middleware('signed')
 	->name('verification.verify');
+Route::get('/jobs/public/{companySlug}', [JobController::class, 'listPublic']);
 Route::get('/jobs/public/{companySlug}/{jobSlug}', [JobController::class, 'showPublic']);
 Route::middleware('throttle:10,1')->group(function (): void {
 	Route::post('/applications', [ApplicationController::class, 'store']);
