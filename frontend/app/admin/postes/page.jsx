@@ -245,7 +245,7 @@ export default function AdminPostesPage() {
               job={job}
               onEdit={() => openEditModal(job)}
               onClose={() => void handleCloseJob(job)}
-              onViewApplications={() => router.push(`/admin/candidatures?job_id=${job.id}`)}
+              onViewApplications={() => router.push(`/admin/postes/${job.id}`)}
             />
           ))}
         </div>
