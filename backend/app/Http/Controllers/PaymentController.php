@@ -187,7 +187,7 @@ class PaymentController extends Controller
                 $remoteStatus = strtolower((string) ($transaction->status ?? ''));
 
                 if ($remoteStatus === 'approved') {
-                    $fedaPayService->handleApprovedPaymentPublic($payment, (array) $transaction);
+                    $fedaPayService->handleApprovedPaymentPublic($payment, $transaction->__toArray(true));
                     $payment->refresh();
                 } elseif (in_array($remoteStatus, ['canceled', 'declined', 'refunded'], true)) {
                     $payment->update(['status' => $remoteStatus]);
