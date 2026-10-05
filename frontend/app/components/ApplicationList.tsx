@@ -2,7 +2,8 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { ArrowUpDown, Download, Inbox, Link2, Search, X } from 'lucide-react';
+import { ArrowUpDown, Download, Inbox, KanbanSquare, LayoutList, Link2, Search, X } from 'lucide-react';
+import KanbanBoard from '@/app/components/KanbanBoard';
 import { Alert } from '@/lib/sweetalert';
 import ApplicationCard from '@/app/components/ApplicationCard';
 import ExportModal from '@/app/components/ExportModal';
@@ -68,6 +69,7 @@ export default function ApplicationList({
   const [errorMessage, setErrorMessage] = useState('');
   const [showEmailBanner, setShowEmailBanner] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [viewMode, setViewMode] = useState<'list' | 'kanban'>('list');
   const { canExportCSV, isStarter } = usePlanStatus();
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || (typeof window !== 'undefined' ? window.location.origin : '');
 
@@ -193,19 +195,27 @@ export default function ApplicationList({
     rejected: applications.filter((a) => a.status === 'rejected').length,
   }), [applications]);
 
+  const searchFilter = (a: Application) => {
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.trim().toLowerCase();
+    return (
+      a.nom?.toLowerCase().includes(q) ||
+      a.email?.toLowerCase().includes(q) ||
+      a.role?.toLowerCase().includes(q)
+    );
+  };
+
   const filteredApplications = useMemo(() => {
-    let result = statusFilter === 'all' ? applications : applications.filter((a) => a.status === statusFilter);
-    if (searchQuery.trim()) {
-      const q = searchQuery.trim().toLowerCase();
-      result = result.filter(
-        (a) =>
-          a.nom?.toLowerCase().includes(q) ||
-          a.email?.toLowerCase().includes(q) ||
-          a.role?.toLowerCase().includes(q),
-      );
-    }
-    return result;
+    const byStatus = statusFilter === 'all' ? applications : applications.filter((a) => a.status === statusFilter);
+    return byStatus.filter(searchFilter);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [applications, statusFilter, searchQuery]);
+
+  const kanbanApplications = useMemo(
+    () => applications.filter(searchFilter),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [applications, searchQuery],
+  );
 
   const handleStatusUpdated = (updatedApplication: Pick<Application, 'id' | 'status' | 'status_label' | 'status_color' | 'interview_date' | 'interview_location'>) => {
     setApplications((previous) =>
@@ -268,6 +278,25 @@ export default function ApplicationList({
                 {total}
               </span>
             )}
+            {/* View toggle */}
+            <div className="flex items-center gap-0.5 rounded-lg border border-[#E5E5E5] bg-[#FAFAFA] p-0.5">
+              <button
+                type="button"
+                onClick={() => setViewMode('list')}
+                title="Vue liste"
+                className={`flex items-center rounded-md p-1.5 transition ${viewMode === 'list' ? 'bg-white shadow-sm text-[#0E0E10]' : 'text-[#9CA3AF] hover:text-[#6B7280]'}`}
+              >
+                <LayoutList size={15} />
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode('kanban')}
+                title="Vue Kanban"
+                className={`flex items-center rounded-md p-1.5 transition ${viewMode === 'kanban' ? 'bg-white shadow-sm text-[#F2600C]' : 'text-[#9CA3AF] hover:text-[#6B7280]'}`}
+              >
+                <KanbanSquare size={15} />
+              </button>
+            </div>
           </div>
 
           <div className="flex items-center gap-2">
@@ -356,8 +385,8 @@ export default function ApplicationList({
           </div>
         </div>
 
-        {/* Status filter tabs */}
-        <div className="border-t border-[#F0F0F0] px-5 sm:px-6">
+        {/* Status filter tabs — list mode only */}
+        {viewMode === 'list' && <div className="border-t border-[#F0F0F0] px-5 sm:px-6">
           <div className="flex flex-nowrap gap-0 overflow-x-auto">
             {STATUS_FILTERS.map((filter) => {
               const count = statusCounts[filter.value];
@@ -388,9 +417,10 @@ export default function ApplicationList({
               );
             })}
           </div>
-        </div>
+        </div>}
 
-        {/* Role + sort filters */}
+        {/* Role + sort filters — list mode only */}
+        {viewMode === 'list' &&
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[#F0F0F0] bg-[#FAFAFA] px-5 py-3 sm:px-6">
           <div className="flex flex-wrap items-center gap-1.5">
             <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#9CA3AF]">Rôle</span>
@@ -427,7 +457,7 @@ export default function ApplicationList({
               </button>
             ))}
           </div>
-        </div>
+        </div>}
 
         {/* Active job filter chip */}
         {selectedJobId && (
@@ -474,8 +504,13 @@ export default function ApplicationList({
         </div>
       )}
 
-      {/* Empty state */}
-      {!isLoading && !errorMessage && filteredApplications.length === 0 && (
+      {/* Kanban board */}
+      {!isLoading && !errorMessage && viewMode === 'kanban' && (
+        <KanbanBoard applications={kanbanApplications} onStatusUpdated={handleStatusUpdated} />
+      )}
+
+      {/* List mode — empty state */}
+      {!isLoading && !errorMessage && viewMode === 'list' && filteredApplications.length === 0 && (
         <div className="rounded-2xl border border-dashed border-[#E5E5E5] bg-white px-6 py-16 text-center">
           <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-[#FFF4EE]">
             <Inbox size={28} className="text-[#F2600C]" strokeWidth={1.5} />
@@ -498,8 +533,8 @@ export default function ApplicationList({
         </div>
       )}
 
-      {/* Application cards */}
-      {!isLoading && !errorMessage && filteredApplications.length > 0 && (
+      {/* List mode — application cards */}
+      {!isLoading && !errorMessage && viewMode === 'list' && filteredApplications.length > 0 && (
         <div className="space-y-3">
           {filteredApplications.map((application) => (
             <ApplicationCard key={application.id} application={application} onStatusUpdated={handleStatusUpdated} />
