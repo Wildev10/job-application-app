@@ -14,7 +14,9 @@ use App\Services\ScoringService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Throwable;
 
@@ -239,6 +241,12 @@ class ApplicationController extends Controller
                 ], 404)->header('Content-Type', 'application/json');
             }
 
+            if ($company->is_suspended) {
+                return response()->json([
+                    'message' => 'Ce formulaire n\'accepte plus de candidatures pour le moment.',
+                ], 403)->header('Content-Type', 'application/json');
+            }
+
             $applicationLimitCheck = PlanService::canReceiveApplication($company);
             if (($applicationLimitCheck['allowed'] ?? false) === false) {
                 return response()->json([
@@ -266,7 +274,7 @@ class ApplicationController extends Controller
             $data = $request->validated();
 
             if ($request->hasFile('cv')) {
-                $data['cv'] = $request->file('cv')->store('cvs', 'public');
+                $data['cv'] = $request->file('cv')->store('cvs', 'local');
             }
 
             $data['score'] = $this->scoringService->calculate($data);
@@ -286,6 +294,40 @@ class ApplicationController extends Controller
                 'message' => 'Une erreur serveur est survenue.',
             ], 500)->header('Content-Type', 'application/json');
         }
+    }
+
+    /**
+     * Download the CV of an application owned by the authenticated company.
+     */
+    public function downloadCv(Request $request, int $id): StreamedResponse|JsonResponse
+    {
+        /** @var Company|null $company */
+        $company = $request->attributes->get('company');
+
+        $application = Application::query()
+            ->where('id', $id)
+            ->where('company_id', $company?->id)
+            ->first();
+
+        if ($application === null || empty($application->cv)) {
+            return response()->json([
+                'message' => 'CV introuvable.',
+            ], 404)->header('Content-Type', 'application/json');
+        }
+
+        // CVs are private now; legacy files may still live on the public disk.
+        foreach (['local', 'public'] as $disk) {
+            if (Storage::disk($disk)->exists($application->cv)) {
+                return Storage::disk($disk)->download(
+                    $application->cv,
+                    sprintf('CV_%s.%s', Str::slug($application->nom), pathinfo($application->cv, PATHINFO_EXTENSION))
+                );
+            }
+        }
+
+        return response()->json([
+            'message' => 'CV introuvable.',
+        ], 404)->header('Content-Type', 'application/json');
     }
 
     /**

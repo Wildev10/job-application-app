@@ -177,7 +177,13 @@ class FedaPayService
 
     /**
      * Apply approved payment side effects on payment and company plan.
+     * Public so PaymentController can call it when polling detects approval.
      */
+    public function handleApprovedPaymentPublic(Payment $payment, array $data): void
+    {
+        $this->handleApprovedPayment($payment, $data);
+    }
+
     private function handleApprovedPayment(Payment $payment, array $data): void
     {
         $periodStart = now();

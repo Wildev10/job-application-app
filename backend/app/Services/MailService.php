@@ -37,6 +37,10 @@ class MailService
             }
 
             Mail::to($application->email)->send(new CandidatureReceivedApplicant($application, $company));
+            // Mailtrap free plan rate-limit: 1 email/2s — space out the two sends.
+            if (app()->environment('local', 'testing')) {
+                usleep(500000);
+            }
             Mail::to($company->email)->send(new CandidatureReceivedAdmin($application, $company));
         } catch (Throwable $exception) {
             Log::error('Failed to send candidature received emails.', [

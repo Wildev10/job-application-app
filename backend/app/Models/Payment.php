@@ -68,7 +68,7 @@ class Payment extends Model
      */
     public function getAmountFormattedAttribute(): string
     {
-        return number_format($this->amount / 100, 0, ',', ' ').' FCFA';
+        return number_format($this->amount, 0, ',', ' ').' FCFA';
     }
 
     /**

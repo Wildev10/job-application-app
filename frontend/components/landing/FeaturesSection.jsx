@@ -1,31 +1,33 @@
+import { BarChart2, Download, FileText, GitPullRequest, Layers, Mail } from 'lucide-react';
+
 const FEATURES = [
   {
-    badge: 'FM',
+    icon: FileText,
     title: 'Formulaire personnalisé',
     description: 'Créez un formulaire de candidature à votre image avec votre logo et vos couleurs.',
   },
   {
-    badge: 'DS',
+    icon: BarChart2,
     title: 'Dashboard & Statistiques',
-    description: 'Visualisez en temps réel l\'état de vos recrutements avec des graphiques clairs.',
+    description: "Visualisez en temps réel l'état de vos recrutements avec des graphiques clairs.",
   },
   {
-    badge: 'ST',
+    icon: GitPullRequest,
     title: 'Suivi des statuts',
     description: 'Faites progresser chaque candidat dans votre pipeline avec un simple clic.',
   },
   {
-    badge: 'EM',
+    icon: Mail,
     title: 'Emails automatiques',
-    description: 'Vos candidats reçoivent des notifications à chaque étape sans que vous ayez à lever le petit doigt.',
+    description: "Vos candidats reçoivent des notifications à chaque étape sans que vous ayez à lever le petit doigt.",
   },
   {
-    badge: 'MP',
+    icon: Layers,
     title: 'Multi-postes',
     description: 'Gérez plusieurs postes ouverts simultanément, chacun avec son propre formulaire et ses candidatures.',
   },
   {
-    badge: 'CSV',
+    icon: Download,
     title: 'Export CSV',
     description: 'Exportez vos candidatures en un clic pour vos analyses dans Excel ou Google Sheets.',
   },
@@ -36,30 +38,35 @@ const FEATURES = [
  */
 export default function FeaturesSection() {
   return (
-    <section id="fonctionnalites" className="bg-slate-50 px-4 py-20 sm:px-6 lg:px-8">
+    <section id="fonctionnalites" className="bg-[#F8FAFC] px-4 py-24 sm:px-6 lg:px-8 lg:py-28">
       <div className="mx-auto w-full max-w-7xl">
+        {/* Header */}
         <div className="mx-auto max-w-2xl text-center">
-          <h2 className="text-3xl font-black tracking-[-0.02em] text-slate-900 sm:text-4xl">
+          <h2 className="text-[40px] font-bold tracking-[-0.02em] text-[#0F172A] sm:text-[48px]">
             Tout ce dont vous avez besoin
           </h2>
-          <p className="mt-3 text-base text-slate-600 sm:text-lg">
+          <p className="mt-4 text-[17px] leading-relaxed text-[#64748B]">
             Une plateforme complète pour gérer vos recrutements de A à Z
           </p>
         </div>
 
-        <div className="mt-12 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6">
-          {FEATURES.map((feature) => (
-            <article
-              key={feature.title}
-              className="rounded-2xl border border-slate-200 bg-white p-6 transition duration-300 hover:-translate-y-1 hover:border-teal-300 hover:shadow-xl hover:shadow-teal-100"
-            >
-              <span className="mb-4 inline-flex h-11 min-w-11 items-center justify-center rounded-xl bg-teal-100 px-2 text-xs font-bold tracking-[0.08em] text-teal-700">
-                {feature.badge}
-              </span>
-              <h3 className="text-lg font-extrabold text-slate-900">{feature.title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-slate-600">{feature.description}</p>
-            </article>
-          ))}
+        {/* Grid */}
+        <div className="mt-14 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {FEATURES.map((feature) => {
+            const Icon = feature.icon;
+            return (
+              <article
+                key={feature.title}
+                className="group rounded-[16px] border border-[#E2E8F0] bg-white p-8 shadow-sm transition duration-200 hover:border-[#0D9488] hover:shadow-lg"
+              >
+                <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-[12px] bg-[#F0FDF9]">
+                  <Icon size={22} className="text-[#0D9488]" strokeWidth={1.75} />
+                </div>
+                <h3 className="text-[17px] font-bold text-[#0F172A]">{feature.title}</h3>
+                <p className="mt-2.5 text-[14px] leading-relaxed text-[#64748B]">{feature.description}</p>
+              </article>
+            );
+          })}
         </div>
       </div>
     </section>

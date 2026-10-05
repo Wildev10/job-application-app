@@ -64,7 +64,7 @@ class PaymentApiTest extends TestCase
         Payment::create([
             'company_id' => $auth['company']->id,
             'fedapay_transaction_id' => 'txn-pending-1',
-            'amount' => 1500000,
+            'amount' => 15000,
             'currency' => 'XOF',
             'status' => 'pending',
             'plan' => 'pro',
@@ -105,7 +105,7 @@ class PaymentApiTest extends TestCase
         $payment = Payment::create([
             'company_id' => $auth['company']->id,
             'fedapay_transaction_id' => 'txn_approved_1',
-            'amount' => 1500000,
+            'amount' => 15000,
             'currency' => 'XOF',
             'status' => 'pending',
             'plan' => 'pro',
