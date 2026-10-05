@@ -126,7 +126,7 @@ export default function ApplicationDetailPage() {
     .join('') || 'C';
 
   const avatarColor = getAvatarColor(application.nom || 'C');
-  const score = Math.max(0, Math.min(5, application.score || 0));
+  const score = Math.max(0, Math.min(10, application.score || 0));
 
   const submittedAt = new Intl.DateTimeFormat('fr-FR', {
     day: '2-digit',
@@ -134,11 +134,11 @@ export default function ApplicationDetailPage() {
     year: 'numeric',
   }).format(new Date(application.created_at));
 
-  const scoreLabel = score >= 4 ? 'Excellent' : score >= 3 ? 'Bon' : score >= 2 ? 'Moyen' : 'Faible';
+  const scoreLabel = score >= 8 ? 'Excellent' : score >= 6 ? 'Bon' : score >= 4 ? 'Moyen' : 'Faible';
   const scoreClass =
-    score >= 4
+    score >= 8
       ? 'bg-[#FFF4EE] text-[#F2600C] border-[#FFD5C2]'
-      : score >= 2
+      : score >= 4
         ? 'bg-amber-50 text-amber-700 border-amber-200'
         : 'bg-red-50 text-red-600 border-red-200';
 
@@ -184,7 +184,7 @@ export default function ApplicationDetailPage() {
             <div className={`shrink-0 rounded-xl border px-4 py-2 text-center ${scoreClass}`}>
               <div className="flex items-center justify-center gap-1">
                 <Star size={14} className="fill-current" />
-                <span className="text-[18px] font-extrabold leading-none">{score}/5</span>
+                <span className="text-[18px] font-extrabold leading-none">{score}/10</span>
               </div>
               <p className="mt-1 text-[11px] font-semibold uppercase tracking-wide opacity-80">{scoreLabel}</p>
             </div>

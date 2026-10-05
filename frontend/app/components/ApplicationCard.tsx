@@ -79,11 +79,11 @@ export default function ApplicationCard({ application, onStatusUpdated }: Applic
     year: 'numeric',
   }).format(new Date(application.created_at));
 
-  const score = Math.max(0, Math.min(5, application.score || 0));
+  const score = Math.max(0, Math.min(10, application.score || 0));
   const scoreClass =
-    score >= 4
+    score >= 8
       ? 'bg-[#FFF4EE] text-[#F2600C] border border-[#FFD5C2]'
-      : score >= 2
+      : score >= 5
         ? 'bg-amber-50 text-amber-700 border border-amber-200'
         : 'bg-red-50 text-red-600 border border-red-200';
 
@@ -120,7 +120,7 @@ export default function ApplicationCard({ application, onStatusUpdated }: Applic
           {/* Score badge */}
           <div className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[12px] font-semibold ${scoreClass}`}>
             <Star size={12} className="fill-current" />
-            <span>{score}/5</span>
+            <span>{score}/10</span>
           </div>
 
           {/* Motivation preview */}
