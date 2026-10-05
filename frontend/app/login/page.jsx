@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Eye, EyeOff, ShieldCheck, Sparkles } from 'lucide-react';
 import { Alert } from '@/lib/sweetalert';
 import { useAuth } from '@/hooks/useAuth';
@@ -19,6 +19,11 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [emailJustVerified, setEmailJustVerified] = useState(false);
+
+  useEffect(() => {
+    setEmailJustVerified(new URLSearchParams(window.location.search).get('verified') === '1');
+  }, []);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -105,6 +110,12 @@ export default function LoginPage() {
           <h2 className="text-2xl font-extrabold text-slate-900">Connexion entreprise</h2>
           <p className="mt-2 text-sm text-slate-600">Accédez à votre espace de gestion des candidatures.</p>
 
+          {emailJustVerified ? (
+            <p className="mt-4 rounded-xl bg-teal-50 p-3 text-sm font-medium text-teal-800">
+              ✅ Votre email est confirmé. Vous pouvez vous connecter.
+            </p>
+          ) : null}
+
           <form onSubmit={handleSubmit} className="mt-6 space-y-5" noValidate>
             <div>
               <label htmlFor="email" className="mb-1 block text-sm font-medium text-slate-700">Email</label>
@@ -137,6 +148,11 @@ export default function LoginPage() {
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
+              </div>
+              <div className="mt-2 text-right">
+                <Link href="/forgot-password" className="text-sm font-medium text-teal-600 hover:text-teal-700">
+                  Mot de passe oublié ?
+                </Link>
               </div>
             </div>
 

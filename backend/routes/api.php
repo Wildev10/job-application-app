@@ -15,7 +15,12 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('throttle:10,1')->group(function (): void {
 	Route::post('/auth/register', [AuthController::class, 'register']);
 	Route::post('/auth/login', [AuthController::class, 'login']);
+	Route::post('/auth/forgot-password', [AuthController::class, 'forgotPassword']);
+	Route::post('/auth/reset-password', [AuthController::class, 'resetPassword']);
 });
+Route::get('/auth/verify-email/{id}/{hash}', [AuthController::class, 'verifyEmail'])
+	->middleware('signed')
+	->name('verification.verify');
 Route::get('/jobs/public/{companySlug}/{jobSlug}', [JobController::class, 'showPublic']);
 Route::middleware('throttle:10,1')->group(function (): void {
 	Route::post('/applications', [ApplicationController::class, 'store']);
@@ -27,6 +32,7 @@ Route::post('/payments/webhook', [PaymentController::class, 'webhook']);
 Route::middleware('company.auth')->group(function (): void {
 	Route::post('/auth/logout', [AuthController::class, 'logout']);
 	Route::get('/auth/me', [AuthController::class, 'me']);
+	Route::post('/auth/resend-verification', [AuthController::class, 'resendVerification'])->middleware('throttle:3,1');
 	// Return onboarding progress metrics for the authenticated company.
 	Route::get('/company/onboarding-status', [CompanyController::class, 'onboardingStatus']);
 	Route::get('/company/plan-status', [CompanyController::class, 'planStatus']);

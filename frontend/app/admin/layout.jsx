@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { BriefcaseBusiness, ClipboardList, LayoutDashboard, Settings, X } from 'lucide-react';
+import EmailVerificationBanner from '@/components/EmailVerificationBanner';
 import PlanBadge from '@/components/PlanBadge';
 import { PlanStatusProvider, usePlanStatus } from '@/hooks/usePlanStatus';
 import { getCompany } from '@/lib/auth';
@@ -137,6 +138,8 @@ function AdminLayoutShell({ children }) {
         </aside>
 
         <main className="min-w-0 flex-1">
+          <EmailVerificationBanner />
+
           {showExpiryBanner ? (
             <div className="mb-4 flex items-start justify-between gap-3 border-b border-amber-200 bg-amber-50 px-6 py-2 text-sm">
               <div>

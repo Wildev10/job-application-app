@@ -7,12 +7,15 @@ use App\Mail\CandidatureReceivedApplicant;
 use App\Mail\PaymentConfirmationMail;
 use App\Mail\PaymentFailedMail;
 use App\Mail\PlanExpiredMail;
+use App\Mail\ResetPasswordMail;
+use App\Mail\VerifyEmailMail;
 use App\Mail\StatusUpdated;
 use App\Models\Application;
 use App\Models\Company;
 use App\Models\Payment;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\URL;
 use Throwable;
 
 class MailService
@@ -121,6 +124,46 @@ class MailService
             Mail::to($company->email)->send(new PlanExpiredMail($company));
         } catch (Throwable $exception) {
             Log::error('Failed to send plan expired email.', [
+                'company_id' => $company->id,
+                'message' => $exception->getMessage(),
+            ]);
+        }
+    }
+
+    /**
+     * Send the email verification link to a newly registered company.
+     */
+    public static function sendEmailVerification(Company $company): void
+    {
+        try {
+            $url = URL::temporarySignedRoute('verification.verify', now()->addDay(), [
+                'id' => $company->id,
+                'hash' => sha1($company->email),
+            ]);
+
+            Mail::to($company->email)->send(new VerifyEmailMail($company, $url));
+        } catch (Throwable $exception) {
+            Log::error('Failed to send email verification.', [
+                'company_id' => $company->id,
+                'message' => $exception->getMessage(),
+            ]);
+        }
+    }
+
+    /**
+     * Send the password reset link to a company.
+     */
+    public static function sendPasswordReset(Company $company, string $token): void
+    {
+        try {
+            $url = rtrim((string) config('app.frontend_url'), '/').'/reset-password?'.http_build_query([
+                'token' => $token,
+                'email' => $company->email,
+            ]);
+
+            Mail::to($company->email)->send(new ResetPasswordMail($company, $url));
+        } catch (Throwable $exception) {
+            Log::error('Failed to send password reset email.', [
                 'company_id' => $company->id,
                 'message' => $exception->getMessage(),
             ]);

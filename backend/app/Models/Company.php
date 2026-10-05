@@ -55,6 +55,7 @@ class Company extends Model
     {
         return [
             'password' => 'hashed',
+            'email_verified_at' => 'datetime',
             'is_suspended' => 'boolean',
             'plan_expires_at' => 'datetime',
             'impersonate_expires_at' => 'datetime',
