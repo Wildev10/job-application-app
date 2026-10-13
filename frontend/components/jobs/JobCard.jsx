@@ -1,119 +1,149 @@
 'use client';
 
-import { Archive, Briefcase, CalendarDays, Eye, MapPin, PencilLine, Users } from 'lucide-react';
+import { ArrowRight, CalendarClock, Clock3, Link2, MapPin, PencilLine, Users } from 'lucide-react';
+import { daysFromToday, formatPastDate, formatShortDate } from '@/lib/date';
 
 const STATUS_CONFIG = {
-  open:   { bar: 'bg-[#F2600C]', badge: 'bg-[#FFF4EE] text-[#F2600C]', dot: 'bg-[#F2600C]', label: 'Ouvert' },
-  closed: { bar: 'bg-[#9CA3AF]', badge: 'bg-[#F5F5F5] text-[#6B7280]', dot: 'bg-[#9CA3AF]', label: 'Fermé' },
-  draft:  { bar: 'bg-[#FFD43B]', badge: 'bg-amber-50 text-amber-700', dot: 'bg-[#FFD43B]', label: 'Brouillon' },
+  open:   { pill: 'bg-emerald-50 text-emerald-700 ring-emerald-600/15', dot: 'bg-emerald-500', label: 'Ouvert' },
+  closed: { pill: 'bg-[#F3F4F6] text-[#6B7280] ring-[#6B7280]/15', dot: 'bg-[#9CA3AF]', label: 'Clôturé' },
+  draft:  { pill: 'bg-amber-50 text-amber-700 ring-amber-600/15', dot: 'bg-amber-400', label: 'Brouillon' },
 };
 
-/**
- * Display a single job card with actions for admin management.
- */
-export default function JobCard({ job, onEdit, onClose, onViewApplications }) {
-  const config = STATUS_CONFIG[job.status] || STATUS_CONFIG.draft;
+const iconButton =
+  'flex h-8 w-8 items-center justify-center rounded-lg text-[#9CA3AF] transition hover:bg-[#F5F5F5] hover:text-[#0E0E10] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F2600C]/30 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent';
 
-  const expiresAt = job?.expires_at ? new Date(job.expires_at) : null;
-  const now = new Date();
-  const sevenDays = 7 * 24 * 60 * 60 * 1000;
-  const isExpiringSoon = expiresAt
-    ? expiresAt.getTime() - now.getTime() <= sevenDays && expiresAt.getTime() > now.getTime()
-    : false;
+function expiryInfo(expiresAt, isOpen) {
+  const days = daysFromToday(expiresAt);
+  if (days === null) {
+    return { label: 'Sans date limite', tone: 'text-[#9CA3AF]' };
+  }
+  if (days < 0) {
+    return { label: `Expiré le ${formatShortDate(expiresAt)}`, tone: 'text-[#9CA3AF]' };
+  }
+  if (!isOpen) {
+    return { label: `Échéance ${formatShortDate(expiresAt)}`, tone: 'text-[#9CA3AF]' };
+  }
+  if (days === 0) return { label: "Expire aujourd'hui", tone: 'text-red-600', urgent: true };
+  if (days <= 7) return { label: `Expire dans ${days} j`, tone: 'text-amber-700', urgent: true };
+  return { label: `Jusqu'au ${formatShortDate(expiresAt)}`, tone: 'text-[#6B7280]' };
+}
+
+function publishedLabel(createdAt) {
+  const days = daysFromToday(createdAt);
+  if (days !== null && days > -7) {
+    return `Publié ${formatPastDate(createdAt).toLowerCase()}`;
+  }
+  return `Publié le ${formatShortDate(createdAt)}`;
+}
+
+/**
+ * Job summary card for the admin jobs page.
+ */
+export default function JobCard({ job, onEdit, onClose, onViewApplications, onCopyLink }) {
+  const config = STATUS_CONFIG[job.status] || STATUS_CONFIG.draft;
+  const isOpen = job.status === 'open';
+  const count = Number(job.applications_count || 0);
+  const expiry = expiryInfo(job.expires_at, isOpen);
 
   return (
-    <article className="overflow-hidden rounded-xl border border-[#E5E5E5] bg-white shadow-sm transition-all duration-200 hover:border-[#F2600C]/30 hover:shadow-md">
-      {/* Color strip by status */}
-      <div className={`h-1 w-full ${config.bar}`} />
-
-      <div className="p-5">
-        {/* Header */}
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <h3 className="truncate text-[18px] font-bold tracking-[-0.02em] text-[#0E0E10]" title={job.title}>
-              {job.title}
-            </h3>
-            <span className="mt-1.5 inline-block rounded-md bg-[#F5F5F5] px-2 py-0.5 text-[11px] font-medium text-[#6B7280]">
-              Réf. #{job.id}
+    <article
+      className={`group flex flex-col rounded-2xl border bg-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md ${
+        isOpen ? 'border-[#E8E8E8] hover:border-[#F2600C]/30' : 'border-[#EDEDED]'
+      }`}
+    >
+      <div className="flex flex-1 flex-col p-5">
+        {/* Status + quick actions */}
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex min-w-0 items-center gap-2">
+            <span className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11.5px] font-semibold ring-1 ring-inset ${config.pill}`}>
+              <span className={`h-1.5 w-1.5 rounded-full ${config.dot}`} />
+              {config.label}
+            </span>
+            <span className="truncate rounded-full bg-[#F5F5F5] px-2 py-0.5 text-[11.5px] font-medium text-[#6B7280]">
+              {job.type_label || job.type}
             </span>
           </div>
+          <div className="-mr-1.5 flex shrink-0 items-center">
+            <button
+              type="button"
+              onClick={onCopyLink}
+              disabled={!isOpen}
+              title={isOpen ? 'Copier le lien public' : 'Poste clôturé'}
+              aria-label="Copier le lien public du poste"
+              className={iconButton}
+            >
+              <Link2 size={15} />
+            </button>
+            <button type="button" onClick={onEdit} title="Modifier le poste" aria-label="Modifier le poste" className={iconButton}>
+              <PencilLine size={15} />
+            </button>
+          </div>
+        </div>
 
-          <span className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-[12px] font-semibold ${config.badge}`}>
-            <span className={`h-1.5 w-1.5 rounded-full ${config.dot}`} />
-            {job.status_label || config.label}
+        {/* Title + meta */}
+        <button type="button" onClick={onViewApplications} className="mt-3 text-left focus-visible:outline-none">
+          <h3
+            className={`line-clamp-2 text-[17px] font-bold leading-snug tracking-[-0.015em] transition-colors group-hover:text-[#F2600C] ${
+              isOpen ? 'text-[#0E0E10]' : 'text-[#6B7280]'
+            }`}
+          >
+            {job.title}
+          </h3>
+        </button>
+        <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12.5px] text-[#6B7280]">
+          <span className="font-medium text-[#374151]">{job.role}</span>
+          <span className="inline-flex items-center gap-1">
+            <MapPin size={13} className="text-[#9CA3AF]" />
+            {job.location || 'Lieu non précisé'}
           </span>
-        </div>
-
-        {/* Info grid */}
-        <div className="my-4 rounded-xl bg-[#FAFAFA] px-4 py-3">
-          <div className="space-y-2">
-            <div className="flex items-center gap-2.5">
-              <Briefcase size={14} className="shrink-0 text-[#F2600C]" />
-              <span className="w-12 text-[12px] text-[#9CA3AF]">Rôle</span>
-              <span className="text-[13px] font-medium text-[#0E0E10]">{job.role}</span>
-            </div>
-            <div className="flex items-center gap-2.5">
-              <PencilLine size={14} className="shrink-0 text-[#F2600C]" />
-              <span className="w-12 text-[12px] text-[#9CA3AF]">Type</span>
-              <span className="text-[13px] font-medium text-[#0E0E10]">{job.type_label || job.type}</span>
-            </div>
-            <div className="flex items-center gap-2.5">
-              <MapPin size={14} className="shrink-0 text-[#F2600C]" />
-              <span className="w-12 text-[12px] text-[#9CA3AF]">Lieu</span>
-              <span className="text-[13px] font-medium text-[#0E0E10]">{job.location || 'Non précisée'}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Stats row */}
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="inline-flex items-center gap-1.5 rounded-lg bg-[#FFF4EE] px-3 py-1.5 text-[13px] font-medium text-[#F2600C]">
-            <Users size={14} />
-            {job.applications_count || 0} candidature{(job.applications_count || 0) !== 1 ? 's' : ''}
-          </div>
-
-          {expiresAt && (
-            <div className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[12px] font-medium ${
-              isExpiringSoon
-                ? 'bg-amber-50 text-amber-700'
-                : 'bg-[#F5F5F5] text-[#6B7280]'
-            }`}>
-              <CalendarDays size={13} className={isExpiringSoon ? 'text-amber-500' : ''} />
-              Expire le {new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }).format(expiresAt)}
-            </div>
+          {job.created_at && (
+            <span className="inline-flex items-center gap-1" title={formatShortDate(job.created_at, true)}>
+              <Clock3 size={13} className="text-[#9CA3AF]" />
+              {publishedLabel(job.created_at)}
+            </span>
           )}
         </div>
 
-        {/* Actions */}
-        <div className="mt-4 flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={onViewApplications}
-            className="inline-flex items-center gap-2 rounded-lg bg-[#F2600C] px-3.5 py-2 text-[13px] font-semibold text-white transition hover:bg-[#D44F08]"
-          >
-            <Eye size={14} />
-            Voir candidatures
-          </button>
+        {/* Metrics */}
+        <div className="mt-auto pt-5">
+          <div className="flex items-end justify-between gap-3 rounded-xl bg-[#FAFAFA] px-4 py-3 ring-1 ring-inset ring-[#F0F0F0]">
+            <div>
+              <p className="flex items-baseline gap-1.5">
+                <span className="text-[24px] font-extrabold leading-none tracking-tight text-[#0E0E10] tabular-nums">{count}</span>
+                <span className="text-[12.5px] font-medium text-[#6B7280]">candidature{count > 1 ? 's' : ''}</span>
+              </p>
+            </div>
+            <p className={`inline-flex items-center gap-1 text-[12px] font-semibold ${expiry.tone}`}>
+              <CalendarClock size={13} />
+              {expiry.label}
+            </p>
+          </div>
+        </div>
+      </div>
 
-          <button
-            type="button"
-            onClick={onEdit}
-            className="inline-flex items-center gap-2 rounded-lg border border-[#E5E5E5] bg-white px-3.5 py-2 text-[13px] font-medium text-[#374151] transition hover:border-[#D1D5DB] hover:bg-[#FAFAFA]"
-          >
-            <PencilLine size={14} />
-            Modifier
-          </button>
+      {/* Footer actions */}
+      <div className="flex items-center justify-between gap-2 border-t border-[#F0F0F0] px-5 py-3">
+        <button
+          type="button"
+          onClick={onViewApplications}
+          className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-[#F2600C] transition hover:text-[#D44F08] focus-visible:outline-none focus-visible:underline"
+        >
+          <Users size={14} />
+          Voir les candidatures
+          <ArrowRight size={14} className="transition-transform group-hover:translate-x-0.5" />
+        </button>
 
+        {isOpen ? (
           <button
             type="button"
             onClick={onClose}
-            disabled={job.status === 'closed'}
-            className="inline-flex items-center gap-2 rounded-lg border border-red-200 bg-white px-3.5 py-2 text-[13px] font-medium text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:border-[#E5E5E5] disabled:text-[#9CA3AF]"
+            className="rounded-lg px-2.5 py-1.5 text-[12.5px] font-semibold text-[#6B7280] transition hover:bg-red-50 hover:text-red-600"
           >
-            <Archive size={14} />
             Clôturer
           </button>
-        </div>
+        ) : (
+          <span className="px-2.5 py-1.5 text-[12.5px] font-medium text-[#9CA3AF]">Poste clôturé</span>
+        )}
       </div>
     </article>
   );

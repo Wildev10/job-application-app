@@ -1,28 +1,30 @@
 'use client';
 
-import { useMemo } from 'react';
 import Link from 'next/link';
-import { Briefcase, Download, ExternalLink, Star, Eye } from 'lucide-react';
+import { ArrowUpRight, CalendarClock, ChevronRight, FileDown } from 'lucide-react';
 import { Alert } from '@/lib/sweetalert';
 import type { Application } from '@/app/types/application';
-import StatusBadge from '@/app/components/StatusBadge';
 import StatusSelector from '@/app/components/StatusSelector';
 import { downloadApplicationCv } from '@/lib/api';
+import { formatInterviewDate, formatPastDate, formatShortDate } from '@/lib/date';
 
 interface ApplicationCardProps {
   application: Application;
   onStatusUpdated: (updatedApplication: Pick<Application, 'id' | 'status' | 'status_label' | 'status_color' | 'interview_date' | 'interview_location'>) => void;
 }
 
+export const APPLICATION_GRID_COLUMNS =
+  'lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)_64px_164px_80px_108px]';
+
 const AVATAR_COLORS = [
-  { bg: 'bg-violet-100', text: 'text-violet-700' },
-  { bg: 'bg-blue-100', text: 'text-blue-700' },
-  { bg: 'bg-amber-100', text: 'text-amber-700' },
-  { bg: 'bg-rose-100', text: 'text-rose-700' },
-  { bg: 'bg-orange-100', text: 'text-orange-700' },
-  { bg: 'bg-indigo-100', text: 'text-indigo-700' },
-  { bg: 'bg-teal-100', text: 'text-teal-700' },
-  { bg: 'bg-cyan-100', text: 'text-cyan-700' },
+  'bg-violet-100 text-violet-700',
+  'bg-sky-100 text-sky-700',
+  'bg-amber-100 text-amber-800',
+  'bg-rose-100 text-rose-700',
+  'bg-orange-100 text-orange-700',
+  'bg-indigo-100 text-indigo-700',
+  'bg-teal-100 text-teal-700',
+  'bg-lime-100 text-lime-800',
 ];
 
 function getAvatarColor(name: string) {
@@ -33,33 +35,21 @@ function getAvatarColor(name: string) {
   return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
 }
 
+function scoreTone(score: number) {
+  if (score >= 8) return { bar: 'bg-emerald-500', text: 'text-emerald-700' };
+  if (score >= 5) return { bar: 'bg-amber-400', text: 'text-amber-700' };
+  return { bar: 'bg-rose-400', text: 'text-rose-600' };
+}
+
+const iconButton =
+  'flex h-8 w-8 items-center justify-center rounded-lg border border-[#E5E5E5] bg-white text-[#6B7280] transition hover:border-[#F2600C]/40 hover:bg-[#FFF4EE] hover:text-[#F2600C] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F2600C]/30';
+const iconButtonDisabled =
+  'flex h-8 w-8 cursor-not-allowed items-center justify-center rounded-lg border border-[#F0F0F0] text-[#D9D9D9]';
+
 /**
- * Present one application with expandable motivation and useful links.
+ * One application rendered as a table row on desktop and a compact card on mobile.
  */
 export default function ApplicationCard({ application, onStatusUpdated }: ApplicationCardProps) {
-  const motivationPreview = useMemo(() => {
-    if (application.motivation.length <= 120) {
-      return application.motivation;
-    }
-    return `${application.motivation.slice(0, 120)}...`;
-  }, [application.motivation]);
-
-  const openMotivationPopup = async (): Promise<void> => {
-    await Alert.fire({
-      icon: 'info',
-      title: 'Motivation complète',
-      text: application.motivation,
-      confirmButtonText: 'Fermer',
-      confirmButtonColor: '#F2600C',
-      background: '#FAFAFA',
-      color: '#0E0E10',
-      customClass: {
-        popup: 'rounded-md',
-        confirmButton: 'px-6 py-2 text-sm font-medium',
-      },
-    });
-  };
-
   const handleDownloadCv = async (): Promise<void> => {
     try {
       await downloadApplicationCv(application.id);
@@ -73,128 +63,106 @@ export default function ApplicationCard({ application, onStatusUpdated }: Applic
     }
   };
 
-  const submittedAt = new Intl.DateTimeFormat('fr-FR', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  }).format(new Date(application.created_at));
-
-  const score = Math.max(0, Math.min(10, application.score || 0));
-  const scoreClass =
-    score >= 8
-      ? 'bg-[#FFF4EE] text-[#F2600C] border border-[#FFD5C2]'
-      : score >= 5
-        ? 'bg-amber-50 text-amber-700 border border-amber-200'
-        : 'bg-red-50 text-red-600 border border-red-200';
-
-  const initials = (application.nom || 'C')
+  const score = Math.max(0, Math.min(10, Math.round(application.score || 0)));
+  const tone = scoreTone(score);
+  const name = application.nom || 'Candidat';
+  const initials = name
     .split(/\s+/)
     .filter(Boolean)
     .slice(0, 2)
     .map((part) => part[0]?.toUpperCase())
     .join('') || 'C';
-
-  const avatarColor = getAvatarColor(application.nom || 'C');
+  const profileHref = `/admin/candidatures/${application.id}`;
+  const showInterview = application.status === 'interview' && application.interview_date;
 
   return (
-    <article className="group rounded-xl border border-[#E5E5E5] bg-white p-6 shadow-sm transition-all duration-200 hover:border-[#F2600C]/30 hover:shadow-md">
-      <div className="flex flex-col gap-4 md:flex-row md:items-start md:gap-5">
-
-        {/* Avatar */}
-        <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-[15px] font-semibold ${avatarColor.bg} ${avatarColor.text}`}>
+    <article
+      className={`group grid grid-cols-1 gap-3 px-4 py-4 transition-colors hover:bg-[#FCFCFC] sm:px-5 lg:items-center lg:gap-5 lg:py-3.5 ${APPLICATION_GRID_COLUMNS}`}
+    >
+      {/* Candidate */}
+      <div className="flex min-w-0 items-center gap-3 lg:order-1">
+        <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-[13px] font-bold ${getAvatarColor(name)}`}>
           {initials}
         </div>
-
-        {/* Main content */}
-        <div className="min-w-0 flex-1 space-y-3">
-          {/* Name + role + email */}
-          <div className="flex flex-wrap items-start gap-x-3 gap-y-1">
-            <h3 className="text-[16px] font-bold tracking-[-0.01em] text-[#0E0E10]">{application.nom}</h3>
-            <span className="inline-flex items-center gap-1 rounded-full bg-[#F5F5F5] px-2.5 py-0.5 text-[12px] font-medium text-[#6B7280]">
-              <Briefcase size={11} className="opacity-60" />
-              {application.role}
-            </span>
-          </div>
-          <p className="text-[12px] text-[#9CA3AF]">{application.email}</p>
-
-          {/* Score badge */}
-          <div className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[12px] font-semibold ${scoreClass}`}>
-            <Star size={12} className="fill-current" />
-            <span>{score}/10</span>
-          </div>
-
-          {/* Motivation preview */}
-          <p
-            className="text-[13px] leading-[1.65] text-[#6B7280]"
-            style={{
-              display: '-webkit-box',
-              WebkitBoxOrient: 'vertical',
-              WebkitLineClamp: 2,
-              overflow: 'hidden',
-            }}
+        <div className="min-w-0">
+          <Link
+            href={profileHref}
+            className="block truncate text-[14px] font-semibold text-[#0E0E10] transition hover:text-[#F2600C] focus-visible:outline-none focus-visible:underline"
           >
-            {motivationPreview}
-          </p>
+            {name}
+          </Link>
+          <p className="truncate text-[12.5px] text-[#6B7280]">{application.email}</p>
+        </div>
+      </div>
 
-          {application.motivation.length > 120 && (
-            <button
-              type="button"
-              onClick={() => void openMotivationPopup()}
-              className="text-[12px] font-medium text-[#F2600C] transition hover:text-[#D44F08]"
+      {/* Job + score + date — one wrapped line on mobile, separate columns on desktop */}
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 sm:pl-[52px] lg:contents">
+        <div className="min-w-0 basis-full sm:basis-auto lg:order-2">
+          <p className="truncate text-[13px] font-medium text-[#374151]" title={application.job_title || undefined}>
+            {application.job_title || <span className="text-[#9CA3AF]">Candidature spontanée</span>}
+          </p>
+          <span className="mt-1 inline-flex max-w-full items-center rounded-md bg-[#F5F5F5] px-1.5 py-0.5 text-[11px] font-medium text-[#6B7280]">
+            <span className="truncate">{application.role}</span>
+          </span>
+        </div>
+
+        <div className="lg:order-3" title={`Score : ${score}/10`}>
+          <p className="text-[13px] font-bold tabular-nums text-[#0E0E10]">
+            <span className={tone.text}>{score}</span>
+            <span className="font-medium text-[#9CA3AF]">/10</span>
+          </p>
+          <div className="mt-1.5 h-1 w-14 overflow-hidden rounded-full bg-[#F0F0F0]">
+            <div className={`h-full rounded-full ${tone.bar}`} style={{ width: `${score * 10}%` }} />
+          </div>
+        </div>
+
+        <p
+          className="text-[12.5px] text-[#6B7280] tabular-nums lg:order-5"
+          title={formatShortDate(application.created_at, true)}
+        >
+          {formatPastDate(application.created_at)}
+        </p>
+      </div>
+
+      {/* Status + actions — one line on mobile, separate columns on desktop */}
+      <div className="flex items-start justify-between gap-3 sm:pl-[52px] lg:contents">
+        <div className="shrink-0 lg:order-4">
+          <StatusSelector applicationId={application.id} currentStatus={application.status} onStatusUpdated={onStatusUpdated} />
+          {showInterview && (
+            <p
+              className="mt-1.5 flex items-center gap-1 text-[11.5px] font-medium text-[#92400E]"
+              title={application.interview_location ? `Lieu : ${application.interview_location}` : undefined}
             >
-              Lire la suite →
-            </button>
+              <CalendarClock size={12} className="shrink-0" />
+              <span className="truncate">{formatInterviewDate(application.interview_date)}</span>
+            </p>
           )}
         </div>
 
-        {/* Right column: status + actions + date */}
-        <div className="flex flex-col items-start gap-3 md:items-end md:shrink-0">
-          <StatusBadge status={application.status} label={application.status_label} color={application.status_color} />
-          <StatusSelector applicationId={application.id} currentStatus={application.status} onStatusUpdated={onStatusUpdated} />
+        <div className="flex shrink-0 items-center justify-end gap-1.5 lg:order-6">
+          {application.cv ? (
+            <button type="button" onClick={() => void handleDownloadCv()} title="Télécharger le CV" aria-label="Télécharger le CV" className={iconButton}>
+              <FileDown size={15} />
+            </button>
+          ) : (
+            <span title="CV non fourni" className={iconButtonDisabled}>
+              <FileDown size={15} />
+            </span>
+          )}
 
-          {/* Action icons */}
-          <div className="flex items-center gap-1">
-            <Link
-              href={`/admin/candidatures/${application.id}`}
-              title="Voir le profil complet"
-              className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#E5E5E5] text-[#9CA3AF] transition hover:border-[#F2600C] hover:text-[#F2600C]"
-            >
-              <Eye size={14} />
-            </Link>
+          {application.portfolio ? (
+            <a href={application.portfolio} target="_blank" rel="noreferrer" title="Ouvrir le portfolio" aria-label="Ouvrir le portfolio" className={iconButton}>
+              <ArrowUpRight size={15} />
+            </a>
+          ) : (
+            <span title="Portfolio non fourni" className={iconButtonDisabled}>
+              <ArrowUpRight size={15} />
+            </span>
+          )}
 
-            {application.portfolio ? (
-              <a
-                href={application.portfolio}
-                target="_blank"
-                rel="noreferrer"
-                title="Voir le portfolio"
-                className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#E5E5E5] text-[#9CA3AF] transition hover:border-[#F2600C] hover:text-[#F2600C]"
-              >
-                <ExternalLink size={14} />
-              </a>
-            ) : (
-              <span title="Portfolio indisponible" className="flex h-8 w-8 cursor-not-allowed items-center justify-center rounded-lg border border-[#E5E5E5] text-[#D1D5DB]">
-                <ExternalLink size={14} />
-              </span>
-            )}
-
-            {application.cv ? (
-              <button
-                type="button"
-                onClick={() => void handleDownloadCv()}
-                title="Télécharger le CV"
-                className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#E5E5E5] text-[#9CA3AF] transition hover:border-[#F2600C] hover:text-[#F2600C]"
-              >
-                <Download size={14} />
-              </button>
-            ) : (
-              <span title="CV non fourni" className="flex h-8 w-8 cursor-not-allowed items-center justify-center rounded-lg border border-[#E5E5E5] text-[#D1D5DB]">
-                <Download size={14} />
-              </span>
-            )}
-          </div>
-
-          <p className="text-[11px] text-[#9CA3AF]">{submittedAt}</p>
+          <Link href={profileHref} title="Voir le profil complet" aria-label="Voir le profil complet" className={iconButton}>
+            <ChevronRight size={15} />
+          </Link>
         </div>
       </div>
     </article>
