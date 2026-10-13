@@ -140,7 +140,9 @@ function AdminLayoutShell({ children }) {
           {/* Navigation */}
           <nav className="p-3 flex flex-col gap-0.5">
             {MAIN_LINKS.map((item) => {
-              const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+              const isActive = item.href === '/admin'
+                ? pathname === '/admin'
+                : pathname === item.href || pathname.startsWith(item.href + '/');
               const Icon = item.icon;
               const showBadge = item.href === '/admin/candidatures' && pendingCount > 0;
 
