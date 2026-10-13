@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Models\Company;
+use App\Models\CompanyMember;
 use Closure;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -15,7 +16,7 @@ class CompanyAuth
      */
     public function handle(Request $request, Closure $next): Response|JsonResponse
     {
-        $token = $request->bearerToken();
+        $token = $request->bearerToken() ?? $request->cookie('company_token');
 
         if ($token === null || $token === '') {
             return response()->json([
@@ -33,6 +34,22 @@ class CompanyAuth
             }
 
             $request->attributes->set('company', $company);
+
+            return $next($request);
+        }
+
+        $member = CompanyMember::where('api_token', $token)->where('status', 'active')->first();
+
+        if ($member !== null) {
+            $memberCompany = $member->company;
+
+            if ($memberCompany === null || $memberCompany->is_suspended) {
+                return response()->json(['message' => 'Accès refusé'], 403)
+                    ->header('Content-Type', 'application/json');
+            }
+
+            $request->attributes->set('company', $memberCompany);
+            $request->attributes->set('member', $member);
 
             return $next($request);
         }

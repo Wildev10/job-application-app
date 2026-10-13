@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { MailWarning } from 'lucide-react';
+import { Mail, X } from 'lucide-react';
 import { Alert } from '@/lib/sweetalert';
 import { apiFetch } from '@/lib/api';
 import { getCompany, saveCompany } from '@/lib/auth';
@@ -12,6 +12,7 @@ import { getCompany, saveCompany } from '@/lib/auth';
 export default function EmailVerificationBanner() {
   const [isUnverified, setIsUnverified] = useState(false);
   const [isSending, setIsSending] = useState(false);
+  const [isDismissed, setIsDismissed] = useState(false);
 
   useEffect(() => {
     if (localStorage.getItem('impersonate_token')) {
@@ -56,21 +57,33 @@ export default function EmailVerificationBanner() {
     }
   };
 
-  if (!isUnverified) {
+  if (!isUnverified || isDismissed) {
     return null;
   }
 
   return (
-    <div className="mb-4 flex flex-wrap items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-      <MailWarning size={18} className="shrink-0" />
-      <span className="flex-1">Confirmez votre adresse email pour sécuriser votre compte.</span>
+    <div className="mb-5 flex items-center gap-3 rounded-xl border border-[#FFD5C2] bg-[#FFF4EE] px-4 py-3">
+      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#F2600C]/15">
+        <Mail size={15} className="text-[#F2600C]" />
+      </div>
+      <p className="flex-1 text-[13px] font-medium text-[#0E0E10]">
+        Confirmez votre adresse email pour sécuriser votre compte.
+      </p>
       <button
         type="button"
         onClick={() => void handleResend()}
         disabled={isSending}
-        className="rounded-md border border-amber-300 px-3 py-1 text-xs font-semibold text-amber-800 hover:bg-amber-100 disabled:opacity-60"
+        className="shrink-0 rounded-lg bg-[#F2600C] px-3 py-1.5 text-[12px] font-semibold text-white transition hover:bg-[#D44F08] disabled:opacity-60"
       >
-        {isSending ? 'Envoi...' : "Renvoyer l'email"}
+        {isSending ? 'Envoi...' : 'Renvoyer'}
+      </button>
+      <button
+        type="button"
+        onClick={() => setIsDismissed(true)}
+        className="shrink-0 rounded-md p-1 text-[#9CA3AF] transition hover:text-[#0E0E10]"
+        aria-label="Fermer"
+      >
+        <X size={14} />
       </button>
     </div>
   );

@@ -6,29 +6,24 @@ use Illuminate\Support\Str;
 
 class ScoringService
 {
-    private const DETAILED_MOTIVATION_LENGTH = 200;
-
     /**
-     * Compute the candidate score based on provided application data.
+     * Compute the candidate score out of 10 based on provided application data.
+     *
+     * Breakdown:
+     *  +1  valid email
+     *  +1  role specified
+     *  +2  CV attached
+     *  +2  portfolio URL provided
+     *  +1  motivation ≥ 50 chars
+     *  +1  motivation ≥ 150 chars
+     *  +1  motivation ≥ 300 chars
+     *  +1  motivation contains at least one quality keyword
      */
     public function calculate(array $data): int
     {
         $score = 0;
 
-        // Portfolio or a detailed motivation: not every job has a portfolio.
-        if (! empty($data['portfolio']) || mb_strlen(trim((string) ($data['motivation'] ?? ''))) >= self::DETAILED_MOTIVATION_LENGTH) {
-            $score++;
-        }
-
         if (filter_var($data['email'] ?? null, FILTER_VALIDATE_EMAIL)) {
-            $score++;
-        }
-
-        if ($this->containsMotivationKeyword((string) ($data['motivation'] ?? ''))) {
-            $score++;
-        }
-
-        if (! empty($data['cv'])) {
             $score++;
         }
 
@@ -36,30 +31,48 @@ class ScoringService
             $score++;
         }
 
-        return min($score, 5);
+        if (! empty($data['cv'])) {
+            $score += 2;
+        }
+
+        if (! empty($data['portfolio'])) {
+            $score += 2;
+        }
+
+        $motivationLength = mb_strlen(trim((string) ($data['motivation'] ?? '')));
+
+        if ($motivationLength >= 50) {
+            $score++;
+        }
+
+        if ($motivationLength >= 150) {
+            $score++;
+        }
+
+        if ($motivationLength >= 300) {
+            $score++;
+        }
+
+        if ($this->containsQualityKeyword((string) ($data['motivation'] ?? ''))) {
+            $score++;
+        }
+
+        return min($score, 10);
     }
 
     /**
-     * Check if motivation text contains at least one expected keyword.
+     * Check if motivation text contains at least one quality keyword.
      */
-    private function containsMotivationKeyword(string $motivation): bool
+    private function containsQualityKeyword(string $motivation): bool
     {
         $keywords = [
-            'passionne',
-            'passion',
-            'motive',
-            'motivation',
-            'experience',
-            'creatif',
-            'creativite',
-            'innovant',
-            'innovation',
-            'equipe',
-            'team',
-            'challenge',
-            'resoudre',
-            'apprendre',
-            'evoluer',
+            'passionne', 'passion', 'motive', 'motivation',
+            'experience', 'competence', 'expertise',
+            'creatif', 'creativite', 'innovant', 'innovation',
+            'equipe', 'team', 'collabor',
+            'challenge', 'objectif', 'resoudre', 'solution',
+            'apprendre', 'evoluer', 'progresser', 'developper',
+            'resultats', 'performance', 'impact',
         ];
 
         $normalized = Str::lower(Str::ascii($motivation));

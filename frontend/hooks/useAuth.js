@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { apiFetch } from '@/lib/api';
 import {
   getCompany,
-  getToken,
+  getMember,
   isAuthenticated as authIsAuthenticated,
   logout as clearAuth,
   saveCompany,
@@ -14,15 +14,14 @@ import {
 
 /**
  * Manage company authentication state and auth API calls.
+ * The JWT token lives in an HttpOnly cookie — JS never reads it directly.
  */
 export function useAuth() {
   const router = useRouter();
   const [company, setCompany] = useState(null);
-  const [token, setToken] = useState('');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setToken(getToken() || '');
     setCompany(getCompany());
     setLoading(false);
   }, []);
@@ -34,9 +33,8 @@ export function useAuth() {
         body: JSON.stringify({ email, password }),
       });
 
-      saveToken(response.api_token);
+      saveToken();
       saveCompany(response.company);
-      setToken(response.api_token);
       setCompany(response.company);
 
       return { success: true };
@@ -55,9 +53,8 @@ export function useAuth() {
         body: JSON.stringify({ name, email, password, password_confirmation }),
       });
 
-      saveToken(response.api_token);
+      saveToken();
       saveCompany(response.company);
-      setToken(response.api_token);
       setCompany(response.company);
 
       return { success: true };
@@ -70,25 +67,22 @@ export function useAuth() {
   };
 
   const logout = async () => {
+    const isMember = !!getMember();
     try {
-      await apiFetch('/auth/logout', {
-        method: 'POST',
-      });
+      await apiFetch(isMember ? '/member/logout' : '/auth/logout', { method: 'POST' });
     } catch {
       // Always clear local session even if API logout fails.
     } finally {
       clearAuth();
-      setToken('');
       setCompany(null);
-      router.push('/login');
+      router.push(isMember ? '/member/login' : '/login');
     }
   };
 
   return {
     company,
-    token,
     loading,
-    isAuthenticated: Boolean(token) || authIsAuthenticated(),
+    isAuthenticated: Boolean(company) || authIsAuthenticated(),
     login,
     register,
     logout,

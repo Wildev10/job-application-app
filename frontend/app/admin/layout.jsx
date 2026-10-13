@@ -1,18 +1,21 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { BriefcaseBusiness, ClipboardList, LayoutDashboard, Settings, X, ChevronRight } from 'lucide-react';
+import { BarChart2, BriefcaseBusiness, ChevronRight, ClipboardList, LayoutDashboard, Settings, Users, X } from 'lucide-react';
 import EmailVerificationBanner from '@/components/EmailVerificationBanner';
 import PlanBadge from '@/components/PlanBadge';
 import { PlanStatusProvider, usePlanStatus } from '@/hooks/usePlanStatus';
-import { getCompany } from '@/lib/auth';
+import { apiFetch } from '@/lib/api';
+import { getCompany, getMember } from '@/lib/auth';
 
 const MAIN_LINKS = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/admin/candidatures', label: 'Candidatures', icon: ClipboardList },
   { href: '/admin/postes', label: 'Postes', icon: BriefcaseBusiness },
+  { href: '/admin/statistiques', label: 'Statistiques', icon: BarChart2 },
+  { href: '/admin/equipe', label: 'Équipe', icon: Users },
 ];
 
 function CompanyAvatar({ name }) {
@@ -35,7 +38,11 @@ function CompanyAvatar({ name }) {
 function AdminLayoutShell({ children }) {
   const pathname = usePathname();
   const { planLimits, isStarter } = usePlanStatus();
+  const [pendingCount, setPendingCount] = useState(0);
+  const pendingIntervalRef = useRef(null);
   const [companyName, setCompanyName] = useState('Entreprise');
+  const [memberName, setMemberName] = useState('');
+  const [isOwner, setIsOwner] = useState(true);
   const [companyExpiryRaw, setCompanyExpiryRaw] = useState(null);
   const [impersonationCompanyName, setImpersonationCompanyName] = useState('');
   const [isExpiryBannerDismissed, setIsExpiryBannerDismissed] = useState(false);
@@ -43,9 +50,12 @@ function AdminLayoutShell({ children }) {
   useEffect(() => {
     const syncFromStorage = () => {
       const company = getCompany();
+      const member = getMember();
       const token = localStorage.getItem('impersonate_token');
 
       setCompanyName(company?.name || 'Entreprise');
+      setMemberName(member?.name || '');
+      setIsOwner(!member);
       setCompanyExpiryRaw(company?.plan_expires_at || null);
       setImpersonationCompanyName(token ? (localStorage.getItem('impersonate_company_name') || '') : '');
       setIsExpiryBannerDismissed(window.sessionStorage.getItem('pro_expiry_banner_dismissed') === '1');
@@ -56,6 +66,23 @@ function AdminLayoutShell({ children }) {
 
     return () => window.removeEventListener('storage', syncFromStorage);
   }, []);
+
+  const fetchPendingCount = useCallback(async () => {
+    try {
+      const data = await apiFetch('/company/onboarding-status', { method: 'GET' });
+      setPendingCount(data?.pending_applications_count ?? 0);
+    } catch {
+      // ignore — badge simply doesn't update
+    }
+  }, []);
+
+  useEffect(() => {
+    void fetchPendingCount();
+    pendingIntervalRef.current = window.setInterval(() => void fetchPendingCount(), 30_000);
+    return () => {
+      if (pendingIntervalRef.current !== null) window.clearInterval(pendingIntervalRef.current);
+    };
+  }, [fetchPendingCount]);
 
   const stopImpersonation = () => {
     localStorage.removeItem('impersonate_token');
@@ -95,7 +122,11 @@ function AdminLayoutShell({ children }) {
               <CompanyAvatar name={companyName} />
               <div className="min-w-0">
                 <p className="truncate text-sm font-semibold leading-tight text-white">{companyName}</p>
-                <p className="mt-0.5 text-[10px] font-medium uppercase tracking-[0.14em] text-[#525252]">Espace entreprise</p>
+                {memberName ? (
+                  <p className="mt-0.5 truncate text-[11px] text-[#737373]">{memberName} · Recruteur</p>
+                ) : (
+                  <p className="mt-0.5 text-[10px] font-medium uppercase tracking-[0.14em] text-[#525252]">Espace entreprise</p>
+                )}
               </div>
             </div>
             <div className="mt-3">
@@ -109,8 +140,9 @@ function AdminLayoutShell({ children }) {
           {/* Navigation */}
           <nav className="p-3 flex flex-col gap-0.5">
             {MAIN_LINKS.map((item) => {
-              const isActive = pathname === item.href;
+              const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
               const Icon = item.icon;
+              const showBadge = item.href === '/admin/candidatures' && pendingCount > 0;
 
               return (
                 <Link
@@ -128,7 +160,12 @@ function AdminLayoutShell({ children }) {
                     className={isActive ? 'text-white' : 'text-[#525252] group-hover:text-white transition-colors'}
                   />
                   <span className="flex-1">{item.label}</span>
-                  {isActive && <ChevronRight size={14} className="opacity-60" />}
+                  {showBadge && (
+                    <span className={`inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full px-1 text-[10px] font-bold ${isActive ? 'bg-white/25 text-white' : 'bg-[#F2600C] text-white'}`}>
+                      {pendingCount > 99 ? '99+' : pendingCount}
+                    </span>
+                  )}
+                  {isActive && !showBadge && <ChevronRight size={14} className="opacity-60" />}
                 </Link>
               );
             })}
@@ -138,7 +175,7 @@ function AdminLayoutShell({ children }) {
           <div className="mt-auto p-3 pt-0">
             <div className="mb-1 mx-1 h-px bg-white/5" />
 
-            {isStarter && (
+            {isOwner && isStarter && (
               <div className="mb-2 rounded-xl border border-[#F2600C]/20 bg-gradient-to-br from-[#F2600C]/10 to-[#F2600C]/5 p-3">
                 <div className="flex items-center gap-1.5">
                   <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#F2600C]">Passez au Pro</span>
@@ -155,22 +192,24 @@ function AdminLayoutShell({ children }) {
               </div>
             )}
 
-            <Link
-              href="/admin/parametres"
-              className={`group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-150 ${
-                pathname === '/admin/parametres'
-                  ? 'bg-[#F2600C] text-white shadow-lg shadow-[#F2600C]/20'
-                  : 'text-[#737373] hover:bg-white/[0.06] hover:text-white'
-              }`}
-            >
-              <Settings
-                size={16}
-                strokeWidth={pathname === '/admin/parametres' ? 2.5 : 2}
-                className={pathname === '/admin/parametres' ? 'text-white' : 'text-[#525252] group-hover:text-white transition-colors'}
-              />
-              <span className="flex-1">Paramètres</span>
-              {pathname === '/admin/parametres' && <ChevronRight size={14} className="opacity-60" />}
-            </Link>
+            {isOwner && (
+              <Link
+                href="/admin/parametres"
+                className={`group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-150 ${
+                  pathname === '/admin/parametres'
+                    ? 'bg-[#F2600C] text-white shadow-lg shadow-[#F2600C]/20'
+                    : 'text-[#737373] hover:bg-white/[0.06] hover:text-white'
+                }`}
+              >
+                <Settings
+                  size={16}
+                  strokeWidth={pathname === '/admin/parametres' ? 2.5 : 2}
+                  className={pathname === '/admin/parametres' ? 'text-white' : 'text-[#525252] group-hover:text-white transition-colors'}
+                />
+                <span className="flex-1">Paramètres</span>
+                {pathname === '/admin/parametres' && <ChevronRight size={14} className="opacity-60" />}
+              </Link>
+            )}
           </div>
         </aside>
 

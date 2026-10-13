@@ -7,6 +7,7 @@ use App\Mail\CandidatureReceivedApplicant;
 use App\Mail\PaymentConfirmationMail;
 use App\Mail\PaymentFailedMail;
 use App\Mail\PlanExpiredMail;
+use App\Mail\PlanExpiringMail;
 use App\Mail\ResetPasswordMail;
 use App\Mail\VerifyEmailMail;
 use App\Mail\StatusUpdated;
@@ -39,12 +40,8 @@ class MailService
                 return;
             }
 
-            Mail::to($application->email)->send(new CandidatureReceivedApplicant($application, $company));
-            // Mailtrap free plan rate-limit: 1 email/2s — space out the two sends.
-            if (app()->environment('local', 'testing')) {
-                usleep(500000);
-            }
-            Mail::to($company->email)->send(new CandidatureReceivedAdmin($application, $company));
+            Mail::to($application->email)->queue(new CandidatureReceivedApplicant($application, $company));
+            Mail::to($company->email)->queue(new CandidatureReceivedAdmin($application, $company));
         } catch (Throwable $exception) {
             Log::error('Failed to send candidature received emails.', [
                 'application_id' => $application->id,
@@ -77,7 +74,7 @@ class MailService
                 return;
             }
 
-            Mail::to($application->email)->send(new StatusUpdated($application, $company));
+            Mail::to($application->email)->queue(new StatusUpdated($application, $company));
         } catch (Throwable $exception) {
             Log::error('Failed to send status update email.', [
                 'application_id' => $application->id,
@@ -106,7 +103,7 @@ class MailService
                 return;
             }
 
-            Mail::to($company->email)->send(new PaymentConfirmationMail($payment));
+            Mail::to($company->email)->queue(new PaymentConfirmationMail($payment));
         } catch (Throwable $exception) {
             Log::error('Failed to send payment confirmation email.', [
                 'payment_id' => $payment->id,
@@ -121,7 +118,7 @@ class MailService
     public static function sendPlanExpired(Company $company): void
     {
         try {
-            Mail::to($company->email)->send(new PlanExpiredMail($company));
+            Mail::to($company->email)->queue(new PlanExpiredMail($company));
         } catch (Throwable $exception) {
             Log::error('Failed to send plan expired email.', [
                 'company_id' => $company->id,
@@ -141,7 +138,7 @@ class MailService
                 'hash' => sha1($company->email),
             ]);
 
-            Mail::to($company->email)->send(new VerifyEmailMail($company, $url));
+            Mail::to($company->email)->queue(new VerifyEmailMail($company, $url));
         } catch (Throwable $exception) {
             Log::error('Failed to send email verification.', [
                 'company_id' => $company->id,
@@ -161,7 +158,7 @@ class MailService
                 'email' => $company->email,
             ]);
 
-            Mail::to($company->email)->send(new ResetPasswordMail($company, $url));
+            Mail::to($company->email)->queue(new ResetPasswordMail($company, $url));
         } catch (Throwable $exception) {
             Log::error('Failed to send password reset email.', [
                 'company_id' => $company->id,
@@ -189,10 +186,23 @@ class MailService
                 return;
             }
 
-            Mail::to($company->email)->send(new PaymentFailedMail($payment));
+            Mail::to($company->email)->queue(new PaymentFailedMail($payment));
         } catch (Throwable $exception) {
             Log::error('Failed to send payment failure email.', [
                 'payment_id' => $payment->id,
+                'message' => $exception->getMessage(),
+            ]);
+        }
+    }
+
+    public static function sendPlanExpiryReminder(Company $company, int $daysLeft): void
+    {
+        try {
+            Mail::to($company->email)->queue(new PlanExpiringMail($company, $daysLeft));
+        } catch (Throwable $exception) {
+            Log::error('Failed to send plan expiry reminder.', [
+                'company_id' => $company->id,
+                'days_left' => $daysLeft,
                 'message' => $exception->getMessage(),
             ]);
         }

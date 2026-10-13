@@ -25,6 +25,8 @@ class UpdateApplicationStatusRequest extends FormRequest
     {
         return [
             'status' => ['required', 'in:pending,reviewing,interview,accepted,rejected'],
+            'interview_date' => ['nullable', 'date', 'required_if:status,interview'],
+            'interview_location' => ['nullable', 'string', 'max:255'],
         ];
     }
 

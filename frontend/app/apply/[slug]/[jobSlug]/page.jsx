@@ -185,6 +185,9 @@ export default function ApplyByJobPage() {
             <div>
               <p className="text-xs uppercase tracking-[0.14em] text-[#737373]">{job.company?.name}</p>
               <h1 className="text-3xl font-extrabold tracking-[-0.02em] text-[#0f0f0f]">{job.title}</h1>
+              {job.company?.tagline && (
+                <p className="mt-0.5 text-sm text-[#6B7280]">{job.company.tagline}</p>
+              )}
             </div>
           </div>
 
