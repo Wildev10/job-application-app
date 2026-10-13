@@ -176,6 +176,12 @@ export default function LoginPage() {
               Créer un compte
             </Link>
           </p>
+          <p className="mt-3 text-sm text-[#9CA3AF]">
+            Vous êtes recruteur invité ?{' '}
+            <Link href="/member/login" className="font-medium text-[#6B7280] hover:text-[#0E0E10]">
+              Connexion recruteur →
+            </Link>
+          </p>
         </div>
       </section>
     </main>

@@ -193,6 +193,48 @@ class JobController extends Controller
     }
 
     /**
+     * List all open jobs for a company (public careers page).
+     */
+    public function listPublic(string $companySlug): JsonResponse
+    {
+        $company = Company::query()
+            ->select(['id', 'name', 'slug', 'logo', 'color', 'tagline'])
+            ->where('slug', $companySlug)
+            ->first();
+
+        if ($company === null) {
+            return response()->json(['message' => 'Entreprise introuvable.'], 404)
+                ->header('Content-Type', 'application/json');
+        }
+
+        $jobs = Job::query()
+            ->select(['id', 'slug', 'title', 'role', 'location', 'type', 'expires_at', 'created_at'])
+            ->where('company_id', $company->id)
+            ->open()
+            ->orderByDesc('created_at')
+            ->get()
+            ->map(fn (Job $job) => [
+                'slug' => $job->slug,
+                'title' => $job->title,
+                'role' => $job->role,
+                'location' => $job->location,
+                'type_label' => $job->type_label,
+                'expires_at' => $job->expires_at,
+            ]);
+
+        return response()->json([
+            'company' => [
+                'name' => $company->name,
+                'slug' => $company->slug,
+                'logo' => $company->logo,
+                'color' => $company->color,
+                'tagline' => $company->tagline,
+            ],
+            'jobs' => $jobs,
+        ], 200)->header('Content-Type', 'application/json');
+    }
+
+    /**
      * Show the public details of one open and non-expired job.
      */
     public function showPublic(string $companySlug, string $jobSlug): JsonResponse
@@ -204,7 +246,7 @@ class JobController extends Controller
             ->whereHas('company', function ($query) use ($companySlug): void {
                 $query->where('slug', $companySlug);
             })
-            ->with(['company:id,name,logo,color'])
+            ->with(['company:id,name,logo,color,tagline'])
             ->first();
 
         if ($job === null) {
@@ -224,6 +266,7 @@ class JobController extends Controller
                 'name' => $job->company?->name,
                 'logo' => $job->company?->logo,
                 'color' => $job->company?->color,
+                'tagline' => $job->company?->tagline,
             ],
         ], 200)->header('Content-Type', 'application/json');
     }

@@ -117,6 +117,52 @@ class PaymentController extends Controller
     }
 
     /**
+     * Renew an existing Pro plan (allowed even while still active).
+     */
+    public function renew(Request $request, FedaPayService $fedaPayService): JsonResponse
+    {
+        /** @var Company|null $company */
+        $company = $request->attributes->get('company');
+
+        if ($company === null) {
+            return response()->json(['message' => 'Non authentifié'], 401)
+                ->header('Content-Type', 'application/json');
+        }
+
+        $recentPendingExists = Payment::query()
+            ->where('company_id', $company->id)
+            ->pending()
+            ->where('created_at', '>=', now()->subMinutes(30))
+            ->exists();
+
+        if ($recentPendingExists) {
+            return response()->json([
+                'message' => 'Un paiement est déjà en cours. Réessayez dans quelques minutes.',
+            ], 409)->header('Content-Type', 'application/json');
+        }
+
+        try {
+            $transaction = $fedaPayService->createTransaction($company);
+
+            return response()->json([
+                'payment_url' => $transaction['payment_url'],
+                'transaction_id' => $transaction['transaction_id'],
+                'payment_id' => $transaction['payment_id'],
+                'message' => 'Renouvellement initié',
+            ], 200)->header('Content-Type', 'application/json');
+        } catch (Throwable $exception) {
+            Log::error('Erreur lors du renouvellement FedaPay.', [
+                'company_id' => $company->id,
+                'message' => $exception->getMessage(),
+            ]);
+
+            return response()->json([
+                'message' => 'Impossible d\'initialiser le renouvellement pour le moment.',
+            ], 500)->header('Content-Type', 'application/json');
+        }
+    }
+
+    /**
      * Return the latest payment history for the authenticated company.
      */
     public function history(Request $request): JsonResponse

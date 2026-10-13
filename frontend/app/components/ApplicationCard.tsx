@@ -1,7 +1,8 @@
 'use client';
 
 import { useMemo } from 'react';
-import { Briefcase, Download, ExternalLink, Star } from 'lucide-react';
+import Link from 'next/link';
+import { Briefcase, Download, ExternalLink, Star, Eye } from 'lucide-react';
 import { Alert } from '@/lib/sweetalert';
 import type { Application } from '@/app/types/application';
 import StatusBadge from '@/app/components/StatusBadge';
@@ -10,7 +11,7 @@ import { downloadApplicationCv } from '@/lib/api';
 
 interface ApplicationCardProps {
   application: Application;
-  onStatusUpdated: (updatedApplication: Pick<Application, 'id' | 'status' | 'status_label' | 'status_color'>) => void;
+  onStatusUpdated: (updatedApplication: Pick<Application, 'id' | 'status' | 'status_label' | 'status_color' | 'interview_date' | 'interview_location'>) => void;
 }
 
 const AVATAR_COLORS = [
@@ -78,11 +79,11 @@ export default function ApplicationCard({ application, onStatusUpdated }: Applic
     year: 'numeric',
   }).format(new Date(application.created_at));
 
-  const score = Math.max(0, Math.min(5, application.score || 0));
+  const score = Math.max(0, Math.min(10, application.score || 0));
   const scoreClass =
-    score >= 4
+    score >= 8
       ? 'bg-[#FFF4EE] text-[#F2600C] border border-[#FFD5C2]'
-      : score >= 2
+      : score >= 5
         ? 'bg-amber-50 text-amber-700 border border-amber-200'
         : 'bg-red-50 text-red-600 border border-red-200';
 
@@ -119,7 +120,7 @@ export default function ApplicationCard({ application, onStatusUpdated }: Applic
           {/* Score badge */}
           <div className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[12px] font-semibold ${scoreClass}`}>
             <Star size={12} className="fill-current" />
-            <span>{score}/5</span>
+            <span>{score}/10</span>
           </div>
 
           {/* Motivation preview */}
@@ -153,6 +154,14 @@ export default function ApplicationCard({ application, onStatusUpdated }: Applic
 
           {/* Action icons */}
           <div className="flex items-center gap-1">
+            <Link
+              href={`/admin/candidatures/${application.id}`}
+              title="Voir le profil complet"
+              className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#E5E5E5] text-[#9CA3AF] transition hover:border-[#F2600C] hover:text-[#F2600C]"
+            >
+              <Eye size={14} />
+            </Link>
+
             {application.portfolio ? (
               <a
                 href={application.portfolio}

@@ -20,7 +20,7 @@ class CompanyController extends Controller
     public function show(string $slug): JsonResponse
     {
         $company = Company::query()
-            ->select(['id', 'name', 'slug', 'logo', 'color'])
+            ->select(['id', 'name', 'slug', 'logo', 'color', 'tagline'])
             ->where('slug', $slug)
             ->first();
 
@@ -70,6 +70,10 @@ class CompanyController extends Controller
 
             if (array_key_exists('color', $data)) {
                 $updates['color'] = $data['color'];
+            }
+
+            if (array_key_exists('tagline', $data)) {
+                $updates['tagline'] = $data['tagline'];
             }
 
             if ($updates !== []) {
@@ -201,5 +205,65 @@ class CompanyController extends Controller
 
         return response()->json(PlanService::getPlanLimits($company), 200)
             ->header('Content-Type', 'application/json');
+    }
+
+    /**
+     * Return the company's custom email templates.
+     */
+    public function getEmailTemplates(Request $request): JsonResponse
+    {
+        /** @var Company|null $company */
+        $company = $request->attributes->get('company');
+
+        if ($company === null) {
+            return response()->json(['message' => 'Non authentifié'], 401)
+                ->header('Content-Type', 'application/json');
+        }
+
+        $defaults = [
+            'reviewing' => "Bonne nouvelle ! Votre candidature est en cours d'examen par notre équipe.",
+            'interview' => 'Félicitations ! Vous êtes sélectionné(e) pour un entretien.',
+            'accepted'  => "🎉 Félicitations ! Votre candidature a été acceptée. Bienvenue dans l'équipe {$company->name} !",
+            'rejected'  => "Nous avons bien examiné votre candidature et nous vous remercions de l'intérêt que vous portez à {$company->name}. Malheureusement, nous ne donnons pas suite à votre candidature pour le moment.",
+        ];
+
+        $saved = $company->email_templates ?? [];
+
+        return response()->json([
+            'defaults' => $defaults,
+            'custom'   => $saved,
+        ], 200)->header('Content-Type', 'application/json');
+    }
+
+    /**
+     * Save custom email templates for each status.
+     */
+    public function updateEmailTemplates(Request $request): JsonResponse
+    {
+        /** @var Company|null $company */
+        $company = $request->attributes->get('company');
+
+        if ($company === null) {
+            return response()->json(['message' => 'Non authentifié'], 401)
+                ->header('Content-Type', 'application/json');
+        }
+
+        $allowed = ['reviewing', 'interview', 'accepted', 'rejected'];
+        $templates = [];
+
+        foreach ($allowed as $status) {
+            $value = $request->input($status);
+            if (is_string($value) && $value !== '') {
+                $templates[$status] = mb_substr(trim($value), 0, 1000);
+            }
+        }
+
+        $company->email_templates = $templates ?: null;
+        $company->save();
+
+        return response()->json([
+            'message'   => 'Templates sauvegardés.',
+            'templates' => $company->email_templates,
+        ], 200)->header('Content-Type', 'application/json');
     }
 }

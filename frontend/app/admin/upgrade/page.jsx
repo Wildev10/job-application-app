@@ -65,6 +65,7 @@ export default function AdminUpgradePage() {
   } = usePayment({ refreshPlanStatus: refreshPlanLimits });
   const [countdown, setCountdown] = useState(3);
   const [paymentParam, setPaymentParam] = useState(null);
+  const [isRenewMode, setIsRenewMode] = useState(false);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -78,6 +79,7 @@ export default function AdminUpgradePage() {
     }
 
     setPaymentParam(nextParam);
+    setIsRenewMode(params.get('renew') === '1');
   }, []);
 
   const proPriceLabel = process.env.NEXT_PUBLIC_PLAN_PRO_PRICE_LABEL || '15 000 FCFA';
@@ -189,7 +191,7 @@ export default function AdminUpgradePage() {
             ✦ Plan Pro
           </span>
           <h1 className="max-w-3xl text-3xl font-black leading-tight text-[#0E0E10] sm:text-5xl">
-            Débloquez tout le potentiel de Vaybe Recrutement
+            {isRenewMode ? 'Renouveler votre plan Pro' : 'Débloquez tout le potentiel de Vaybe Recrutement'}
           </h1>
           <p className="max-w-2xl text-sm leading-6 text-[#6B7280] sm:text-base">
             Rejoignez les entreprises qui recrutent mieux et plus vite.
@@ -275,7 +277,7 @@ export default function AdminUpgradePage() {
 
           <button
             type="button"
-            onClick={() => void initiatePayment()}
+            onClick={() => void initiatePayment({ renew: isRenewMode })}
             disabled={initiating}
             className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-[#F2600C] py-4 text-lg font-bold text-white shadow-lg transition hover:bg-[#D44F08] disabled:cursor-not-allowed disabled:opacity-70"
           >
@@ -287,7 +289,7 @@ export default function AdminUpgradePage() {
             ) : (
               <>
                 <Smartphone size={18} />
-                Payer {proPriceLabel} avec Mobile Money →
+                {isRenewMode ? `Renouveler pour ${proPriceLabel}` : `Payer ${proPriceLabel} avec Mobile Money`} →
               </>
             )}
           </button>

@@ -179,6 +179,9 @@ export default function ApplyBySlugPage() {
             <div>
               <p className="text-xs uppercase tracking-[0.14em] text-[#737373]">Candidature</p>
               <h1 className="text-2xl font-extrabold text-[#0f0f0f]">{company.name}</h1>
+              {company.tagline && (
+                <p className="mt-0.5 text-sm text-[#6B7280]">{company.tagline}</p>
+              )}
             </div>
           </div>
         </header>

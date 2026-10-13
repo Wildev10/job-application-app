@@ -36,6 +36,13 @@ class Application extends Model
         'cv',
         'score',
         'status',
+        'interview_date',
+        'interview_location',
+        'archived_at',
+    ];
+
+    protected $casts = [
+        'interview_date' => 'datetime',
     ];
 
     /**

@@ -3,6 +3,7 @@
 use App\Http\Controllers\ApplicationController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CompanyController;
+use App\Http\Controllers\CompanyMemberController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\JobController;
 use App\Http\Controllers\PaymentController;
@@ -21,6 +22,7 @@ Route::middleware('throttle:10,1')->group(function (): void {
 Route::get('/auth/verify-email/{id}/{hash}', [AuthController::class, 'verifyEmail'])
 	->middleware('signed')
 	->name('verification.verify');
+Route::get('/jobs/public/{companySlug}', [JobController::class, 'listPublic']);
 Route::get('/jobs/public/{companySlug}/{jobSlug}', [JobController::class, 'showPublic']);
 Route::middleware('throttle:10,1')->group(function (): void {
 	Route::post('/applications', [ApplicationController::class, 'store']);
@@ -28,6 +30,11 @@ Route::middleware('throttle:10,1')->group(function (): void {
 	Route::post('/applications/{slug}', [ApplicationController::class, 'store']);
 });
 Route::post('/payments/webhook', [PaymentController::class, 'webhook']);
+
+// Member public routes (invite accept + login).
+Route::get('/member/invite/{token}', [CompanyMemberController::class, 'showInvite']);
+Route::post('/member/accept/{token}', [CompanyMemberController::class, 'activateInvite']);
+Route::post('/member/login', [CompanyMemberController::class, 'login'])->middleware('throttle:10,1');
 
 Route::middleware('company.auth')->group(function (): void {
 	Route::post('/auth/logout', [AuthController::class, 'logout']);
@@ -37,6 +44,12 @@ Route::middleware('company.auth')->group(function (): void {
 	Route::get('/company/onboarding-status', [CompanyController::class, 'onboardingStatus']);
 	Route::get('/company/plan-status', [CompanyController::class, 'planStatus']);
 	Route::patch('/company/profile', [CompanyController::class, 'updateProfile']);
+	Route::get('/company/email-templates', [CompanyController::class, 'getEmailTemplates']);
+	Route::put('/company/email-templates', [CompanyController::class, 'updateEmailTemplates']);
+	Route::get('/company/members', [CompanyMemberController::class, 'index']);
+	Route::post('/company/members', [CompanyMemberController::class, 'invite']);
+	Route::delete('/company/members/{id}', [CompanyMemberController::class, 'remove']);
+	Route::post('/member/logout', [CompanyMemberController::class, 'logout']);
 	Route::post('/company/logo', [CompanyController::class, 'updateLogo']);
 	Route::delete('/company/logo', [CompanyController::class, 'deleteLogo']);
 	Route::get('/jobs', [JobController::class, 'index']);
@@ -51,6 +64,7 @@ Route::middleware('company.auth')->group(function (): void {
 	Route::get('/applications/{id}/cv', [ApplicationController::class, 'downloadCv']);
 	Route::patch('/applications/{id}/status', [ApplicationController::class, 'updateStatus']);
 	Route::post('/payments/initiate', [PaymentController::class, 'initiate']);
+	Route::post('/payments/renew', [PaymentController::class, 'renew']);
 	Route::get('/payments/history', [PaymentController::class, 'history']);
 	Route::get('/payments/status/{paymentId}', [PaymentController::class, 'status']);
 });

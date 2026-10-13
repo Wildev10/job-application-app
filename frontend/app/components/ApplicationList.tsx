@@ -2,7 +2,8 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { Download, Link2 } from 'lucide-react';
+import { ArrowUpDown, Download, Inbox, KanbanSquare, LayoutList, Link2, Search, X } from 'lucide-react';
+import KanbanBoard from '@/app/components/KanbanBoard';
 import { Alert } from '@/lib/sweetalert';
 import ApplicationCard from '@/app/components/ApplicationCard';
 import ExportModal from '@/app/components/ExportModal';
@@ -67,6 +68,9 @@ export default function ApplicationList({
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [showEmailBanner, setShowEmailBanner] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [viewMode, setViewMode] = useState<'list' | 'kanban'>('list');
+  const [showArchived, setShowArchived] = useState(false);
   const { canExportCSV, isStarter } = usePlanStatus();
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || (typeof window !== 'undefined' ? window.location.origin : '');
 
@@ -137,9 +141,13 @@ export default function ApplicationList({
 
       try {
         const query = new URLSearchParams();
-        if (role) query.set('role', role);
-        if (sort) query.set('sort', sort);
-        if (selectedJobId) query.set('job_id', selectedJobId);
+        if (showArchived) {
+          query.set('archived', '1');
+        } else {
+          if (role) query.set('role', role);
+          if (sort) query.set('sort', sort);
+          if (selectedJobId) query.set('job_id', selectedJobId);
+        }
 
         const response = await apiFetch(`/applications?${query.toString()}`, { method: 'GET' });
         setApplications(response.data);
@@ -175,7 +183,7 @@ export default function ApplicationList({
     };
 
     void loadApplications();
-  }, [role, sort, selectedJobId]);
+  }, [role, sort, selectedJobId, showArchived]);
 
   const clearJobFilter = () => {
     setSelectedJobId(null);
@@ -192,16 +200,33 @@ export default function ApplicationList({
     rejected: applications.filter((a) => a.status === 'rejected').length,
   }), [applications]);
 
-  const filteredApplications = useMemo(() => {
-    if (statusFilter === 'all') return applications;
-    return applications.filter((a) => a.status === statusFilter);
-  }, [applications, statusFilter]);
+  const searchFilter = (a: Application) => {
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.trim().toLowerCase();
+    return (
+      a.nom?.toLowerCase().includes(q) ||
+      a.email?.toLowerCase().includes(q) ||
+      a.role?.toLowerCase().includes(q)
+    );
+  };
 
-  const handleStatusUpdated = (updatedApplication: Pick<Application, 'id' | 'status' | 'status_label' | 'status_color'>) => {
+  const filteredApplications = useMemo(() => {
+    const byStatus = statusFilter === 'all' ? applications : applications.filter((a) => a.status === statusFilter);
+    return byStatus.filter(searchFilter);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [applications, statusFilter, searchQuery]);
+
+  const kanbanApplications = useMemo(
+    () => applications.filter(searchFilter),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [applications, searchQuery],
+  );
+
+  const handleStatusUpdated = (updatedApplication: Pick<Application, 'id' | 'status' | 'status_label' | 'status_color' | 'interview_date' | 'interview_location'>) => {
     setApplications((previous) =>
       previous.map((application) =>
         application.id === updatedApplication.id
-          ? { ...application, status: updatedApplication.status, status_label: updatedApplication.status_label, status_color: updatedApplication.status_color }
+          ? { ...application, ...updatedApplication }
           : application,
       ),
     );
@@ -247,85 +272,127 @@ export default function ApplicationList({
       style={{ fontFamily: 'Inter, -apple-system, sans-serif' }}
     >
       {/* Header card */}
-      <div className="rounded-[12px] border border-[#E5E7EB] bg-white p-5 shadow-sm sm:p-6">
-        <div className="flex flex-col gap-5">
+      <div className="overflow-hidden rounded-2xl border border-[#E5E5E5] bg-white shadow-sm">
 
-          {/* Title + actions row */}
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <h1 className="text-[22px] font-semibold tracking-[-0.02em] text-[#111827]">Candidatures</h1>
-              <span className="rounded-full bg-[#FFF4EE] px-2.5 py-0.5 text-[13px] font-semibold text-[#F2600C]">
+        {/* Top row: title + actions */}
+        <div className="flex flex-wrap items-center justify-between gap-3 px-5 pt-5 pb-4 sm:px-6 sm:pt-6">
+          <div className="flex items-center gap-3">
+            <h1 className="text-[22px] font-extrabold tracking-[-0.025em] text-[#0E0E10]">Candidatures</h1>
+            {total > 0 && (
+              <span className="rounded-full bg-[#FFF4EE] px-2.5 py-0.5 text-[13px] font-bold text-[#F2600C]">
                 {total}
               </span>
-            </div>
-
-            <div className="flex items-center gap-2">
+            )}
+            {/* View toggle — hidden in archived mode */}
+            {!showArchived && <div className="flex items-center gap-0.5 rounded-lg border border-[#E5E5E5] bg-[#FAFAFA] p-0.5">
               <button
                 type="button"
-                onClick={() => void copyApplyLink()}
-                disabled={!company?.slug}
-                className="inline-flex items-center gap-2 rounded-[8px] border border-[#E5E7EB] bg-white px-3.5 py-2 text-sm font-medium text-[#374151] transition hover:border-[#D1D5DB] hover:bg-[#F9FAFB] disabled:cursor-not-allowed disabled:opacity-50"
+                onClick={() => setViewMode('list')}
+                title="Vue liste"
+                className={`flex items-center rounded-md p-1.5 transition ${viewMode === 'list' ? 'bg-white shadow-sm text-[#0E0E10]' : 'text-[#9CA3AF] hover:text-[#6B7280]'}`}
               >
-                <Link2 size={15} />
-                Copier mon lien
+                <LayoutList size={15} />
               </button>
-
               <button
                 type="button"
-                onClick={() => {
-                  if (isStarter && !canExportCSV) {
-                    setIsUpgradeModalOpen(true);
-                    return;
-                  }
-                  setIsExportModalOpen(true);
-                }}
-                disabled={isExporting}
-                title={isStarter && !canExportCSV ? 'Fonctionnalité Pro' : undefined}
-                className="inline-flex items-center gap-2 rounded-[8px] bg-[#F2600C] px-3.5 py-2 text-sm font-medium text-white transition hover:bg-[#D44F08] disabled:cursor-not-allowed disabled:opacity-60"
+                onClick={() => setViewMode('kanban')}
+                title="Vue Kanban"
+                className={`flex items-center rounded-md p-1.5 transition ${viewMode === 'kanban' ? 'bg-white shadow-sm text-[#F2600C]' : 'text-[#9CA3AF] hover:text-[#6B7280]'}`}
               >
-                {isExporting ? (
-                  <>
-                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/35 border-t-white" />
-                    Export en cours...
-                  </>
-                ) : (
-                  <>
-                    <Download size={15} />
-                    Exporter CSV
-                  </>
-                )}
+                <KanbanSquare size={15} />
               </button>
-            </div>
+            </div>}
           </div>
 
-          {/* Email banner */}
-          {showEmailBanner && (
-            <div className="rounded-r-[8px] border-l-4 border-l-[#F2600C] bg-[#FFF4EE] px-4 py-3">
-              <div className="flex items-start justify-between gap-4">
-                <p className="text-[13px] leading-relaxed text-[#1A1A2E]">
-                  Les candidats reçoivent automatiquement un email de confirmation, puis une notification à chaque changement de statut.
-                  <button
-                    type="button"
-                    onClick={() => void openEmailDetails()}
-                    className="ml-2 font-medium text-[#F2600C] transition hover:text-[#D44F08]"
-                  >
-                    En savoir plus
-                  </button>
-                </p>
-                <button
-                  type="button"
-                  onClick={hideEmailBanner}
-                  className="shrink-0 text-[#6B7280] transition hover:text-[#1A1A2E]"
-                  aria-label="Masquer la bannière email"
-                >
-                  ×
-                </button>
-              </div>
-            </div>
-          )}
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => void copyApplyLink()}
+              disabled={!company?.slug}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-[#E5E5E5] bg-white px-3.5 py-2 text-[13px] font-medium text-[#374151] transition hover:border-[#D1D5DB] hover:bg-[#FAFAFA] disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              <Link2 size={14} />
+              Copier mon lien
+            </button>
 
-          {/* Status filter pills */}
-          <div className="flex flex-nowrap gap-2 overflow-x-auto pb-1">
+            <button
+              type="button"
+              onClick={() => {
+                if (isStarter && !canExportCSV) {
+                  setIsUpgradeModalOpen(true);
+                  return;
+                }
+                setIsExportModalOpen(true);
+              }}
+              disabled={isExporting}
+              title={isStarter && !canExportCSV ? 'Fonctionnalité Pro' : undefined}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-[#F2600C] px-3.5 py-2 text-[13px] font-semibold text-white transition hover:bg-[#D44F08] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {isExporting ? (
+                <>
+                  <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                  Exportation...
+                </>
+              ) : (
+                <>
+                  <Download size={14} />
+                  Exporter CSV
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* Email info banner */}
+        {showEmailBanner && (
+          <div className="mx-5 mb-4 flex items-start gap-3 rounded-xl border border-[#FFD5C2] bg-[#FFF4EE] px-4 py-3 sm:mx-6">
+            <p className="flex-1 text-[12.5px] leading-relaxed text-[#0E0E10]">
+              <span className="font-semibold">Emails automatiques activés —</span> chaque candidat reçoit une confirmation immédiate, puis une notification à chaque changement de statut.{' '}
+              <button
+                type="button"
+                onClick={() => void openEmailDetails()}
+                className="font-semibold text-[#F2600C] transition hover:text-[#D44F08] hover:underline"
+              >
+                Voir les détails
+              </button>
+            </p>
+            <button
+              type="button"
+              onClick={hideEmailBanner}
+              className="mt-0.5 shrink-0 rounded p-0.5 text-[#9CA3AF] transition hover:text-[#0E0E10]"
+              aria-label="Masquer"
+            >
+              <X size={13} />
+            </button>
+          </div>
+        )}
+
+        {/* Search bar */}
+        <div className="mx-5 mb-3 sm:mx-6">
+          <div className="relative">
+            <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF]" />
+            <input
+              type="search"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Rechercher par nom, email ou poste…"
+              className="w-full rounded-xl border border-[#E5E5E5] bg-[#FAFAFA] py-2.5 pl-9 pr-4 text-sm text-[#0E0E10] outline-none transition focus:border-[#F2600C] focus:bg-white focus:ring-2 focus:ring-[#F2600C]/15 placeholder:text-[#9CA3AF]"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 rounded p-0.5 text-[#9CA3AF] hover:text-[#0E0E10]"
+              >
+                <X size={13} />
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Status filter tabs — list mode only, not when showing archived */}
+        {viewMode === 'list' && !showArchived && <div className="border-t border-[#F0F0F0] px-5 sm:px-6">
+          <div className="flex flex-nowrap gap-0 overflow-x-auto">
             {STATUS_FILTERS.map((filter) => {
               const count = statusCounts[filter.value];
               const isActive = statusFilter === filter.value;
@@ -334,94 +401,120 @@ export default function ApplicationList({
                   key={filter.value}
                   type="button"
                   onClick={() => setStatusFilter(filter.value)}
-                  className={`inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 py-1.5 text-[13px] font-medium transition ${
+                  className={`relative inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap px-4 py-3.5 text-[13px] font-medium transition ${
                     isActive
-                      ? 'bg-[#111827] text-white shadow-sm'
-                      : 'bg-[#F3F4F6] text-[#6B7280] hover:bg-[#E5E7EB]'
+                      ? 'text-[#F2600C]'
+                      : 'text-[#6B7280] hover:text-[#0E0E10]'
                   }`}
                 >
                   {filter.label}
-                  <span className={`rounded-full px-1.5 py-0.5 text-[11px] font-semibold leading-none ${
-                    isActive ? 'bg-white/20 text-white' : 'bg-white text-[#374151]'
+                  <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold leading-none ${
+                    isActive
+                      ? 'bg-[#FFF4EE] text-[#F2600C]'
+                      : 'bg-[#F0F0F0] text-[#9CA3AF]'
                   }`}>
                     {count}
                   </span>
+                  {isActive && (
+                    <span className="absolute bottom-0 left-0 right-0 h-[2px] rounded-t-full bg-[#F2600C]" />
+                  )}
                 </button>
               );
             })}
           </div>
+        </div>}
 
-          {/* Role + sort filters */}
-          <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
-            <div className="flex items-center gap-2">
-              <span className="text-[12px] font-semibold uppercase tracking-wide text-[#9CA3AF]">Rôle</span>
-              <div className="flex items-center gap-1.5">
-                {[ALL_ROLES_FILTER, ...knownRoles.map((value) => ({ value, label: value }))].map((item) => (
-                  <button
-                    key={item.value}
-                    type="button"
-                    onClick={() => setRole(item.value)}
-                    className={`rounded-full px-3 py-1 text-[13px] font-medium transition ${
-                      role === item.value
-                        ? 'bg-[#F2600C] text-white'
-                        : 'border border-[#E5E7EB] text-[#6B7280] hover:border-[#D1D5DB]'
-                    }`}
-                  >
-                    {item.label}
-                  </button>
-                ))}
-              </div>
-            </div>
+        {/* Archived toggle */}
+        <div className="border-t border-[#F0F0F0] px-5 py-2 sm:px-6">
+          <button
+            type="button"
+            onClick={() => {
+              setShowArchived((prev) => !prev);
+              setSearchQuery('');
+              setStatusFilter('all');
+            }}
+            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[12px] font-medium transition ${
+              showArchived
+                ? 'bg-[#0E0E10] text-white'
+                : 'border border-[#E5E5E5] text-[#6B7280] hover:border-[#D1D5DB] hover:text-[#0E0E10]'
+            }`}
+          >
+            {showArchived ? '← Revenir' : 'Archivées'}
+          </button>
+        </div>
 
-            <div className="ml-auto flex items-center gap-2">
-              <span className="text-[12px] font-semibold uppercase tracking-wide text-[#9CA3AF]">Tri</span>
-              {[{ value: 'date', label: 'Date' }, { value: 'score', label: 'Score' }].map((item) => (
-                <button
-                  key={item.value}
-                  type="button"
-                  onClick={() => setSort(item.value)}
-                  className={`text-[13px] font-medium transition ${
-                    sort === item.value
-                      ? 'font-semibold text-[#111827] underline underline-offset-4'
-                      : 'text-[#9CA3AF] hover:text-[#6B7280]'
-                  }`}
-                >
-                  {item.label}
-                </button>
-              ))}
-            </div>
+        {/* Role + sort filters — list mode only, not when showing archived */}
+        {viewMode === 'list' && !showArchived &&
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[#F0F0F0] bg-[#FAFAFA] px-5 py-3 sm:px-6">
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#9CA3AF]">Rôle</span>
+            {[ALL_ROLES_FILTER, ...knownRoles.map((value) => ({ value, label: value }))].map((item) => (
+              <button
+                key={item.value}
+                type="button"
+                onClick={() => setRole(item.value)}
+                className={`rounded-full px-2.5 py-1 text-[12px] font-medium transition ${
+                  role === item.value
+                    ? 'bg-[#F2600C] text-white shadow-sm'
+                    : 'border border-[#E5E5E5] bg-white text-[#6B7280] hover:border-[#D1D5DB] hover:text-[#0E0E10]'
+                }`}
+              >
+                {item.label}
+              </button>
+            ))}
           </div>
 
-          {/* Active job filter chip */}
-          {selectedJobId && (
-            <div className="flex items-center gap-2">
-              <span className="rounded-full bg-[#EFF6FF] px-3 py-1 text-[12px] font-medium text-[#2563EB]">
-                {selectedJobTitle}
-              </span>
+          <div className="flex items-center gap-1 rounded-lg border border-[#E5E5E5] bg-white p-0.5">
+            <ArrowUpDown size={12} className="ml-2 text-[#9CA3AF]" />
+            {[{ value: 'date', label: 'Date' }, { value: 'score', label: 'Score' }].map((item) => (
+              <button
+                key={item.value}
+                type="button"
+                onClick={() => setSort(item.value)}
+                className={`rounded-md px-3 py-1.5 text-[12px] font-medium transition ${
+                  sort === item.value
+                    ? 'bg-[#0E0E10] text-white shadow-sm'
+                    : 'text-[#6B7280] hover:text-[#0E0E10]'
+                }`}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+        </div>}
+
+        {/* Active job filter chip */}
+        {selectedJobId && (
+          <div className="flex items-center gap-2 border-t border-[#F0F0F0] bg-[#FAFAFA] px-5 py-2.5 sm:px-6">
+            <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#9CA3AF]">Poste</span>
+            <div className="flex items-center gap-1.5 rounded-full border border-[#DBEAFE] bg-[#EFF6FF] pl-3 pr-1.5 py-0.5">
+              <span className="text-[12px] font-semibold text-[#2563EB]">{selectedJobTitle}</span>
               <button
                 type="button"
                 onClick={clearJobFilter}
-                className="rounded-full border border-[#E5E7EB] px-3 py-1 text-[12px] font-medium text-[#374151] transition hover:border-[#D1D5DB]"
+                className="flex h-4 w-4 items-center justify-center rounded-full text-[#93C5FD] transition hover:bg-[#BFDBFE] hover:text-[#1D4ED8]"
+                aria-label="Supprimer le filtre"
               >
-                × Voir tous
+                <X size={10} />
               </button>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       {/* Loading skeletons */}
       {isLoading && (
         <div className="space-y-3">
           {Array.from({ length: 4 }).map((_, index) => (
-            <div key={index} className="rounded-[12px] border border-[#E5E7EB] bg-white p-6">
+            <div key={index} className="rounded-2xl border border-[#E5E5E5] bg-white p-5">
               <div className="flex gap-4">
-                <div className="h-11 w-11 animate-pulse rounded-full bg-[#E5E7EB]" />
-                <div className="flex-1 space-y-3">
-                  <div className="h-4 w-40 animate-pulse rounded-full bg-[#E5E7EB]" />
-                  <div className="h-3 w-64 animate-pulse rounded-full bg-[#E5E7EB]" />
-                  <div className="h-3 w-48 animate-pulse rounded-full bg-[#E5E7EB]" />
+                <div className="h-11 w-11 shrink-0 animate-pulse rounded-full bg-[#F0F0F0]" />
+                <div className="flex-1 space-y-3 pt-1">
+                  <div className="h-4 w-44 animate-pulse rounded-full bg-[#F0F0F0]" />
+                  <div className="h-3 w-64 animate-pulse rounded-full bg-[#F0F0F0]" />
+                  <div className="h-3 w-36 animate-pulse rounded-full bg-[#F0F0F0]" />
                 </div>
+                <div className="h-6 w-20 animate-pulse rounded-full bg-[#F0F0F0]" />
               </div>
             </div>
           ))}
@@ -430,22 +523,42 @@ export default function ApplicationList({
 
       {/* Error */}
       {!isLoading && errorMessage && (
-        <div className="rounded-[12px] border border-[#FECACA] bg-[#FEF2F2] px-4 py-3 text-sm text-[#991B1B]">
+        <div className="rounded-xl border border-[#FECACA] bg-[#FEF2F2] px-5 py-4 text-sm font-medium text-[#991B1B]">
           {errorMessage}
         </div>
       )}
 
-      {/* Empty state */}
-      {!isLoading && !errorMessage && filteredApplications.length === 0 && (
-        <div className="rounded-[12px] border border-dashed border-[#D1D5DB] bg-white px-6 py-14 text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#FFF4EE] text-2xl">📭</div>
-          <p className="text-base font-semibold text-[#111827]">Aucune candidature à afficher.</p>
-          <p className="mt-2 text-sm text-[#6B7280]">Affinez les filtres ou revenez plus tard.</p>
+      {/* Kanban board */}
+      {!isLoading && !errorMessage && viewMode === 'kanban' && (
+        <KanbanBoard applications={kanbanApplications} onStatusUpdated={handleStatusUpdated} />
+      )}
+
+      {/* List mode — empty state */}
+      {!isLoading && !errorMessage && viewMode === 'list' && filteredApplications.length === 0 && (
+        <div className="rounded-2xl border border-dashed border-[#E5E5E5] bg-white px-6 py-16 text-center">
+          <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-[#FFF4EE]">
+            <Inbox size={28} className="text-[#F2600C]" strokeWidth={1.5} />
+          </div>
+          <p className="text-[15px] font-bold text-[#0E0E10]">Aucune candidature</p>
+          <p className="mt-1.5 text-[13px] text-[#9CA3AF]">
+            {statusFilter !== 'all'
+              ? 'Aucune candidature pour ce statut. Essayez un autre filtre.'
+              : 'Partagez votre lien de candidature pour commencer à recevoir des profils.'}
+          </p>
+          {statusFilter !== 'all' && (
+            <button
+              type="button"
+              onClick={() => setStatusFilter('all')}
+              className="mt-4 inline-flex items-center gap-1.5 rounded-lg border border-[#E5E5E5] px-4 py-2 text-[13px] font-medium text-[#6B7280] transition hover:border-[#D1D5DB] hover:text-[#0E0E10]"
+            >
+              Voir toutes les candidatures
+            </button>
+          )}
         </div>
       )}
 
-      {/* Application cards */}
-      {!isLoading && !errorMessage && filteredApplications.length > 0 && (
+      {/* List mode — application cards */}
+      {!isLoading && !errorMessage && viewMode === 'list' && filteredApplications.length > 0 && (
         <div className="space-y-3">
           {filteredApplications.map((application) => (
             <ApplicationCard key={application.id} application={application} onStatusUpdated={handleStatusUpdated} />
