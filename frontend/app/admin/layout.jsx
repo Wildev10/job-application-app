@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { BarChart2, BriefcaseBusiness, ClipboardList, LayoutDashboard, Settings, Users, X } from 'lucide-react';
+import { BarChart2, BriefcaseBusiness, ChevronRight, ClipboardList, LayoutDashboard, Settings, Users, X } from 'lucide-react';
 import EmailVerificationBanner from '@/components/EmailVerificationBanner';
 import PlanBadge from '@/components/PlanBadge';
 import { PlanStatusProvider, usePlanStatus } from '@/hooks/usePlanStatus';
@@ -18,9 +18,23 @@ const MAIN_LINKS = [
   { href: '/admin/equipe', label: 'Équipe', icon: Users },
 ];
 
-/**
- * Admin shell with responsive sidebar navigation.
- */
+function CompanyAvatar({ name }) {
+  const initials = name
+    ? name
+        .split(' ')
+        .slice(0, 2)
+        .map((w) => w[0])
+        .join('')
+        .toUpperCase()
+    : '?';
+
+  return (
+    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#F2600C] text-sm font-bold text-white shadow-md">
+      {initials}
+    </div>
+  );
+}
+
 function AdminLayoutShell({ children }) {
   const pathname = usePathname();
   const { planLimits, isStarter } = usePlanStatus();
@@ -47,14 +61,10 @@ function AdminLayoutShell({ children }) {
       setIsExpiryBannerDismissed(window.sessionStorage.getItem('pro_expiry_banner_dismissed') === '1');
     };
 
-    const onStorage = () => {
-      syncFromStorage();
-    };
-
     syncFromStorage();
-    window.addEventListener('storage', onStorage);
+    window.addEventListener('storage', syncFromStorage);
 
-    return () => window.removeEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', syncFromStorage);
   }, []);
 
   const fetchPendingCount = useCallback(async () => {
@@ -101,26 +111,34 @@ function AdminLayoutShell({ children }) {
   };
 
   return (
-    <div className="min-h-screen bg-[#FAFAFA]">
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-6 sm:px-6 lg:min-h-screen lg:flex-row lg:gap-8 lg:px-8 lg:py-8">
+    <div className="min-h-screen bg-[#F5F5F5]">
+      <div className="mx-auto flex w-full max-w-7xl flex-col gap-5 px-4 py-5 sm:px-6 lg:min-h-screen lg:flex-row lg:gap-6 lg:px-8 lg:py-8">
+
         {/* Sidebar */}
-        <aside className="flex w-full shrink-0 flex-col rounded-2xl bg-[#0E0E10] p-4 lg:w-72 lg:p-5">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#525252]">Administration</p>
-            <p className="mt-2 text-lg font-extrabold tracking-[-0.02em] text-white">Espace entreprise</p>
-            <p className="mt-1 text-xs text-[#9CA3AF]">{companyName}</p>
-            {memberName && (
-              <p className="mt-1 inline-flex items-center gap-1 rounded-full bg-white/10 px-2 py-0.5 text-[11px] font-medium text-white/70">
-                <Users size={10} />
-                {memberName} — Recruteur
-              </p>
-            )}
+        <aside className="flex w-full shrink-0 flex-col rounded-2xl bg-[#0E0E10] lg:w-64 lg:sticky lg:top-8 lg:self-start">
+          {/* Header */}
+          <div className="p-5 pb-4">
+            <div className="flex items-center gap-3">
+              <CompanyAvatar name={companyName} />
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold leading-tight text-white">{companyName}</p>
+                {memberName ? (
+                  <p className="mt-0.5 truncate text-[11px] text-[#737373]">{memberName} · Recruteur</p>
+                ) : (
+                  <p className="mt-0.5 text-[10px] font-medium uppercase tracking-[0.14em] text-[#525252]">Espace entreprise</p>
+                )}
+              </div>
+            </div>
             <div className="mt-3">
               <PlanBadge plan={planLimits?.plan || 'starter'} size="sm" />
             </div>
           </div>
 
-          <nav className="mt-5 flex flex-col gap-1">
+          {/* Separator */}
+          <div className="mx-4 h-px bg-white/5" />
+
+          {/* Navigation */}
+          <nav className="p-3 flex flex-col gap-0.5">
             {MAIN_LINKS.map((item) => {
               const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
               const Icon = item.icon;
@@ -130,34 +148,46 @@ function AdminLayoutShell({ children }) {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium transition ${
+                  className={`group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-150 ${
                     isActive
-                      ? 'bg-[#F2600C] text-white'
-                      : 'text-[#9CA3AF] hover:bg-white/5 hover:text-white'
+                      ? 'bg-[#F2600C] text-white shadow-lg shadow-[#F2600C]/20'
+                      : 'text-[#737373] hover:bg-white/[0.06] hover:text-white'
                   }`}
                 >
-                  <Icon size={16} strokeWidth={2.25} />
+                  <Icon
+                    size={16}
+                    strokeWidth={isActive ? 2.5 : 2}
+                    className={isActive ? 'text-white' : 'text-[#525252] group-hover:text-white transition-colors'}
+                  />
                   <span className="flex-1">{item.label}</span>
                   {showBadge && (
                     <span className={`inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full px-1 text-[10px] font-bold ${isActive ? 'bg-white/25 text-white' : 'bg-[#F2600C] text-white'}`}>
                       {pendingCount > 99 ? '99+' : pendingCount}
                     </span>
                   )}
+                  {isActive && !showBadge && <ChevronRight size={14} className="opacity-60" />}
                 </Link>
               );
             })}
           </nav>
 
-          <div className="mt-6 border-t border-white/5 pt-4 lg:mt-auto">
+          {/* Footer */}
+          <div className="mt-auto p-3 pt-0">
+            <div className="mb-1 mx-1 h-px bg-white/5" />
+
             {isOwner && isStarter && (
-              <div className="mx-2 mb-4 rounded-xl border border-[#F2600C]/20 bg-[#F2600C]/10 p-3">
-                <p className="text-xs font-semibold text-[#F2600C]">✦ Passez au Pro</p>
-                <p className="mt-1 text-xs text-[#F2600C]/70">Postes illimités, stats avancées...</p>
+              <div className="mb-2 rounded-xl border border-[#F2600C]/20 bg-gradient-to-br from-[#F2600C]/10 to-[#F2600C]/5 p-3">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#F2600C]">Passez au Pro</span>
+                  <span className="text-[#F2600C]">✦</span>
+                </div>
+                <p className="mt-1 text-[11px] leading-4 text-[#F2600C]/60">Débloquez postes illimités, stats avancées et export CSV.</p>
                 <Link
                   href="/admin/upgrade"
-                  className="mt-2 inline-flex text-xs font-semibold text-[#F2600C] transition hover:text-white"
+                  className="mt-2.5 flex w-full items-center justify-center gap-1.5 rounded-lg bg-[#F2600C] px-3 py-1.5 text-[11px] font-bold text-white transition hover:bg-[#D44F08]"
                 >
-                  Voir les offres →
+                  Voir les offres
+                  <ChevronRight size={12} />
                 </Link>
               </div>
             )}
@@ -165,14 +195,19 @@ function AdminLayoutShell({ children }) {
             {isOwner && (
               <Link
                 href="/admin/parametres"
-                className={`flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium transition ${
+                className={`group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-150 ${
                   pathname === '/admin/parametres'
-                    ? 'bg-[#F2600C] text-white'
-                    : 'text-[#9CA3AF] hover:bg-white/5 hover:text-white'
+                    ? 'bg-[#F2600C] text-white shadow-lg shadow-[#F2600C]/20'
+                    : 'text-[#737373] hover:bg-white/[0.06] hover:text-white'
                 }`}
               >
-                <Settings size={16} strokeWidth={2.25} />
-                <span>Paramètres</span>
+                <Settings
+                  size={16}
+                  strokeWidth={pathname === '/admin/parametres' ? 2.5 : 2}
+                  className={pathname === '/admin/parametres' ? 'text-white' : 'text-[#525252] group-hover:text-white transition-colors'}
+                />
+                <span className="flex-1">Paramètres</span>
+                {pathname === '/admin/parametres' && <ChevronRight size={14} className="opacity-60" />}
               </Link>
             )}
           </div>
@@ -182,41 +217,42 @@ function AdminLayoutShell({ children }) {
         <main className="min-w-0 flex-1">
           <EmailVerificationBanner />
 
-          {showExpiryBanner ? (
-            <div className="mb-4 flex items-start justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm">
+          {showExpiryBanner && (
+            <div className="mb-4 flex items-start justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm shadow-sm">
               <div>
-                <p className="text-amber-800">
-                  ⚠️ Votre plan Pro expire le {companyExpiryDate.toLocaleDateString('fr-FR')}. Renouvelez maintenant pour ne pas perdre vos fonctionnalités.
+                <p className="font-medium text-amber-800">
+                  ⚠️ Votre plan Pro expire le {companyExpiryDate.toLocaleDateString('fr-FR')}
                 </p>
-                <Link href="/admin/upgrade" className="mt-1 inline-flex font-semibold text-amber-700 hover:text-amber-800">
-                  Renouveler →
+                <p className="mt-0.5 text-xs text-amber-700">Renouvelez maintenant pour ne pas perdre vos fonctionnalités.</p>
+                <Link href="/admin/upgrade" className="mt-1.5 inline-flex items-center gap-1 text-xs font-bold text-amber-700 hover:text-amber-900">
+                  Renouveler <ChevronRight size={12} />
                 </Link>
               </div>
               <button
                 type="button"
                 onClick={dismissExpiryBanner}
-                className="mt-1 rounded p-1 text-amber-700 transition hover:bg-amber-100"
+                className="mt-0.5 rounded-lg p-1.5 text-amber-600 transition hover:bg-amber-100"
                 aria-label="Fermer l'alerte expiration"
               >
-                <X size={16} />
+                <X size={15} />
               </button>
             </div>
-          ) : null}
+          )}
 
-          {impersonationCompanyName ? (
-            <div className="mb-4 flex flex-wrap items-center gap-3 rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
-              <span className="font-semibold">
+          {impersonationCompanyName && (
+            <div className="mb-4 flex flex-wrap items-center gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm shadow-sm">
+              <span className="font-semibold text-red-700">
                 ⚠️ Mode impersonation — Vous visualisez l&apos;espace de {impersonationCompanyName}
               </span>
               <button
                 type="button"
                 onClick={stopImpersonation}
-                className="rounded-md border border-red-300 px-2.5 py-1 text-xs font-semibold text-red-700 hover:bg-red-100"
+                className="rounded-lg border border-red-200 px-3 py-1 text-xs font-semibold text-red-700 transition hover:bg-red-100"
               >
                 Quitter
               </button>
             </div>
-          ) : null}
+          )}
 
           {children}
         </main>
@@ -225,9 +261,6 @@ function AdminLayoutShell({ children }) {
   );
 }
 
-/**
- * Wrap admin layout content with plan status context.
- */
 export default function AdminLayout({ children }) {
   return (
     <PlanStatusProvider>
