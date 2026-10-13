@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { ChevronDown } from 'lucide-react';
 import { Alert } from '@/lib/sweetalert';
 import type { ApiError, Application, ApplicationStatus } from '@/app/types/application';
 import { apiFetch } from '@/lib/api';
@@ -19,6 +20,14 @@ const STATUS_OPTIONS: Array<{ value: ApplicationStatus; label: string }> = [
   { value: 'accepted', label: 'Accepté' },
   { value: 'rejected', label: 'Refusé' },
 ];
+
+const STATUS_TONES: Record<ApplicationStatus, { pill: string; dot: string; icon: string }> = {
+  pending:   { pill: 'border-[#E5E7EB] bg-[#F9FAFB] text-[#374151] hover:border-[#D1D5DB]', dot: 'bg-[#9CA3AF]', icon: 'text-[#9CA3AF]' },
+  reviewing: { pill: 'border-[#DBEAFE] bg-[#EFF6FF] text-[#1D4ED8] hover:border-[#BFDBFE]', dot: 'bg-[#3B82F6]', icon: 'text-[#60A5FA]' },
+  interview: { pill: 'border-[#FDE68A] bg-[#FFFBEB] text-[#92400E] hover:border-[#FCD34D]', dot: 'bg-[#F59E0B]', icon: 'text-[#D97706]' },
+  accepted:  { pill: 'border-[#A7F3D0] bg-[#ECFDF5] text-[#065F46] hover:border-[#6EE7B7]', dot: 'bg-[#10B981]', icon: 'text-[#059669]' },
+  rejected:  { pill: 'border-[#FECACA] bg-[#FEF2F2] text-[#991B1B] hover:border-[#FCA5A5]', dot: 'bg-[#EF4444]', icon: 'text-[#DC2626]' },
+};
 
 /**
  * Select and confirm status changes, then persist with the Laravel API.
@@ -153,22 +162,34 @@ export default function StatusSelector({ applicationId, currentStatus, onStatusU
     }
   };
 
+  const tone = STATUS_TONES[selectedStatus] ?? STATUS_TONES.pending;
+
   return (
-    <div className="inline-flex items-center gap-2">
+    <div className="relative inline-flex w-fit">
+      <span
+        aria-hidden="true"
+        className={`pointer-events-none absolute left-3 top-1/2 h-1.5 w-1.5 -translate-y-1/2 rounded-full ${tone.dot}`}
+      />
       <select
         value={selectedStatus}
         onChange={(event) => void handleStatusChange(event.target.value as ApplicationStatus)}
         disabled={isUpdating}
-        className="min-w-40 rounded-full border border-[#E5E5E5] bg-white px-4 py-2 text-xs font-semibold text-[#0E0E10] outline-none transition focus:border-[#F2600C] focus:ring-2 focus:ring-[#F2600C]/15 disabled:cursor-not-allowed disabled:opacity-60"
+        aria-label="Statut de la candidature"
+        className={`min-w-[148px] cursor-pointer appearance-none rounded-full border py-1.5 pl-7 pr-8 text-[12px] font-semibold outline-none transition focus-visible:ring-2 focus-visible:ring-[#F2600C]/25 disabled:cursor-wait disabled:opacity-70 ${tone.pill}`}
       >
         {STATUS_OPTIONS.map((option) => (
-          <option key={option.value} value={option.value}>
+          <option key={option.value} value={option.value} className="bg-white text-[#0E0E10]">
             {option.label}
           </option>
         ))}
       </select>
-
-      {isUpdating && <span className="text-xs text-[#9CA3AF]">Mise à jour...</span>}
+      <span aria-hidden="true" className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2">
+        {isUpdating ? (
+          <span className={`block h-3 w-3 animate-spin rounded-full border-[1.5px] border-current border-t-transparent ${tone.icon}`} />
+        ) : (
+          <ChevronDown size={13} strokeWidth={2.5} className={tone.icon} />
+        )}
+      </span>
     </div>
   );
 }

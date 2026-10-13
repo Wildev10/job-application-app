@@ -144,7 +144,7 @@ function DroppableColumn({
   const { setNodeRef } = useDroppable({ id: column.id });
 
   return (
-    <div className="flex min-w-[210px] flex-1 flex-col gap-2">
+    <div className="flex min-w-[168px] flex-1 flex-col gap-2">
       <div className={`flex items-center justify-between rounded-xl border px-3 py-2 ${column.headerClass}`}>
         <span className="text-[11px] font-bold uppercase tracking-[0.1em]">{column.label}</span>
         <span className="rounded-full bg-white/70 px-2 py-0.5 text-[11px] font-bold">{applications.length}</span>
